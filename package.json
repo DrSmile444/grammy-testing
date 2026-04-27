@@ -1,9 +1,18 @@
 {
-  "name": "typescript-boilerplate",
-  "version": "1.5.0",
-  "main": "src/main.ts",
+  "name": "@grammyjs/testing",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts"
+    },
+    "./low-level": {
+      "types": "./src/low-level.ts",
+      "import": "./src/low-level.ts"
+    }
+  },
   "scripts": {
-    "start": "npx tsx ./src/main.ts",
     "lint": "cross-env TIMING=1 npx eslint",
     "lint:fix": "npm run lint -- --fix",
     "lint:debug": "npm run lint -- --debug",
@@ -19,19 +28,23 @@
     "postinstall": "./scripts/link-codex-skills.sh"
   },
   "keywords": [
-    "typescript",
-    "boilerplate",
-    "eslint",
-    "prettier",
-    "modern",
+    "grammy",
+    "telegram",
+    "bot",
+    "testing",
+    "test-framework",
     "vitest",
-    "template"
+    "jest"
   ],
   "author": "Dmytro Vakulenko",
-  "license": "ISC",
-  "description": "Modern, scalable TypeScript boilerplate for Node.js projects with strict linting, Prettier formatting, modular structure, and Vitest testing.",
+  "license": "MIT",
+  "description": "Testing framework for grammY-based Telegram bots. Drives a real bot in-process, captures every outgoing API call, and dispatches synthetic updates.",
+  "peerDependencies": {
+    "grammy": "^1.42.0"
+  },
   "dependencies": {
-    "typed-dotenv": "^10.0.2"
+    "deepmerge": "^4.3.1",
+    "type-fest": "^5.6.0"
   },
   "devDependencies": {
     "@darraghor/eslint-plugin-nestjs-typed": "^7.1.30",
@@ -44,7 +57,6 @@
     "@vitest/coverage-v8": "^4.1.4",
     "@vitest/eslint-plugin": "^1.6.16",
     "cross-env": "^10.1.0",
-    "deepmerge": "^4.3.1",
     "eslint": "^10.2.1",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-naming": "^1.9.0",
@@ -68,6 +80,7 @@
     "eslint-plugin-unicorn": "^64.0.0",
     "eslint-plugin-unused-imports": "^4.4.1",
     "globals": "^17.5.0",
+    "grammy": "^1.42.0",
     "json5": "^2.2.3",
     "prettier": "^3.8.3",
     "type-fest": "^5.6.0",
@@ -85,6 +98,12 @@
     },
     "eslint-plugin-import": {
       "eslint": "^10"
+    },
+    "eslint-config-naming": {
+      "typescript": "^6"
+    },
+    "eslint-plugin-lintlord": {
+      "typescript": "^6"
     }
   },
   "directories": {
