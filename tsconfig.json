@@ -3,21 +3,10 @@
   "compilerOptions": {
     "moduleResolution": "bundler",
     "target": "esnext",
+    "module": "esnext",
     "strict": true,
     "allowJs": true,
     "skipLibCheck": true,
-    "paths": {
-      "@config/*": ["./src/config/*"],
-      "@decorators/*": ["./src/decorators/*"],
-      "@fixtures/*": ["./src/fixtures/*"],
-      "@interfaces/*": ["./src/interfaces/*"],
-      "@interfaces": ["./src/interfaces"],
-      "@models/*": ["./src/models/*"],
-      "@pages/*": ["./src/pages/*"],
-      "@test-data/*": ["./src/test-data/*"],
-      "@tests/*": ["./src/tests/*"],
-      "@utils/*": ["./src/utils/*"]
-    },
     "resolveJsonModule": true,
     "esModuleInterop": true
   },

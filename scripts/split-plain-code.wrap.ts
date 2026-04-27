@@ -1,4 +1,4 @@
-/* eslint-disable import/no-extraneous-dependencies,unicorn/no-process-exit,security/detect-non-literal-fs-filename */
+/* eslint-disable unicorn/no-process-exit,security/detect-non-literal-fs-filename */
 import { spawn } from 'node:child_process';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';

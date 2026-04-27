@@ -12,3 +12,4 @@ projectStructure.cache.json
 .env
 coverage
 .agents
+docs/project.md
