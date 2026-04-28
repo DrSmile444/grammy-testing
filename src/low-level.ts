@@ -1,4 +1,4 @@
-/* eslint-disable no-barrel-files/no-barrel-files -- intentional escape-hatch barrel */
+ 
 
 export * from './index';
 

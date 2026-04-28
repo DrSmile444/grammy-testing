@@ -1,4 +1,4 @@
-/* eslint-disable no-barrel-files/no-barrel-files -- intentional public-API barrel */
+ 
 
 export { GrammyError } from 'grammy';
 

@@ -1,7 +1,7 @@
 /* eslint-disable max-classes-per-file -- RepliesInbox is tightly coupled to Chats */
 /* eslint-disable prefer-const -- newUser uses let-then-assign for closure capture */
 /* eslint-disable no-param-reassign -- attachBot intentionally hands bot to each chat */
-/* eslint-disable @typescript-eslint/no-magic-numbers -- canonical fixtures */
+ 
 
 import type { Bot, Context } from 'grammy';
 
@@ -123,7 +123,7 @@ export class Chats<TContext extends Context = Context> {
     this.bot = bot;
 
     for (const chat of this.chats.values()) {
-      // eslint-disable-next-line no-param-reassign -- intentional: hand bot to each chat
+       
       chat[setBotRef](bot);
     }
   }
@@ -132,7 +132,7 @@ export class Chats<TContext extends Context = Context> {
     const id = profile.id ?? this.ids.nextUserId();
     // Two-phase: declare `user` so closures capture it by reference,
     // then assign before any closure can fire.
-    // eslint-disable-next-line prefer-const -- intentional: closures below capture by reference
+     
     let user!: User<TContext>;
 
     user = new User<TContext>(
