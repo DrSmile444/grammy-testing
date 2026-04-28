@@ -5,16 +5,31 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     },
     "./low-level": {
-      "types": "./dist/low-level.d.ts",
-      "import": "./dist/low-level.js",
-      "require": "./dist/low-level.cjs"
+      "import": {
+        "types": "./dist/low-level.d.ts",
+        "default": "./dist/low-level.js"
+      },
+      "require": {
+        "types": "./dist/low-level.d.cts",
+        "default": "./dist/low-level.cjs"
+      }
     }
   },
   "scripts": {
@@ -27,6 +42,7 @@
     "typecheck": "npx tsc --noEmit",
     "test": "npx vitest",
     "test:run": "npx vitest run",
+    "test:cjs": "node -e \"const t=require('./dist/index.cjs');const ll=require('./dist/low-level.cjs');[t.prepareBot,t.OutgoingRequests,t.mockSession,ll.MessagePrivateMockUpdate].forEach(f=>{if(typeof f!=='function')throw new Error('CJS export missing: '+f)});console.log('CJS exports OK')\"",
     "test:coverage": "npx vitest run --coverage",
     "bump-version": "npx tsx ./scripts/bump-version.script.ts && npm audit fix",
     "parse-llm-response": "npx tsx ./scripts/split-plain-code.wrap.ts",
