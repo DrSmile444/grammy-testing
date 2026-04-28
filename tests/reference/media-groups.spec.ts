@@ -10,10 +10,7 @@
  *
  * v0.2 API expression: user.sendMediaGroup([{ caption?, photo?, ... }, ...]).
  *
- * v0.2.x gaps: media verbs themselves (sendPhoto, sendDocument) are not
- * yet implemented — sendMediaGroup items carry placeholder photo arrays.
- * Bots that read `message.photo[0].file_id` won't get a stable file_id
- * here. Suggested proposal: add-media-verbs.
+ * v0.2.x gaps: none for this pattern category.
  */
 
 import { Bot } from 'grammy';
@@ -79,5 +76,24 @@ describe('reference: media groups', () => {
 
     expect(seen).toHaveLength(4);
     expect(new Set(seen).size).toBe(2);
+  });
+
+  it('sendMediaGroup photo string produces a populated PhotoSize stub', async () => {
+    const bot = new Bot('test-token');
+    const fileIds: (string | undefined)[] = [];
+
+    bot.on('message', (context) => {
+      if (context.message.media_group_id) {
+        fileIds.push(context.message.photo?.[0]?.file_id);
+      }
+    });
+
+    const { chats } = await prepareBot(bot);
+    const user = chats.newUser();
+
+    await user.sendMediaGroup([{ photo: 'a.jpg' }, { photo: 'b.jpg' }]);
+
+    expect(fileIds[0]).toBe('a.jpg');
+    expect(fileIds[1]).toBe('b.jpg');
   });
 });
