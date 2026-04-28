@@ -18,6 +18,8 @@ export class IdGenerator {
 
   private mediaGroupCounter = 1;
 
+  private fileCounter = 1;
+
   nextUserId(): number {
     return this.userCounter++;
   }
@@ -40,5 +42,9 @@ export class IdGenerator {
 
   nextMediaGroupId(): string {
     return `mg-${this.mediaGroupCounter++}`;
+  }
+
+  nextFileId(): string {
+    return `stub-file-${this.fileCounter++}`;
   }
 }

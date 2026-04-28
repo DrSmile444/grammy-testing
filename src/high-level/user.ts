@@ -7,6 +7,7 @@ import type { AnyChat } from './chat';
 import { dispatchEditedMessage, dispatchServiceMessage, dispatchTextMessage } from './dispatch';
 import type { Group } from './group';
 import type { IdGenerator } from './id-generator';
+import { makeDocumentStub, makePhotoSizeStub, makeVideoStub } from './media-stubs';
 import type { Supergroup } from './supergroup';
 import type { Membership } from './types';
 
@@ -29,6 +30,21 @@ export interface SendTextOptions<TContext extends Context = Context> {
 
 export interface SendForwardedOptions<TContext extends Context = Context> {
   forwardOrigin: MessageOrigin;
+  chat?: AnyChat<TContext>;
+}
+
+export interface SendPhotoOptions<TContext extends Context = Context> {
+  caption?: string;
+  chat?: AnyChat<TContext>;
+}
+
+export interface SendDocumentOptions<TContext extends Context = Context> {
+  caption?: string;
+  chat?: AnyChat<TContext>;
+}
+
+export interface SendVideoOptions<TContext extends Context = Context> {
+  caption?: string;
   chat?: AnyChat<TContext>;
 }
 
@@ -208,6 +224,99 @@ export class User<TContext extends Context = Context> {
     return this.sendText(text, { entities, chat: options.chat });
   }
 
+  async sendPhoto(
+    file?: string,
+    options: SendPhotoOptions<TContext> = {},
+  ): Promise<void> {
+    const fileId = file ?? this.ctx.ids.nextFileId();
+
+    const targetChat: Chat = options.chat
+      ? this.ctx.resolveChatToTelegram(options.chat)
+      : this.ctx.defaultPrivateChat();
+
+    const message: Message = {
+      message_id: this.ctx.ids.nextMessageId(),
+      date: Math.floor(Date.now() / 1000),
+      chat: targetChat,
+      from: {
+        id: this.id,
+        is_bot: false,
+        first_name: this.first_name,
+        last_name: this.last_name,
+        username: this.username,
+      },
+      photo: [makePhotoSizeStub(fileId)],
+      caption: options.caption,
+    } as Message;
+
+    await this.ctx.bot.handleUpdate({
+      update_id: this.ctx.ids.nextMessageId() + 200_000,
+      message,
+    } as Update);
+  }
+
+  async sendDocument(
+    file?: string,
+    options: SendDocumentOptions<TContext> = {},
+  ): Promise<void> {
+    const fileId = file ?? this.ctx.ids.nextFileId();
+
+    const targetChat: Chat = options.chat
+      ? this.ctx.resolveChatToTelegram(options.chat)
+      : this.ctx.defaultPrivateChat();
+
+    const message: Message = {
+      message_id: this.ctx.ids.nextMessageId(),
+      date: Math.floor(Date.now() / 1000),
+      chat: targetChat,
+      from: {
+        id: this.id,
+        is_bot: false,
+        first_name: this.first_name,
+        last_name: this.last_name,
+        username: this.username,
+      },
+      document: makeDocumentStub(fileId),
+      caption: options.caption,
+    } as Message;
+
+    await this.ctx.bot.handleUpdate({
+      update_id: this.ctx.ids.nextMessageId() + 200_000,
+      message,
+    } as Update);
+  }
+
+  async sendVideo(
+    file?: string,
+    options: SendVideoOptions<TContext> = {},
+  ): Promise<void> {
+    const fileId = file ?? this.ctx.ids.nextFileId();
+
+    const targetChat: Chat = options.chat
+      ? this.ctx.resolveChatToTelegram(options.chat)
+      : this.ctx.defaultPrivateChat();
+
+    const message: Message = {
+      message_id: this.ctx.ids.nextMessageId(),
+      date: Math.floor(Date.now() / 1000),
+      chat: targetChat,
+      from: {
+        id: this.id,
+        is_bot: false,
+        first_name: this.first_name,
+        last_name: this.last_name,
+        username: this.username,
+      },
+      video: makeVideoStub(fileId),
+      caption: options.caption,
+    } as Message;
+
+    await this.ctx.bot.handleUpdate({
+      update_id: this.ctx.ids.nextMessageId() + 200_000,
+      message,
+    } as Update);
+  }
+
   async sendMediaGroup(
     items: UserSendMediaGroupItem<TContext>[],
     sharedOptions: { chat?: AnyChat<TContext> } = {},
@@ -236,7 +345,9 @@ export class User<TContext extends Context = Context> {
         },
         media_group_id: mediaGroupId,
         caption: item.caption,
-        photo: item.photo === undefined ? undefined : [],
+        photo: item.photo ? [makePhotoSizeStub(item.photo)] : undefined,
+        document: item.document ? makeDocumentStub(item.document) : undefined,
+        video: item.video ? makeVideoStub(item.video) : undefined,
       } as Message;
 
       const update: Update = {

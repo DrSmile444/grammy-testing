@@ -13,6 +13,23 @@ import type { IdGenerator } from './id-generator';
 
 export type ParseMode = 'HTML' | 'Markdown' | 'MarkdownV2';
 
+export type MediaType =
+  | 'animation'
+  | 'audio'
+  | 'document'
+  | 'photo'
+  | 'sticker'
+  | 'video'
+  | 'video_note'
+  | 'voice';
+
+export interface ReplyMedia {
+  type: MediaType;
+  fileId: string;
+}
+
+const MEDIA_FIELDS: MediaType[] = ['photo', 'document', 'video', 'audio', 'voice', 'animation', 'sticker', 'video_note'];
+
 export interface ReplyButton {
   text: string;
   callbackData?: string;
@@ -42,6 +59,8 @@ export class Reply<TContext extends Context = Context> {
   readonly entities: MessageEntity[] | undefined;
 
   readonly buttons: ReplyButton[];
+
+  readonly media: ReplyMedia | undefined;
 
   readonly chat: AnyChat<TContext> | undefined;
 
@@ -78,6 +97,7 @@ export class Reply<TContext extends Context = Context> {
     this.replyToMessageId = readReplyToMessageId(rawPayload);
     this.mentionUsernames = collectMentionUsernames(text, this.entities);
     this.buttons = collectButtons(rawPayload);
+    this.media = deriveMedia(rawPayload);
   }
 
   async clickButton(matcher: ReplyClickButtonMatcher | string): Promise<void> {
@@ -131,6 +151,18 @@ export class Reply<TContext extends Context = Context> {
       entities: this.entities,
     } as Message;
   }
+}
+
+function deriveMedia(payload: Record<string, unknown>): ReplyMedia | undefined {
+  for (const type of MEDIA_FIELDS) {
+    const value = payload[type];
+
+    if (value !== undefined) {
+      return { type, fileId: typeof value === 'string' ? value : '[non-string-file]' };
+    }
+  }
+
+  return undefined;
 }
 
 function readReplyToMessageId(payload: Record<string, unknown>): number | undefined {
