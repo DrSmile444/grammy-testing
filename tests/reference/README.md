@@ -31,6 +31,14 @@ Patterns currently expressed via `buildOverwrite()` or low-level `MockUpdate` bu
 
 The proposal-name column is **suggestive**, not binding. When a v0.2.x verb proposal lands that closes a gap, that proposal must (1) update the corresponding reference test to use the new verb, (2) remove the `// v0.2.x gap` tag from the test, and (3) delete the row from this table.
 
+## Plugin interop tests
+
+Plugin ecosystem compatibility lives in **[`tests/plugins/`](../plugins/)**, separate from this suite. That directory contains one spec per supported plugin (`conversations`, `menu`, `parse-mode`, `chat-members`), each with a JSDoc header documenting the recipe and known constraints. See those files for patterns not covered here:
+
+- `@grammyjs/conversations` — multi-step conversations require `client: { fetch: okFetch }` on the Bot constructor; verify control flow via side effects, not `chats.repliesFor`.
+- `@grammyjs/menu` — `reply.clickButton(label)` works with menu plugin buttons despite opaque internal `callback_data`.
+- `@grammyjs/chat-members` — dispatch `chat_member` updates directly via `bot.handleUpdate`; use `MemorySessionStorage` as the adapter.
+
 ## Conventions
 
 - **No domain-specific terminology.** Tests describe testing patterns ("deletes a forwarded message"), not anti-spam business logic ("flags a swindler"). Anti-spam-specific tests stay in the `ua-anti-spam-bot` repository.
