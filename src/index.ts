@@ -70,10 +70,20 @@ export type {
 
 export {
   User,
+  type SendAnimationOptions,
+  type SendAudioOptions,
+  type SendContactOptions,
+  type SendDiceOptions,
   type SendDocumentOptions,
   type SendForwardedOptions,
+  type SendLocationOptions,
   type SendPhotoOptions,
+  type SendPollOptions,
+  type SendStickerOptions,
   type SendTextOptions,
+  type SendVenueOptions,
+  type SendVideoNoteOptions,
   type SendVideoOptions,
+  type SendVoiceOptions,
   type UserProfile,
 } from './high-level/user';
