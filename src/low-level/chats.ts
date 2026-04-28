@@ -1,34 +1,13 @@
-import type { IdleTracker } from './idle';
-import type { OutgoingRequests } from './outgoing-requests';
+import type { Context } from 'grammy';
+
+import type { Chats } from '../high-level/chats';
 
 /**
- * Test-side handle returned from every entry point. Exposes the
- * captured outgoing requests and an async settle helper.
+ * Type alias preserved for v0.1 backward compatibility. Every entry
+ * point now returns the v0.2 `Chats<TContext>` class which still
+ * exposes the v0.1 surface (`outgoing`, `idle`).
  */
-export interface Chats {
-  /**
-   * The {@link OutgoingRequests} collector. Inspect captured calls,
-   * configure overrides, etc.
-   */
-  outgoing: OutgoingRequests;
+export type ChatsHandle<TContext extends Context = Context> = Chats<TContext>;
 
-  /**
-   * Resolve once every promise returned through the testing
-   * transformer has settled. Use this when the bot makes
-   * fire-and-forget API calls (`void ctx.api.sendMessage(...)`)
-   * that need to settle before assertions run.
-   */
-  idle: () => Promise<void>;
-}
-
-/**
- *
- * @param outgoing
- * @param idle
- */
-export function createChats(outgoing: OutgoingRequests, idle: IdleTracker): Chats {
-  return {
-    outgoing,
-    idle: () => idle.idle(),
-  };
-}
+/** v0.1-era public type alias. Keep exported for users still importing it. */
+export type { Chats } from '../high-level/chats';

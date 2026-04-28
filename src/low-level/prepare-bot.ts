@@ -1,7 +1,8 @@
 import type { Api, Bot, Context } from 'grammy';
 
+import { Chats } from '../high-level/chats';
+
 import { genericBotInfo } from './bot-info';
-import { type Chats, createChats } from './chats';
 import { IdleTracker } from './idle';
 import { OutgoingRequests } from './outgoing-requests';
 import type { Responses } from './responses';
@@ -16,8 +17,8 @@ export interface PrepareOptions {
   responses?: Responses;
 }
 
-export interface PrepareBotReturn {
-  chats: Chats;
+export interface PrepareBotReturn<TContext extends Context = Context> {
+  chats: Chats<TContext>;
 }
 
 /**
@@ -25,26 +26,41 @@ export interface PrepareBotReturn {
  * API transformer that captures every call, pre-populates `bot.botInfo`
  * with a generic fixture (so `bot.init()` skips its own `getMe` call),
  * awaits `bot.init()`, and returns a `chats` handle that exposes the
- * captured requests and an async settle helper.
+ * captured requests, an async settle helper, plus the v0.2 orchestrator
+ * surface (`newUser`, `newAdmin`, chat factories, per-user replies inbox).
  * @param bot - The {@link Bot} instance under test.
  * @param options - Optional {@link Responses} map for canned replies.
  * @returns `{ chats }` — `chats.outgoing` for capture inspection,
- *   `chats.idle()` to await fire-and-forget API calls.
+ *   `chats.idle()` to await fire-and-forget API calls,
+ *   `chats.newUser()` / `chats.newAdmin()` etc. for the v0.2 orchestrator.
  */
 export async function prepareBot<
   TContext extends Context = Context,
   TApi extends Api = Api,
   TBot extends Bot<TContext, TApi> = Bot<TContext, TApi>,
->(bot: TBot, options: PrepareOptions = {}): Promise<PrepareBotReturn> {
+>(
+  bot: TBot,
+  options: PrepareOptions = {},
+): Promise<PrepareBotReturn<TContext>> {
   const outgoing = new OutgoingRequests();
   const idle = new IdleTracker();
+  const chats = new Chats<TContext>(outgoing, idle);
 
-  bot.api.config.use(createTransformer({ outgoing, idle, responses: options.responses }));
+  bot.api.config.use(
+    createTransformer({
+      outgoing,
+      idle,
+      responses: options.responses,
+      onCapture: (request) => { chats.deriveFromCapture(request); },
+    }),
+  );
 
   // eslint-disable-next-line no-param-reassign -- intentional: matches the inspiration's pattern of setting fixture botInfo before init
   bot.botInfo = { ...genericBotInfo };
 
   await bot.init();
 
-  return { chats: createChats(outgoing, idle) };
+  chats.attachBot(bot as unknown as Bot<TContext>);
+
+  return { chats };
 }

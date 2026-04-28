@@ -3,13 +3,19 @@ import type { Transformer } from 'grammy';
 import { toGrammyError } from './grammy-error';
 import type { Methods, Payload } from './grammy-types';
 import type { IdleTracker } from './idle';
-import type { OutgoingRequests } from './outgoing-requests';
+import type { OutgoingRequests, Request } from './outgoing-requests';
 import type { Responses } from './responses';
 
 interface TransformerOptions {
   outgoing: OutgoingRequests;
   idle: IdleTracker;
   responses?: Responses;
+  /**
+   * Optional hook invoked synchronously after each request is captured
+   * and before its promise is tracked. Used by the v0.2 high-level
+   * layer to derive `chat.messages` and `user.replies` projections.
+   */
+  onCapture?: (request: Request) => void;
 }
 
 interface OkReturn {
@@ -76,12 +82,14 @@ async function resolveCall<TM extends Methods>(
  * @param options.outgoing - The {@link OutgoingRequests} collector to push captures into.
  * @param options.idle - The {@link IdleTracker} that wraps every returned promise.
  * @param options.responses - Optional canned-response map.
+ * @param options.onCapture
  * @returns A grammY transformer ready for `bot.api.config.use`.
  */
 export function createTransformer({
   outgoing,
   idle,
   responses,
+  onCapture,
 }: TransformerOptions): Transformer {
   return ((
     _previous: unknown,
@@ -89,7 +97,13 @@ export function createTransformer({
     payload: Payload<Methods>,
     signal?: AbortSignal,
   ) => {
-    outgoing.push({ method, payload, signal });
+    const request = { method, payload, signal };
+
+    outgoing.push(request);
+
+    if (onCapture) {
+      onCapture(request);
+    }
 
     return idle.track(resolveCall(outgoing, responses, method, payload));
   }) as Transformer;

@@ -3,8 +3,8 @@ import { Bot, type Composer, type Context } from 'grammy';
 import type { Chats } from './chats';
 import { prepareBot, type PrepareOptions } from './prepare-bot';
 
-export interface PrepareComposerReturn {
-  chats: Chats;
+export interface PrepareComposerReturn<TContext extends Context = Context> {
+  chats: Chats<TContext>;
 }
 
 /**
@@ -21,7 +21,7 @@ export interface PrepareComposerReturn {
 export async function prepareComposer<TContext extends Context = Context>(
   composer: Composer<TContext>,
   options: PrepareOptions = {},
-): Promise<PrepareComposerReturn> {
+): Promise<PrepareComposerReturn<TContext>> {
   const bot = new Bot<TContext>('test-token');
 
   bot.use(composer);

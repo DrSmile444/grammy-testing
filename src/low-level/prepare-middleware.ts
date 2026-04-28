@@ -3,8 +3,8 @@ import { Bot, type Context, type Middleware } from 'grammy';
 import type { Chats } from './chats';
 import { prepareBot, type PrepareOptions } from './prepare-bot';
 
-export interface PrepareMiddlewareReturn {
-  chats: Chats;
+export interface PrepareMiddlewareReturn<TContext extends Context = Context> {
+  chats: Chats<TContext>;
 }
 
 /**
@@ -21,7 +21,7 @@ export interface PrepareMiddlewareReturn {
 export async function prepareMiddleware<TContext extends Context = Context>(
   middleware: Middleware<TContext>,
   options: PrepareOptions = {},
-): Promise<PrepareMiddlewareReturn> {
+): Promise<PrepareMiddlewareReturn<TContext>> {
   const bot = new Bot<TContext>('test-token');
 
   bot.use(middleware);
