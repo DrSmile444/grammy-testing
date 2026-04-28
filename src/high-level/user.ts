@@ -153,6 +153,7 @@ export class User<TContext extends Context = Context> {
   async sendCommand(
     command: string,
     args?: string,
+    options: { chat?: AnyChat<TContext> } = {},
   ): Promise<void> {
     const normalized = command.startsWith('/') ? command : `/${command}`;
     const text = args ? `${normalized} ${args}` : normalized;
@@ -161,7 +162,7 @@ export class User<TContext extends Context = Context> {
       { type: 'bot_command', offset: 0, length: normalized.length },
     ];
 
-    return this.sendText(text, { entities });
+    return this.sendText(text, { entities, chat: options.chat });
   }
 
   async sendMediaGroup(

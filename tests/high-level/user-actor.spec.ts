@@ -99,6 +99,52 @@ describe('User actor', () => {
       expect(entities).toEqual([{ type: 'bot_command', offset: 0, length: 5 }]);
     });
 
+    it('dispatches into a supergroup via options.chat', async () => {
+      const bot = new Bot('test-token');
+      let observedChatId: number | undefined;
+      let observedChatType: string | undefined;
+      let observedEntities: unknown;
+
+      bot.on('message:text', (ctx) => {
+        observedChatId = ctx.chat.id;
+        observedChatType = ctx.chat.type;
+        observedEntities = ctx.message.entities;
+      });
+
+      const { chats } = await prepareBot(bot);
+      const user = chats.newUser();
+      const group = chats.newSupergroup();
+
+      await user.sendCommand('/start', undefined, { chat: group });
+
+      expect(observedChatId).toBe(group.id);
+      expect(observedChatType).toBe('supergroup');
+      expect(observedEntities).toEqual([{ type: 'bot_command', offset: 0, length: 6 }]);
+    });
+
+    it('honors args + options.chat together', async () => {
+      const bot = new Bot('test-token');
+      let observedText: string | undefined;
+      let observedChatId: number | undefined;
+      let observedEntities: unknown;
+
+      bot.on('message:text', (ctx) => {
+        observedText = ctx.message.text;
+        observedChatId = ctx.chat.id;
+        observedEntities = ctx.message.entities;
+      });
+
+      const { chats } = await prepareBot(bot);
+      const user = chats.newUser();
+      const group = chats.newSupergroup();
+
+      await user.sendCommand('/lang', 'en', { chat: group });
+
+      expect(observedText).toBe('/lang en');
+      expect(observedChatId).toBe(group.id);
+      expect(observedEntities).toEqual([{ type: 'bot_command', offset: 0, length: 5 }]);
+    });
+
     it('adds leading slash when missing', async () => {
       const bot = new Bot('test-token');
       let text: string | undefined;
