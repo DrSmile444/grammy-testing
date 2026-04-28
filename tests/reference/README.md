@@ -13,7 +13,7 @@ Files are organized by **pattern category**, not by capability. A test author as
 | [`channel-posts.spec.ts`](./channel-posts.spec.ts) | Channel-as-author posts into a supergroup (Coverage-audit gap #3). |
 | [`media-groups.spec.ts`](./media-groups.spec.ts) | N-update dispatch with shared `media_group_id`; caption-on-first-only; bot-side aggregation by `media_group_id`. |
 | [`membership.spec.ts`](./membership.spec.ts) | `promote` / `restrict` / `changeMemberStatus`; admin-only command guards; restriction-with-`untilDate`. |
-| [`service-messages.spec.ts`](./service-messages.spec.ts) | `new_chat_members` / `left_chat_member` (currently low-level escape hatch — v0.2.x gap). |
+| [`service-messages.spec.ts`](./service-messages.spec.ts) | `new_chat_members` / `left_chat_member` via `user.joinChat` / `user.leaveChat`. |
 | [`sessions.spec.ts`](./sessions.spec.ts) | `mockSession` / `mockChatSession` / `mockState`; cross-call mutation; combined session usage. |
 | [`error-simulation.spec.ts`](./error-simulation.spec.ts) | `failNext` / `failAll` / `respondNext`; rate-limit handling; blocked-user handling. |
 | [`menu-flows.spec.ts`](./menu-flows.spec.ts) | `clickButton` end-to-end flows; chained keyboards; URL-button rejection. |
@@ -31,8 +31,6 @@ Patterns currently expressed via `buildOverwrite()` or low-level `MockUpdate` bu
 | Edited message dispatch | Inline `Update` literal with `edited_message` field | `add-edited-message-dispatch` |
 | Nested reply chains beyond single-level | Inline `Update` with `message.reply_to_message` populated by hand | `add-nested-reply-chains` |
 | Caption-bearing single message (non-media-group) | Currently impossible without media verbs | `add-media-verbs` |
-| `new_chat_members` service message | `NewMemberMockUpdate().build()` | `add-service-message-verbs` |
-| `left_chat_member` service message | `LeftMemberMockUpdate().build()` | `add-service-message-verbs` |
 
 The proposal-name column is **suggestive**, not binding. When a v0.2.x verb proposal lands that closes a gap, that proposal must (1) update the corresponding reference test to use the new verb, (2) remove the `// v0.2.x gap` tag from the test, and (3) delete the row from this table.
 

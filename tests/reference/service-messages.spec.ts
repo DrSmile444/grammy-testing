@@ -7,26 +7,21 @@
  * What this exercises: service messages emitted when users join or leave
  * a chat. Bots routinely delete these or run welcome flows.
  *
- * v0.2 API expression: NONE — this pattern currently uses v0.1 low-level
- * NewMemberMockUpdate / LeftMemberMockUpdate builders directly. The
- * high-level Chats / User API does not yet ship verbs for join/leave
- * service-message dispatch.
+ * v0.2 API expression: user.joinChat(group), user.leaveChat(group).
+ * Both verbs dispatch the right service-message-shape update AND update
+ * the chat's membership map (join → 'member' unless already privileged;
+ * leave → 'left'). Closed in v0.2.x via add-service-message-verbs.
  *
- * v0.2.x gaps: entire category. Suggested proposal:
- * add-service-message-verbs (e.g. user.joinChat(group), user.leaveChat(group)
- * that synthesize these service-message updates).
+ * v0.2.x gaps: none for this pattern category at v0.2.x.
  */
 
 import { Bot } from 'grammy';
 import { describe, expect, it } from 'vitest';
 
 import { prepareBot } from '../../src/index';
-import { LeftMemberMockUpdate, NewMemberMockUpdate } from '../../src/low-level';
 
 describe('reference: service messages', () => {
-  it('bot reacts to a new-member service message (low-level escape hatch)', async () => {
-    // v0.2.x gap: no user.joinChat verb yet — uses v0.1 NewMemberMockUpdate.
-    // Suggested proposal: add-service-message-verbs.
+  it('bot reacts to a new-member service message', async () => {
     const bot = new Bot('test-token');
 
     bot.on('message:new_chat_members', async (context) => {
@@ -34,15 +29,16 @@ describe('reference: service messages', () => {
     });
 
     const { chats } = await prepareBot(bot);
+    const user = chats.newUser();
+    const group = chats.newSupergroup();
 
-    await bot.handleUpdate(new NewMemberMockUpdate().build());
+    await user.joinChat(group);
 
     expect(chats.outgoing.getMethods()).toEqual(['deleteMessage']);
+    expect(user.in(group)?.status).toBe('member');
   });
 
-  it('bot reacts to a left-member service message (low-level escape hatch)', async () => {
-    // v0.2.x gap: no user.leaveChat verb yet — uses v0.1 LeftMemberMockUpdate.
-    // Suggested proposal: add-service-message-verbs.
+  it('bot reacts to a left-member service message', async () => {
     const bot = new Bot('test-token');
 
     bot.on('message:left_chat_member', async (context) => {
@@ -50,9 +46,12 @@ describe('reference: service messages', () => {
     });
 
     const { chats } = await prepareBot(bot);
+    const user = chats.newUser();
+    const group = chats.newSupergroup();
 
-    await bot.handleUpdate(new LeftMemberMockUpdate().build());
+    await user.leaveChat(group);
 
     expect(chats.outgoing.getMethods()).toEqual(['deleteMessage']);
+    expect(user.in(group)?.status).toBe('left');
   });
 });
