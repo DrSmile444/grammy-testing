@@ -1,10 +1,10 @@
  
 
 import type { Bot, Context } from 'grammy';
-import type { Chat, Message, MessageEntity, Update } from 'grammy/types';
+import type { Chat, Message, MessageEntity, MessageOrigin, Update } from 'grammy/types';
 
 import type { AnyChat } from './chat';
-import { dispatchServiceMessage, dispatchTextMessage } from './dispatch';
+import { dispatchEditedMessage, dispatchServiceMessage, dispatchTextMessage } from './dispatch';
 import type { Group } from './group';
 import type { IdGenerator } from './id-generator';
 import type { Supergroup } from './supergroup';
@@ -25,6 +25,11 @@ export interface SendTextOptions<TContext extends Context = Context> {
   parse_mode?: 'HTML' | 'Markdown' | 'MarkdownV2';
   reply_parameters?: SendTextOptionsReplyParameter;
   reply_to_message?: Message;
+}
+
+export interface SendForwardedOptions<TContext extends Context = Context> {
+  forwardOrigin: MessageOrigin;
+  chat?: AnyChat<TContext>;
 }
 
 interface UserContext<TContext extends Context = Context> {
@@ -106,6 +111,44 @@ export class User<TContext extends Context = Context> {
     options: SendTextOptions<TContext> = {},
   ): Promise<void> {
     return this.sendText(text, options);
+  }
+
+  async sendForwarded(
+    text: string,
+    options: SendForwardedOptions<TContext>,
+  ): Promise<void> {
+    const targetChat: Chat = options.chat
+      ? this.ctx.resolveChatToTelegram(options.chat)
+      : this.ctx.defaultPrivateChat();
+
+    await dispatchTextMessage({
+      bot: this.ctx.bot,
+      user: this,
+      chat: targetChat,
+      text,
+      messageId: this.ctx.ids.nextMessageId(),
+      updateId: this.ctx.ids.nextMessageId() + 100_000,
+      forwardOrigin: options.forwardOrigin,
+    });
+  }
+
+  async editMessage(
+    messageId: number,
+    text: string,
+    options: { chat?: AnyChat<TContext> } = {},
+  ): Promise<void> {
+    const targetChat: Chat = options.chat
+      ? this.ctx.resolveChatToTelegram(options.chat)
+      : this.ctx.defaultPrivateChat();
+
+    await dispatchEditedMessage({
+      bot: this.ctx.bot,
+      user: this,
+      chat: targetChat,
+      messageId,
+      text,
+      updateId: this.ctx.ids.nextMessageId() + 500_000,
+    });
   }
 
   async joinChat(

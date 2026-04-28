@@ -66,4 +66,4 @@ export type {
   RestrictPermissions,
 } from './high-level/types';
 
-export { User, type SendTextOptions, type UserProfile } from './high-level/user';
+export { User, type SendForwardedOptions, type SendTextOptions, type UserProfile } from './high-level/user';

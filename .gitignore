@@ -13,3 +13,4 @@ projectStructure.cache.json
 coverage
 .agents
 docs/project.md
+dist/

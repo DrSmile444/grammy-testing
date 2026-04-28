@@ -26,8 +26,6 @@ Patterns currently expressed via `buildOverwrite()` or low-level `MockUpdate` bu
 
 | Pattern | Current expression | Suggested v0.2.x proposal |
 | --- | --- | --- |
-| Forwarded message dispatch | `MessageMockUpdate(text).buildOverwrite({ message: { forward_origin: ... } })` | `add-forwarded-message-dispatch` |
-| Edited message dispatch | Inline `Update` literal with `edited_message` field | `add-edited-message-dispatch` |
 | Nested reply chains beyond single-level | Inline `Update` with `message.reply_to_message` populated by hand | `add-nested-reply-chains` |
 | Caption-bearing single message (non-media-group) | Currently impossible without media verbs | `add-media-verbs` |
 

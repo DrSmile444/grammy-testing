@@ -6,6 +6,7 @@ import type {
   ChatMember,
   Message,
   MessageEntity,
+  MessageOrigin,
   Update,
   User as TelegramUser,
 } from 'grammy/types';
@@ -203,6 +204,43 @@ export async function dispatchServiceMessage<TContext extends Context>(
   await spec.bot.handleUpdate(update);
 }
 
+interface EditedMessageDispatch<TContext extends Context> {
+  bot: Bot<TContext>;
+  user: User<TContext>;
+  chat: Chat;
+  messageId: number;
+  text: string;
+  updateId: number;
+}
+
+export async function dispatchEditedMessage<TContext extends Context>(
+  spec: EditedMessageDispatch<TContext>,
+): Promise<void> {
+  const fromUser: TelegramUser = {
+    id: spec.user.id,
+    is_bot: false,
+    first_name: spec.user.first_name,
+    last_name: spec.user.last_name,
+    username: spec.user.username,
+  };
+
+  const now = Math.floor(Date.now() / 1000);
+
+  const update: Update = {
+    update_id: spec.updateId,
+    edited_message: {
+      message_id: spec.messageId,
+      date: now,
+      edit_date: now,
+      chat: spec.chat,
+      from: fromUser,
+      text: spec.text,
+    },
+  } as Update;
+
+  await spec.bot.handleUpdate(update);
+}
+
 interface PrivateMessageDispatch<TContext extends Context> {
   bot: Bot<TContext>;
   user: User<TContext>;
@@ -213,6 +251,7 @@ interface PrivateMessageDispatch<TContext extends Context> {
   entities?: MessageEntity[];
   replyToMessageId?: number;
   replyToMessage?: Message;
+  forwardOrigin?: MessageOrigin;
 }
 
 export async function dispatchTextMessage<TContext extends Context>(
@@ -234,6 +273,7 @@ export async function dispatchTextMessage<TContext extends Context>(
     text: spec.text,
     entities: spec.entities,
     reply_to_message: spec.replyToMessage,
+    forward_origin: spec.forwardOrigin,
   } as Message;
 
   const update: Update = {

@@ -4,6 +4,11 @@ import nodeConfigs from './.eslint/node.eslint.mjs';
 import vitestEslint from './.eslint/vitest.eslint.mjs';
 
 export default defineConfig([
+  // Ignore generated output and tooling artifacts
+  {
+    name: 'Ignored paths',
+    ignores: ['dist/**', 'node_modules/**'],
+  },
   // Apply this config to js and ts files only
   {
     name: 'Source Files to scan',

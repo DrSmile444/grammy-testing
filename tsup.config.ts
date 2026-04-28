@@ -1,0 +1,12 @@
+import { defineConfig } from 'tsup';
+
+export default defineConfig({
+  entry: {
+    index: 'src/index.ts',
+    'low-level': 'src/low-level.ts',
+  },
+  format: ['esm', 'cjs'],
+  dts: true,
+  clean: true,
+  sourcemap: false,
+});

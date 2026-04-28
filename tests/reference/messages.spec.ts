@@ -10,11 +10,12 @@
  * `parse_mode`, custom entities, `reply_parameters`, forwarded messages
  * (forward_origin), edited messages, and nested reply chains.
  *
- * v0.2 API expression: user.sendText(text, { entities, parse_mode, reply_parameters }).
- * For forwarded/edited/nested-reply patterns the v0.2 surface is incomplete —
- * see `v0.2.x gap` markers below.
+ * v0.2 API expression: user.sendText(text, { entities, parse_mode, reply_parameters }),
+ * user.sendForwarded(text, { forwardOrigin }), user.editMessage(id, text, { chat? }).
+ * For nested-reply chains beyond single-level the v0.2 surface is incomplete —
+ * see `v0.2.x gap` marker below.
  *
- * v0.2.x gaps: forwarded messages, edited messages, nested reply chains.
+ * v0.2.x gaps: nested reply chains (multi-level).
  */
 
 import { Bot } from 'grammy';
@@ -22,7 +23,6 @@ import type { Update } from 'grammy/types';
 import { describe, expect, it } from 'vitest';
 
 import { prepareBot } from '../../src/index';
-import { MessagePrivateMockUpdate } from '../../src/low-level';
 
 describe('reference: messages', () => {
   describe('parse_mode and entities', () => {
@@ -93,11 +93,8 @@ describe('reference: messages', () => {
     });
   });
 
-  describe('forwarded messages (v0.2.x gap)', () => {
-    it('bot reacts to a forwarded message via low-level buildOverwrite', async () => {
-      // v0.2.x gap: no high-level forward verb yet. We construct the
-      // forward_origin payload via the v0.1 MessageMockUpdate escape
-      // hatch. Suggested proposal: add-forwarded-message-dispatch.
+  describe('forwarded messages', () => {
+    it('bot reacts to a forwarded message via user.sendForwarded', async () => {
       const bot = new Bot('test-token');
 
       bot.on('message', async (context) => {
@@ -107,33 +104,26 @@ describe('reference: messages', () => {
       });
 
       const { chats } = await prepareBot(bot);
+      const user = chats.newUser();
 
-      const update = new MessagePrivateMockUpdate('forwarded text').buildOverwrite({
-        message: {
-          forward_origin: {
-            type: 'user',
-            sender_user: {
-              id: 99,
-              is_bot: false,
-              first_name: 'OriginalSender',
-            },
-            date: 1_000_000,
+      await user.sendForwarded('forwarded text', {
+        forwardOrigin: {
+          type: 'user',
+          sender_user: {
+            id: 99,
+            is_bot: false,
+            first_name: 'OriginalSender',
           },
+          date: 1_000_000,
         },
       });
-
-      await bot.handleUpdate(update);
 
       expect(chats.outgoing.getMethods()).toContain('deleteMessage');
     });
   });
 
-  describe('edited messages (v0.2.x gap)', () => {
-    it('bot reacts to an edited_message update via inline Update literal', async () => {
-      // v0.2.x gap: no high-level edit verb yet. We construct an
-      // `edited_message`-shaped update inline (the v0.1 MockUpdate
-      // builders all populate the `message` field, not `edited_message`).
-      // Suggested proposal: add-edited-message-dispatch.
+  describe('edited messages', () => {
+    it('bot reacts to an edited_message update via user.editMessage', async () => {
       const bot = new Bot('test-token');
       let editedTextObserved: string | undefined;
 
@@ -145,23 +135,7 @@ describe('reference: messages', () => {
       const user = chats.newUser();
       const dm = chats.newPrivateChat(user);
 
-      const update: Update = {
-        update_id: 999_001,
-        edited_message: {
-          message_id: 50,
-          date: 1_000_000,
-          edit_date: 1_000_500,
-          from: {
-            id: user.id,
-            is_bot: false,
-            first_name: user.first_name,
-          },
-          chat: dm.toTelegramChat(),
-          text: 'edited content',
-        },
-      };
-
-      await bot.handleUpdate(update);
+      await user.editMessage(50, 'edited content', { chat: dm });
 
       expect(editedTextObserved).toBe('edited content');
     });
