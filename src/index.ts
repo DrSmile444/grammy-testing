@@ -51,8 +51,10 @@ export { PrivateChat } from './high-level/private-chat';
 
 export {
   Reply,
+  type MediaType,
   type ParseMode,
   type ReplyButton,
+  type ReplyMedia,
 } from './high-level/reply';
 
 export { Supergroup } from './high-level/supergroup';
@@ -66,4 +68,12 @@ export type {
   RestrictPermissions,
 } from './high-level/types';
 
-export { User, type SendForwardedOptions, type SendTextOptions, type UserProfile } from './high-level/user';
+export {
+  User,
+  type SendDocumentOptions,
+  type SendForwardedOptions,
+  type SendPhotoOptions,
+  type SendTextOptions,
+  type SendVideoOptions,
+  type UserProfile,
+} from './high-level/user';
