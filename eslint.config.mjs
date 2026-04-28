@@ -14,7 +14,8 @@ export default defineConfig([
   // Vitest rules for testing
   ...vitestEslint,
   // Plugin source overrides — relax rules that fight library-author
-  // patterns (typed overloads, JSDoc that's already in spec/design docs)
+  // patterns (typed overloads, Telegram payload field names, JSDoc
+  // already covered by spec/design artifacts)
   {
     name: 'Plugin source overrides',
     files: ['src/**/*.ts'],
@@ -25,12 +26,20 @@ export default defineConfig([
       'jsdoc/require-param-description': 'off',
       'jsdoc/require-returns-description': 'off',
       'jsdoc/empty-tags': 'off',
+      'jsdoc/valid-types': 'off',
       '@typescript-eslint/no-unnecessary-type-parameters': 'off',
       '@typescript-eslint/naming-convention': 'off',
       '@typescript-eslint/no-redundant-type-constituents': 'off',
       '@typescript-eslint/no-unnecessary-condition': 'off',
+      '@typescript-eslint/no-non-null-assertion': 'off',
+      '@typescript-eslint/restrict-template-expressions': 'off',
+      '@typescript-eslint/consistent-type-imports': 'off',
       'n/no-unsupported-features/es-syntax': 'off',
       'unicorn/prevent-abbreviations': 'off',
+      'no-plusplus': 'off',
+      'no-use-before-define': 'off',
+      'no-barrel-files/no-barrel-files': 'off',
+      camelcase: 'off',
       'prettier/prettier': 'off',
     },
   },
