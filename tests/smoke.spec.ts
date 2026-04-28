@@ -5,6 +5,21 @@ import { prepareBot } from '../src/index';
 import { LeftMemberMockUpdate, MessagePrivateMockUpdate, NewMemberMockUpdate } from '../src/low-level';
 
 describe('smoke: real-bot patterns from the inspiration corpus', () => {
+  it('v0.2: Quickstart-style test using the high-level Chats API', async () => {
+    const bot = new Bot('test-token');
+
+    bot.on('message:text', async (context) => {
+      await context.reply(`echo: ${context.message.text}`);
+    });
+
+    const { chats } = await prepareBot(bot);
+    const user = chats.newUser({ username: 'alice' });
+
+    await user.sendText('hello');
+
+    expect(chats.repliesFor(user).last?.text).toBe('echo: hello');
+  });
+
   it('Pattern 6: private command with bot_command entity', async () => {
     const bot = new Bot('test-token');
     let invoked = false;
