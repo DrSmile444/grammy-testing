@@ -26,7 +26,6 @@ Patterns currently expressed via `buildOverwrite()` or low-level `MockUpdate` bu
 
 | Pattern | Current expression | Suggested v0.2.x proposal |
 | --- | --- | --- |
-| Command sent into a supergroup | `user.sendText(cmd, { chat: group, entities: [{type:'bot_command',...}] })` | `extend-send-command-with-chat-option` |
 | Forwarded message dispatch | `MessageMockUpdate(text).buildOverwrite({ message: { forward_origin: ... } })` | `add-forwarded-message-dispatch` |
 | Edited message dispatch | Inline `Update` literal with `edited_message` field | `add-edited-message-dispatch` |
 | Nested reply chains beyond single-level | Inline `Update` with `message.reply_to_message` populated by hand | `add-nested-reply-chains` |

@@ -10,11 +10,11 @@
  * `bot_command` Telegram entity. Both private and supergroup chats.
  * Arg parsing and admin-only command guards.
  *
- * v0.2 API expression: user.sendCommand(cmd, args?) for private chats;
- * user.sendText(cmd, { chat: group, entities: [...] }) for supergroups
- * (v0.2.x gap — sendCommand should accept options.chat).
+ * v0.2 API expression: user.sendCommand(cmd, args?, options?) — the
+ * optional `options.chat` parameter overrides the default private-chat
+ * destination. Closed in v0.2.x via extend-send-command-with-chat-option.
  *
- * v0.2.x gaps: see line marked `v0.2.x gap` below.
+ * v0.2.x gaps: none for this pattern category at v0.2.x.
  */
 
 import { Bot } from 'grammy';
@@ -56,10 +56,7 @@ describe('reference: commands', () => {
     expect(chats.repliesFor(user).last?.text).toBe('switching to en');
   });
 
-  it('command in a supergroup works via sendText with explicit entities', async () => {
-    // v0.2.x gap: user.sendCommand defaults to private chat; non-private
-    // commands need user.sendText with manual bot_command entity.
-    // Suggested proposal: extend-send-command-with-chat-option.
+  it('command in a supergroup via sendCommand options.chat', async () => {
     const bot = new Bot('test-token');
 
     bot.command('start', async (context) => {
@@ -72,10 +69,7 @@ describe('reference: commands', () => {
 
     group.promote(user);
 
-    await user.sendText('/start', {
-      chat: group,
-      entities: [{ type: 'bot_command', offset: 0, length: 6 }],
-    });
+    await user.sendCommand('/start', undefined, { chat: group });
 
     expect(group.messages.last?.text).toBe('hello group');
   });
