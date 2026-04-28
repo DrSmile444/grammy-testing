@@ -1,4 +1,4 @@
-import type { Document, PhotoSize, Video } from 'grammy/types';
+import type { Animation, Audio, Document, PhotoSize, Sticker, Video, VideoNote, Voice } from 'grammy/types';
 
 /**
  * Returns a minimal PhotoSize stub suitable for synthetic incoming photo updates.
@@ -37,5 +37,74 @@ export function makeVideoStub(fileId: string): Video {
     width: 1280,
     height: 720,
     duration: 0,
+  };
+}
+
+/**
+ * Returns a minimal Audio stub suitable for synthetic incoming audio updates.
+ * @param fileId
+ */
+export function makeAudioStub(fileId: string): Audio {
+  return {
+    file_id: fileId,
+    file_unique_id: `${fileId}_unique`,
+    duration: 0,
+    mime_type: 'audio/mpeg',
+  };
+}
+
+/**
+ * Returns a minimal Voice stub suitable for synthetic incoming voice updates.
+ * @param fileId
+ */
+export function makeVoiceStub(fileId: string): Voice {
+  return {
+    file_id: fileId,
+    file_unique_id: `${fileId}_unique`,
+    duration: 0,
+    mime_type: 'audio/ogg',
+  };
+}
+
+/**
+ * Returns a minimal VideoNote stub suitable for synthetic incoming video note updates.
+ * @param fileId
+ */
+export function makeVideoNoteStub(fileId: string): VideoNote {
+  return {
+    file_id: fileId,
+    file_unique_id: `${fileId}_unique`,
+    length: 240,
+    duration: 0,
+  };
+}
+
+/**
+ * Returns a minimal Animation stub suitable for synthetic incoming animation (GIF) updates.
+ * @param fileId
+ */
+export function makeAnimationStub(fileId: string): Animation {
+  return {
+    file_id: fileId,
+    file_unique_id: `${fileId}_unique`,
+    width: 320,
+    height: 240,
+    duration: 0,
+  };
+}
+
+/**
+ * Returns a minimal Sticker stub suitable for synthetic incoming sticker updates.
+ * @param fileId
+ */
+export function makeStickerStub(fileId: string): Sticker {
+  return {
+    file_id: fileId,
+    file_unique_id: `${fileId}_unique`,
+    width: 512,
+    height: 512,
+    is_animated: false,
+    is_video: false,
+    type: 'regular',
   };
 }

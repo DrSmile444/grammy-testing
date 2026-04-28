@@ -7,7 +7,16 @@ import type { AnyChat } from './chat';
 import { dispatchEditedMessage, dispatchServiceMessage, dispatchTextMessage } from './dispatch';
 import type { Group } from './group';
 import type { IdGenerator } from './id-generator';
-import { makeDocumentStub, makePhotoSizeStub, makeVideoStub } from './media-stubs';
+import {
+  makeAnimationStub,
+  makeAudioStub,
+  makeDocumentStub,
+  makePhotoSizeStub,
+  makeStickerStub,
+  makeVideoNoteStub,
+  makeVideoStub,
+  makeVoiceStub,
+} from './media-stubs';
 import type { Supergroup } from './supergroup';
 import type { Membership } from './types';
 
@@ -45,6 +54,50 @@ export interface SendDocumentOptions<TContext extends Context = Context> {
 
 export interface SendVideoOptions<TContext extends Context = Context> {
   caption?: string;
+  chat?: AnyChat<TContext>;
+}
+
+export interface SendAudioOptions<TContext extends Context = Context> {
+  caption?: string;
+  chat?: AnyChat<TContext>;
+}
+
+export interface SendVoiceOptions<TContext extends Context = Context> {
+  caption?: string;
+  chat?: AnyChat<TContext>;
+}
+
+export interface SendVideoNoteOptions<TContext extends Context = Context> {
+  chat?: AnyChat<TContext>;
+}
+
+export interface SendAnimationOptions<TContext extends Context = Context> {
+  caption?: string;
+  chat?: AnyChat<TContext>;
+}
+
+export interface SendStickerOptions<TContext extends Context = Context> {
+  chat?: AnyChat<TContext>;
+}
+
+export interface SendLocationOptions<TContext extends Context = Context> {
+  chat?: AnyChat<TContext>;
+}
+
+export interface SendContactOptions<TContext extends Context = Context> {
+  lastName?: string;
+  chat?: AnyChat<TContext>;
+}
+
+export interface SendVenueOptions<TContext extends Context = Context> {
+  chat?: AnyChat<TContext>;
+}
+
+export interface SendPollOptions<TContext extends Context = Context> {
+  chat?: AnyChat<TContext>;
+}
+
+export interface SendDiceOptions<TContext extends Context = Context> {
   chat?: AnyChat<TContext>;
 }
 
@@ -315,6 +368,225 @@ export class User<TContext extends Context = Context> {
       update_id: this.ctx.ids.nextMessageId() + 200_000,
       message,
     } as Update);
+  }
+
+  async sendAudio(
+    file?: string,
+    options: SendAudioOptions<TContext> = {},
+  ): Promise<void> {
+    const fileId = file ?? this.ctx.ids.nextFileId();
+
+    const targetChat: Chat = options.chat
+      ? this.ctx.resolveChatToTelegram(options.chat)
+      : this.ctx.defaultPrivateChat();
+
+    const message: Message = {
+      message_id: this.ctx.ids.nextMessageId(),
+      date: Math.floor(Date.now() / 1000),
+      chat: targetChat,
+      from: { id: this.id, is_bot: false, first_name: this.first_name, last_name: this.last_name, username: this.username },
+      audio: makeAudioStub(fileId),
+      caption: options.caption,
+    } as Message;
+
+    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+  }
+
+  async sendVoice(
+    file?: string,
+    options: SendVoiceOptions<TContext> = {},
+  ): Promise<void> {
+    const fileId = file ?? this.ctx.ids.nextFileId();
+
+    const targetChat: Chat = options.chat
+      ? this.ctx.resolveChatToTelegram(options.chat)
+      : this.ctx.defaultPrivateChat();
+
+    const message: Message = {
+      message_id: this.ctx.ids.nextMessageId(),
+      date: Math.floor(Date.now() / 1000),
+      chat: targetChat,
+      from: { id: this.id, is_bot: false, first_name: this.first_name, last_name: this.last_name, username: this.username },
+      voice: makeVoiceStub(fileId),
+      caption: options.caption,
+    } as Message;
+
+    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+  }
+
+  async sendVideoNote(
+    file?: string,
+    options: SendVideoNoteOptions<TContext> = {},
+  ): Promise<void> {
+    const fileId = file ?? this.ctx.ids.nextFileId();
+
+    const targetChat: Chat = options.chat
+      ? this.ctx.resolveChatToTelegram(options.chat)
+      : this.ctx.defaultPrivateChat();
+
+    const message: Message = {
+      message_id: this.ctx.ids.nextMessageId(),
+      date: Math.floor(Date.now() / 1000),
+      chat: targetChat,
+      from: { id: this.id, is_bot: false, first_name: this.first_name, last_name: this.last_name, username: this.username },
+      video_note: makeVideoNoteStub(fileId),
+    } as Message;
+
+    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+  }
+
+  async sendAnimation(
+    file?: string,
+    options: SendAnimationOptions<TContext> = {},
+  ): Promise<void> {
+    const fileId = file ?? this.ctx.ids.nextFileId();
+
+    const targetChat: Chat = options.chat
+      ? this.ctx.resolveChatToTelegram(options.chat)
+      : this.ctx.defaultPrivateChat();
+
+    const message: Message = {
+      message_id: this.ctx.ids.nextMessageId(),
+      date: Math.floor(Date.now() / 1000),
+      chat: targetChat,
+      from: { id: this.id, is_bot: false, first_name: this.first_name, last_name: this.last_name, username: this.username },
+      animation: makeAnimationStub(fileId),
+      caption: options.caption,
+    } as Message;
+
+    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+  }
+
+  async sendSticker(
+    file?: string,
+    options: SendStickerOptions<TContext> = {},
+  ): Promise<void> {
+    const fileId = file ?? this.ctx.ids.nextFileId();
+
+    const targetChat: Chat = options.chat
+      ? this.ctx.resolveChatToTelegram(options.chat)
+      : this.ctx.defaultPrivateChat();
+
+    const message: Message = {
+      message_id: this.ctx.ids.nextMessageId(),
+      date: Math.floor(Date.now() / 1000),
+      chat: targetChat,
+      from: { id: this.id, is_bot: false, first_name: this.first_name, last_name: this.last_name, username: this.username },
+      sticker: makeStickerStub(fileId),
+    } as Message;
+
+    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+  }
+
+  async sendLocation(
+    latitude: number,
+    longitude: number,
+    options: SendLocationOptions<TContext> = {},
+  ): Promise<void> {
+    const targetChat: Chat = options.chat
+      ? this.ctx.resolveChatToTelegram(options.chat)
+      : this.ctx.defaultPrivateChat();
+
+    const message: Message = {
+      message_id: this.ctx.ids.nextMessageId(),
+      date: Math.floor(Date.now() / 1000),
+      chat: targetChat,
+      from: { id: this.id, is_bot: false, first_name: this.first_name, last_name: this.last_name, username: this.username },
+      location: { latitude, longitude },
+    } as Message;
+
+    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+  }
+
+  async sendContact(
+    phoneNumber: string,
+    firstName: string,
+    options: SendContactOptions<TContext> = {},
+  ): Promise<void> {
+    const targetChat: Chat = options.chat
+      ? this.ctx.resolveChatToTelegram(options.chat)
+      : this.ctx.defaultPrivateChat();
+
+    const message: Message = {
+      message_id: this.ctx.ids.nextMessageId(),
+      date: Math.floor(Date.now() / 1000),
+      chat: targetChat,
+      from: { id: this.id, is_bot: false, first_name: this.first_name, last_name: this.last_name, username: this.username },
+      contact: { phone_number: phoneNumber, first_name: firstName, last_name: options.lastName },
+    } as Message;
+
+    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+  }
+
+  async sendVenue(
+    latitude: number,
+    longitude: number,
+    title: string,
+    address: string,
+    options: SendVenueOptions<TContext> = {},
+  ): Promise<void> {
+    const targetChat: Chat = options.chat
+      ? this.ctx.resolveChatToTelegram(options.chat)
+      : this.ctx.defaultPrivateChat();
+
+    const message: Message = {
+      message_id: this.ctx.ids.nextMessageId(),
+      date: Math.floor(Date.now() / 1000),
+      chat: targetChat,
+      from: { id: this.id, is_bot: false, first_name: this.first_name, last_name: this.last_name, username: this.username },
+      venue: { location: { latitude, longitude }, title, address },
+    } as Message;
+
+    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+  }
+
+  async sendPoll(
+    question: string,
+    answerOptions: string[],
+    options: SendPollOptions<TContext> = {},
+  ): Promise<void> {
+    const targetChat: Chat = options.chat
+      ? this.ctx.resolveChatToTelegram(options.chat)
+      : this.ctx.defaultPrivateChat();
+
+    const message: Message = {
+      message_id: this.ctx.ids.nextMessageId(),
+      date: Math.floor(Date.now() / 1000),
+      chat: targetChat,
+      from: { id: this.id, is_bot: false, first_name: this.first_name, last_name: this.last_name, username: this.username },
+      poll: {
+        id: `poll-${this.ctx.ids.nextMessageId()}`,
+        question,
+        options: answerOptions.map((text) => ({ text, voter_count: 0 })),
+        total_voter_count: 0,
+        is_closed: false,
+        is_anonymous: true,
+        type: 'regular',
+        allows_multiple_answers: false,
+        allows_revoting: false,
+      },
+    } as Message;
+
+    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+  }
+
+  async sendDice(
+    emoji = '🎲',
+    options: SendDiceOptions<TContext> = {},
+  ): Promise<void> {
+    const targetChat: Chat = options.chat
+      ? this.ctx.resolveChatToTelegram(options.chat)
+      : this.ctx.defaultPrivateChat();
+
+    const message: Message = {
+      message_id: this.ctx.ids.nextMessageId(),
+      date: Math.floor(Date.now() / 1000),
+      chat: targetChat,
+      from: { id: this.id, is_bot: false, first_name: this.first_name, last_name: this.last_name, username: this.username },
+      dice: { emoji, value: 1 },
+    } as Message;
+
+    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
   }
 
   async sendMediaGroup(
