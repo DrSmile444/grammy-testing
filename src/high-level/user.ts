@@ -4,8 +4,10 @@ import type { Bot, Context } from 'grammy';
 import type { Chat, Message, MessageEntity, Update } from 'grammy/types';
 
 import type { AnyChat } from './chat';
-import { dispatchTextMessage,  } from './dispatch';
+import { dispatchServiceMessage, dispatchTextMessage } from './dispatch';
+import type { Group } from './group';
 import type { IdGenerator } from './id-generator';
+import type { Supergroup } from './supergroup';
 import type { Membership } from './types';
 
 export interface UserProfile {
@@ -30,6 +32,15 @@ interface UserContext<TContext extends Context = Context> {
   ids: IdGenerator;
   defaultPrivateChat: () => Chat.PrivateChat;
   resolveChatToTelegram: (chat: AnyChat<TContext>) => Chat;
+  /**
+   * Update the membership map on join / leave. Chats owns the
+   * "don't-downgrade-on-join" / "always-set-left" logic.
+   */
+  updateMembership: (
+    chat: Group<TContext> | Supergroup<TContext>,
+    user: User<TContext>,
+    mode: 'join' | 'leave',
+  ) => void;
 }
 
 export interface UserSendMediaGroupItem<TContext extends Context = Context> {
@@ -95,6 +106,48 @@ export class User<TContext extends Context = Context> {
     options: SendTextOptions<TContext> = {},
   ): Promise<void> {
     return this.sendText(text, options);
+  }
+
+  async joinChat(
+    chat: Group<TContext> | Supergroup<TContext>,
+  ): Promise<void> {
+    if (chat.type !== 'group' && chat.type !== 'supergroup') {
+      throw new Error(
+        `joinChat: target chat type "${(chat as { type: string }).type}" does not support new_chat_members service messages — only groups and supergroups do`,
+      );
+    }
+
+    await dispatchServiceMessage({
+      bot: this.ctx.bot,
+      kind: 'new_chat_members',
+      user: this,
+      chat: chat.toTelegramChat(),
+      messageId: this.ctx.ids.nextMessageId(),
+      updateId: 600_000,
+    });
+
+    this.ctx.updateMembership(chat, this, 'join');
+  }
+
+  async leaveChat(
+    chat: Group<TContext> | Supergroup<TContext>,
+  ): Promise<void> {
+    if (chat.type !== 'group' && chat.type !== 'supergroup') {
+      throw new Error(
+        `leaveChat: target chat type "${(chat as { type: string }).type}" does not support left_chat_member service messages — only groups and supergroups do`,
+      );
+    }
+
+    await dispatchServiceMessage({
+      bot: this.ctx.bot,
+      kind: 'left_chat_member',
+      user: this,
+      chat: chat.toTelegramChat(),
+      messageId: this.ctx.ids.nextMessageId(),
+      updateId: 700_000,
+    });
+
+    this.ctx.updateMembership(chat, this, 'leave');
   }
 
   async sendCommand(

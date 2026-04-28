@@ -145,6 +145,8 @@ export class Chats<TContext extends Context = Context> {
         ids: this.ids,
         defaultPrivateChat: () => this.privateChatFor(user).toTelegramChat(),
         resolveChatToTelegram: (chat) => chat.toTelegramChat(),
+        updateMembership: (chat, who, mode) =>
+          { this.applyMembershipTransition(chat, who, mode); },
       },
       (chat) => this.readMembership(user, chat),
     );
@@ -269,13 +271,20 @@ export class Chats<TContext extends Context = Context> {
       return true;
     }
 
-    // Rule 1 cont'd: user must be a participant of group/supergroup/channel
+    // Rule 1 cont'd: user must be an *active* participant of the
+    // group/supergroup/channel. 'left' and 'kicked' are NOT participants.
     if (chat.type !== 'private') {
-      const isMember =
-        ('members' in chat && chat.members.has(entry.user.id)) ||
-        false;
+      if (!('members' in chat)) {
+        return false;
+      }
 
-      if (!isMember) {
+      const status = chat.members.get(entry.user.id)?.status;
+
+      if (
+        status === undefined ||
+        status === 'left' ||
+        status === 'kicked'
+      ) {
         return false;
       }
     }
@@ -348,6 +357,51 @@ export class Chats<TContext extends Context = Context> {
     }
 
     return chat.members.get(user.id);
+  }
+
+  /**
+   * @param chat
+   * @param user
+   * @param mode
+   * @internal — invoked by `User.joinChat` and `User.leaveChat` after
+   * the service message has dispatched. `'join'` preserves higher
+   * privilege; `'leave'` always sets `status: 'left'`.
+   */
+  private applyMembershipTransition(
+    chat: Group<TContext> | Supergroup<TContext>,
+    user: User<TContext>,
+    mode: 'join' | 'leave',
+  ): void {
+    if (mode === 'leave') {
+      chat.members.set(user.id, {
+        user,
+        chat,
+        status: 'left',
+        permissions: {},
+      });
+
+      return;
+    }
+
+    // mode === 'join': don't downgrade existing privileged status.
+    const current = chat.members.get(user.id);
+
+    if (
+      current &&
+      (current.status === 'creator' ||
+        current.status === 'administrator' ||
+        current.status === 'restricted' ||
+        current.status === 'member')
+    ) {
+      return;
+    }
+
+    chat.members.set(user.id, {
+      user,
+      chat,
+      status: 'member',
+      permissions: {},
+    });
   }
 
   /**

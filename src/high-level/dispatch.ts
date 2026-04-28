@@ -161,6 +161,48 @@ export async function dispatchMyChatMember<TContext extends Context>(
   await bot.handleUpdate(update);
 }
 
+interface ServiceMessageDispatch<TContext extends Context> {
+  bot: Bot<TContext>;
+  kind: 'left_chat_member' | 'new_chat_members';
+  user: User<TContext>;
+  chat: Chat.GroupChat | Chat.SupergroupChat;
+  messageId: number;
+  updateId: number;
+}
+
+let serviceMessageCounter = 1;
+
+export async function dispatchServiceMessage<TContext extends Context>(
+  spec: ServiceMessageDispatch<TContext>,
+): Promise<void> {
+  const fromUser: TelegramUser = {
+    id: spec.user.id,
+    is_bot: false,
+    first_name: spec.user.first_name,
+    last_name: spec.user.last_name,
+    username: spec.user.username,
+  };
+
+  const baseMessage: Partial<Message> = {
+    message_id: spec.messageId,
+    date: Math.floor(Date.now() / 1000),
+    chat: spec.chat,
+    from: fromUser,
+  };
+
+  const message =
+    spec.kind === 'new_chat_members'
+      ? ({ ...baseMessage, new_chat_members: [fromUser] } as Message)
+      : ({ ...baseMessage, left_chat_member: fromUser } as Message);
+
+  const update: Update = {
+    update_id: spec.updateId + serviceMessageCounter++,
+    message,
+  } as Update;
+
+  await spec.bot.handleUpdate(update);
+}
+
 interface PrivateMessageDispatch<TContext extends Context> {
   bot: Bot<TContext>;
   user: User<TContext>;
