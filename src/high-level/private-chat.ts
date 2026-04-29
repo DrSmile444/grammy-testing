@@ -2,6 +2,7 @@ import type { Bot, Context } from 'grammy';
 import type { Chat } from 'grammy/types';
 
 import { type ChatRefHolder,setBotRef } from './chat';
+import { MessagesLog } from './messages-log';
 import type { User } from './user';
 
 /**
@@ -21,6 +22,8 @@ export class PrivateChat<TContext extends Context = Context>
 
   readonly username?: string;
 
+  messages: MessagesLog<TContext>;
+
   /** @internal */
   bot!: Bot<TContext>;
 
@@ -29,6 +32,7 @@ export class PrivateChat<TContext extends Context = Context>
     this.first_name = user.first_name;
     this.last_name = user.last_name;
     this.username = user.username;
+    this.messages = new MessagesLog<TContext>();
   }
 
   [setBotRef](bot: Bot<TContext>): void {

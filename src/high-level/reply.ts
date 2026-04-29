@@ -42,6 +42,8 @@ interface ReplyDeps<TContext extends Context = Context> {
   ids: IdGenerator;
   /** Records a click association so user.replies can include the resulting message. */
   recordClick: (callbackData: string, byUserId: number) => void;
+  /** Looks up an earlier captured Reply by its synthetic messageId. */
+  resolveReply: (messageId: number) => Reply<TContext> | undefined;
 }
 
 export interface ReplyClickButtonMatcher { data: string }
@@ -61,6 +63,10 @@ export class Reply<TContext extends Context = Context> {
   readonly buttons: ReplyButton[];
 
   readonly media: ReplyMedia | undefined;
+
+  readonly replyMarkup: Record<string, unknown> | undefined;
+
+  readonly replyingTo: Reply<TContext> | undefined;
 
   readonly chat: AnyChat<TContext> | undefined;
 
@@ -98,6 +104,11 @@ export class Reply<TContext extends Context = Context> {
     this.mentionUsernames = collectMentionUsernames(text, this.entities);
     this.buttons = collectButtons(rawPayload);
     this.media = deriveMedia(rawPayload);
+    this.replyMarkup = rawPayload.reply_markup as Record<string, unknown> | undefined;
+
+    this.replyingTo = this.replyToMessageId === undefined
+      ? undefined
+      : deps.resolveReply(this.replyToMessageId);
   }
 
   async clickButton(matcher: ReplyClickButtonMatcher | string): Promise<void> {

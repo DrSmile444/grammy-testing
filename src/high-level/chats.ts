@@ -103,6 +103,9 @@ export class Chats<TContext extends Context = Context> {
   /** click->user association for the user.replies filter rule. */
   private readonly clickers = new Map<string, number>();
 
+  /** messageId->Reply registry for reply.replyingTo resolution. */
+  private readonly messageIdToReply = new Map<number, Reply<TContext>>();
+
   /** @internal — assigned in prepareBot before bot.init(). */
   bot!: Bot<TContext>;
 
@@ -244,15 +247,12 @@ export class Chats<TContext extends Context = Context> {
       recordClick: (callbackData, byUserId) => {
         this.clickers.set(callbackData, byUserId);
       },
+      resolveReply: (messageId) => this.messageIdToReply.get(messageId),
     });
 
-    if (chat.type === 'private') {
-      // PrivateChat doesn't have its own MessagesLog yet — replies
-      // for the user are sufficient. (chat-messages-log spec covers
-      // group/supergroup/channel; private chats route to user.replies.)
-    } else {
-      chat.messages.push(reply);
-    }
+    this.messageIdToReply.set(reply.messageId, reply);
+
+    chat.messages.push(reply);
 
     for (const entry of this.users.values()) {
       if (this.userReceivesReply(entry, chat, reply)) {
