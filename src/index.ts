@@ -29,7 +29,7 @@ export {
 
 export { prepareBot, type PrepareOptions } from './low-level/prepare-bot';
 
-export { prepareComposer } from './low-level/prepare-composer';
+export { prepareComposer, type PrepareWithConstructorOptions } from './low-level/prepare-composer';
 
 export { prepareMiddleware } from './low-level/prepare-middleware';
 
