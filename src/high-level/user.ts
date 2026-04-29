@@ -1,7 +1,7 @@
  
 
 import type { Bot, Context } from 'grammy';
-import type { Chat, Message, MessageEntity, MessageOrigin, Update } from 'grammy/types';
+import type { Chat, Message, MessageEntity, MessageOrigin, ShippingAddress, Update } from 'grammy/types';
 
 import type { AnyChat } from './chat';
 import { dispatchEditedMessage, dispatchServiceMessage, dispatchTextMessage } from './dispatch';
@@ -99,6 +99,18 @@ export interface SendPollOptions<TContext extends Context = Context> {
 
 export interface SendDiceOptions<TContext extends Context = Context> {
   chat?: AnyChat<TContext>;
+}
+
+export interface SendWebAppDataOptions<TContext extends Context = Context> {
+  chat?: AnyChat<TContext>;
+}
+
+export interface SendSuccessfulPaymentOptions<TContext extends Context = Context> {
+  chat?: AnyChat<TContext>;
+}
+
+export interface SendInlineQueryOptions {
+  chatType?: 'channel' | 'group' | 'private' | 'sender' | 'supergroup';
 }
 
 interface UserContext<TContext extends Context = Context> {
@@ -587,6 +599,123 @@ export class User<TContext extends Context = Context> {
     } as Message;
 
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+  }
+
+  async sendWebAppData(
+    data: string,
+    buttonText: string,
+    options: SendWebAppDataOptions<TContext> = {},
+  ): Promise<void> {
+    const targetChat: Chat = options.chat
+      ? this.ctx.resolveChatToTelegram(options.chat)
+      : this.ctx.defaultPrivateChat();
+
+    const message: Message = {
+      message_id: this.ctx.ids.nextMessageId(),
+      date: Math.floor(Date.now() / 1000),
+      chat: targetChat,
+      from: { id: this.id, is_bot: false, first_name: this.first_name, last_name: this.last_name, username: this.username },
+      web_app_data: { data, button_text: buttonText },
+    } as Message;
+
+    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+  }
+
+  async sendSuccessfulPayment(
+    invoicePayload: string,
+    currency: string,
+    totalAmount: number,
+    options: SendSuccessfulPaymentOptions<TContext> = {},
+  ): Promise<void> {
+    const targetChat: Chat = options.chat
+      ? this.ctx.resolveChatToTelegram(options.chat)
+      : this.ctx.defaultPrivateChat();
+
+    const message: Message = {
+      message_id: this.ctx.ids.nextMessageId(),
+      date: Math.floor(Date.now() / 1000),
+      chat: targetChat,
+      from: { id: this.id, is_bot: false, first_name: this.first_name, last_name: this.last_name, username: this.username },
+      successful_payment: {
+        currency,
+        total_amount: totalAmount,
+        invoice_payload: invoicePayload,
+        telegram_payment_charge_id: 'charge-tg-stub',
+        provider_payment_charge_id: 'charge-provider-stub',
+      },
+    } as Message;
+
+    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+  }
+
+  async sendInlineQuery(
+    query: string,
+    options: SendInlineQueryOptions = {},
+  ): Promise<void> {
+    const update: Update = {
+      update_id: this.ctx.ids.nextMessageId() + 800_000,
+      inline_query: {
+        id: `iq-${this.ctx.ids.nextMessageId()}`,
+        from: { id: this.id, is_bot: false, first_name: this.first_name, last_name: this.last_name, username: this.username },
+        query,
+        offset: '',
+        chat_type: options.chatType ?? 'sender',
+      },
+    } as Update;
+
+    await this.ctx.bot.handleUpdate(update);
+  }
+
+  async sendChosenInlineResult(
+    resultId: string,
+    query: string,
+  ): Promise<void> {
+    const update: Update = {
+      update_id: this.ctx.ids.nextMessageId() + 850_000,
+      chosen_inline_result: {
+        result_id: resultId,
+        from: { id: this.id, is_bot: false, first_name: this.first_name, last_name: this.last_name, username: this.username },
+        query,
+      },
+    } as Update;
+
+    await this.ctx.bot.handleUpdate(update);
+  }
+
+  async sendPreCheckoutQuery(
+    invoicePayload: string,
+    currency: string,
+    totalAmount: number,
+  ): Promise<void> {
+    const update: Update = {
+      update_id: this.ctx.ids.nextMessageId() + 900_000,
+      pre_checkout_query: {
+        id: `pcq-${this.ctx.ids.nextMessageId()}`,
+        from: { id: this.id, is_bot: false, first_name: this.first_name, last_name: this.last_name, username: this.username },
+        currency,
+        total_amount: totalAmount,
+        invoice_payload: invoicePayload,
+      },
+    } as Update;
+
+    await this.ctx.bot.handleUpdate(update);
+  }
+
+  async sendShippingQuery(
+    invoicePayload: string,
+    shippingAddress: ShippingAddress,
+  ): Promise<void> {
+    const update: Update = {
+      update_id: this.ctx.ids.nextMessageId() + 950_000,
+      shipping_query: {
+        id: `shq-${this.ctx.ids.nextMessageId()}`,
+        from: { id: this.id, is_bot: false, first_name: this.first_name, last_name: this.last_name, username: this.username },
+        invoice_payload: invoicePayload,
+        shipping_address: shippingAddress,
+      },
+    } as Update;
+
+    await this.ctx.bot.handleUpdate(update);
   }
 
   async sendMediaGroup(
