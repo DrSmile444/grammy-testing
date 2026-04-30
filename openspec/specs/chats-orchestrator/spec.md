@@ -63,6 +63,16 @@ Each chat factory SHALL produce a chat with a unique numeric `chat.id` and the a
 - **THEN** `dm.id` equals `user.id`
 - **AND** `dm.type` equals `'private'`
 
+### Requirement: Message-method set is validated against grammy's API surface at compile time
+
+The set of outgoing API method names that trigger `Reply` derivation SHALL be defined using `satisfies Partial<Record<keyof RawApi, true>>`. This means every entry must be a real grammy method name — the TypeScript compiler rejects typos and stale names. The set is intentionally a curated subset; not all grammy methods that produce a `Message` are included, only those the testing library explicitly captures.
+
+#### Scenario: Only known grammy methods can enter the set
+
+- **WHEN** a developer adds a misspelled or non-existent method name to the message-method guard
+- **THEN** the `satisfies Partial<Record<keyof RawApi, true>>` constraint fails to compile
+- **AND** the developer must use the exact method name from grammy before the build succeeds
+
 ### Requirement: v0.1 surface remains accessible on `chats`
 
 `chats.outgoing` (the `OutgoingRequests` collector) and `chats.idle()` (the async settle helper) SHALL remain accessible on the `Chats` object exposed by every entry point. v0.2 adds capabilities; it does NOT remove or rename anything from v0.1.

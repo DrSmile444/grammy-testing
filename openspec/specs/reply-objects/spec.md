@@ -11,7 +11,7 @@ TBD - created by archiving change add-high-level-chats-api. Update Purpose after
 For every captured outgoing API call whose method produces a message in a chat (`sendMessage`, `sendPhoto`, `sendDocument`, etc., or any call that produces a `Message` shape), the system SHALL derive a `Reply<TContext>` object exposing normalized accessors:
 
 - `reply.text`: message text or caption, whichever is present.
-- `reply.parseMode`: `'HTML' | 'Markdown' | 'MarkdownV2' | undefined`.
+- `reply.parseMode`: the grammy `ParseMode` type (`'HTML' | 'Markdown' | 'MarkdownV2'`), sourced from `grammy/types` — not a locally-defined copy.
 - `reply.entities`: normalized entity array.
 - `reply.buttons`: flat array of inline-keyboard buttons; each entry has `text` and either `callbackData` or `url` (other button types as appropriate).
 - `reply.replyMarkup`: the raw `reply_markup` object from the captured payload (`Record<string, unknown> | undefined`); escape hatch for markup types not covered by `reply.buttons`.
@@ -20,6 +20,8 @@ For every captured outgoing API call whose method produces a message in a chat (
 - `reply.raw`: the original captured outgoing payload (escape hatch for anything not normalized).
 
 `Reply` instances SHALL be plain values (not proxies), safe to snapshot, log, and pass around.
+
+The `ParseMode` type used in `reply.parseMode` SHALL be the same type exported by `grammy/types`, not a locally-maintained union. This ensures it automatically tracks upstream grammy changes.
 
 #### Scenario: text accessor for sendMessage
 
