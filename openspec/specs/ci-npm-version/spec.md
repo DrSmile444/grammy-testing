@@ -19,13 +19,19 @@ Ensure that the exact npm version used to manage this project is pinned in `pack
 
 ### Requirement: CI installs the pinned npm version before running npm ci
 
-All CI jobs that run `npm ci` SHALL include a `npm install -g npm@<version>` step immediately before `npm ci`, where `<version>` matches the `packageManager` field in `package.json`. This replaces the bundled npm from the Node.js image with the pinned version unconditionally.
+CI jobs that run `npm ci` on Node 20 and 22 SHALL include a `npm install -g npm@<version>` step immediately before `npm ci`, where `<version>` matches the `packageManager` field in `package.json`. Node 18 SHALL skip this step because `npm@11.x` requires Node `^20.17.0 || >=22.9.0` and is incompatible with Node 18; the bundled npm on Node 18 is sufficient to run `npm ci` with the lockfile.
 
-#### Scenario: All test matrix nodes use the pinned npm
+#### Scenario: Node 20 and 22 use the pinned npm
 
-- **WHEN** CI runs the `test` job on any Node matrix version (18, 20, 22)
+- **WHEN** CI runs the `test` job on Node 20 or 22
 - **THEN** `npm install -g npm@<pinned-version>` has run before `npm ci`
 - **AND** the npm version active during install matches the `packageManager` field in `package.json`
+
+#### Scenario: Node 18 skips the npm upgrade
+
+- **WHEN** CI runs the `test` job on Node 18
+- **THEN** the `npm install -g npm@<pinned-version>` step is skipped
+- **AND** `npm ci` runs with the bundled npm that ships with Node 18
 
 #### Scenario: build-and-verify job uses the pinned npm
 
