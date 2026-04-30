@@ -19,6 +19,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
+      - run: corepack enable
       - run: npm ci
       - run: npm run typecheck
       - run: npm run test:run
@@ -32,6 +33,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - run: corepack enable
       - run: npm ci
       - run: npm run build
       - run: npm run test:cjs
