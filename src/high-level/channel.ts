@@ -49,8 +49,7 @@ export class Channel<TContext extends Context = Context> implements ChatRefHolde
     text: string,
     options: { messageId?: number } = {},
   ): Promise<void> {
-    const updateId = this.ids.nextUpdateId();
-    const messageId = options.messageId ?? updateId;
+    const messageId = options.messageId ?? this.ids.nextMessageId();
 
     const message: Message = {
       message_id: messageId,
@@ -62,7 +61,7 @@ export class Channel<TContext extends Context = Context> implements ChatRefHolde
     } as Message;
 
     const update: Update = {
-      update_id: updateId,
+      update_id: this.ids.nextUpdateId(),
       message,
     } as Update;
 

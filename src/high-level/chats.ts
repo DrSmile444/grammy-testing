@@ -134,8 +134,6 @@ export class Chats<TContext extends Context = Context> {
   /** messageId->Reply registry for reply.replyingTo resolution. */
   private readonly messageIdToReply = new Map<number, Reply<TContext>>();
 
-  private pollStateCounter = 0;
-
   /** @internal */
   bot: Bot<TContext> | undefined;
 
@@ -301,8 +299,6 @@ export class Chats<TContext extends Context = Context> {
     if (!this.bot) {
       throw new Error('Bot not attached — call prepareBot() first');
     }
-
-    this.pollStateCounter += 1;
 
     await this.bot.handleUpdate({
       update_id: options.updateId ?? this.ids.nextUpdateId(),

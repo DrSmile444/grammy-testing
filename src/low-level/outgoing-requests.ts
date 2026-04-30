@@ -29,13 +29,14 @@ type OneShotOverride = { kind: 'fail'; error: GrammyError | GrammyErrorSpec } | 
  * ({@link prepareBot}, {@link prepareComposer}, {@link prepareMiddleware}).
  */
 export class OutgoingRequests<TMethod extends RealApiMethodKeys = RealApiMethodKeys> {
-  private _requests: Request[] = [];
+  private readonly requestsStore: Request[] = [];
 
   /**
    * Captured requests, in capture order. Read-only externally; use `push` / `clear`.
+   * @returns Read-only array of captured requests.
    */
   get requests(): readonly Request[] {
-    return this._requests;
+    return this.requestsStore;
   }
 
   /**
@@ -50,7 +51,7 @@ export class OutgoingRequests<TMethod extends RealApiMethodKeys = RealApiMethodK
   readonly stickyFails = new Map<RealApiMethodKeys, GrammyError | GrammyErrorSpec>();
 
   get length(): number {
-    return this._requests.length;
+    return this.requestsStore.length;
   }
 
   /**
@@ -69,39 +70,39 @@ export class OutgoingRequests<TMethod extends RealApiMethodKeys = RealApiMethodK
    * @returns Array of method names in the order they were captured.
    */
   getMethods(): TMethod[] {
-    return this._requests.map((request) => request.method as TMethod);
+    return this.requestsStore.map((request) => request.method as TMethod);
   }
 
   push(...requests: Request<TMethod>[]): this {
-    this._requests.push(...requests);
+    this.requestsStore.push(...requests);
 
     return this;
   }
 
   clear(): this {
-    this._requests.length = 0;
+    this.requestsStore.length = 0;
 
     return this;
   }
 
   getFirst<TApi extends TMethod>(): Request<TApi> | null {
-    if (this._requests.length === 0) {
+    if (this.requestsStore.length === 0) {
       return null;
     }
 
-    return this._requests[0] as Request<TApi>;
+    return this.requestsStore[0] as Request<TApi>;
   }
 
   getLast<TApi extends TMethod>(): Request<TApi> | null {
-    if (this._requests.length === 0) {
+    if (this.requestsStore.length === 0) {
       return null;
     }
 
-    return this._requests.at(-1) as Request<TApi>;
+    return this.requestsStore.at(-1) as Request<TApi>;
   }
 
   getTwoLast<TApi extends TMethod, TBot extends TMethod>(): [Request<TApi>?, Request<TBot>?] {
-    return this._requests.slice(-2) as [Request<TApi>?, Request<TBot>?];
+    return this.requestsStore.slice(-2) as [Request<TApi>?, Request<TBot>?];
   }
 
   getThreeLast<TApi extends TMethod, TBot extends TMethod, TContext extends TMethod>(): [
@@ -109,7 +110,7 @@ export class OutgoingRequests<TMethod extends RealApiMethodKeys = RealApiMethodK
     Request<TBot>?,
     Request<TContext>?,
   ] {
-    return this._requests.slice(-3) as [Request<TApi>?, Request<TBot>?, Request<TContext>?];
+    return this.requestsStore.slice(-3) as [Request<TApi>?, Request<TBot>?, Request<TContext>?];
   }
 
   getAll<TApi extends TMethod>(): [Request<TApi>?];
@@ -219,7 +220,7 @@ export class OutgoingRequests<TMethod extends RealApiMethodKeys = RealApiMethodK
   ];
 
   getAll() {
-    return this._requests as unknown as never;
+    return this.requestsStore as unknown as never;
   }
 
   /**
