@@ -57,7 +57,7 @@ describe('reference: error simulation', () => {
 
     bot.on('message:text', async (context) => {
       // Bot tries up to 3 times to send.
-      for (let i = 0; i < 3; i += 1) {
+      for (let attempt = 0; attempt < 3; attempt += 1) {
         try {
           attempts += 1;
           // eslint-disable-next-line no-await-in-loop -- retry pattern is intentionally serial
@@ -65,7 +65,7 @@ describe('reference: error simulation', () => {
 
           return;
         } catch (error) {
-          if (i === 2) {
+          if (attempt === 2) {
             throw error;
           }
         }
@@ -125,6 +125,7 @@ describe('reference: error simulation', () => {
       } catch {
         events.push('reply-failed');
       }
+
       try {
         const chat = await context.api.getChat(context.chat.id);
 
@@ -142,6 +143,7 @@ describe('reference: error simulation', () => {
     const user = chats.newUser();
 
     chats.outgoing.failNext('sendMessage', { code: 403, description: 'x' });
+
     chats.outgoing.respondNext('getChat', {
       id: 1,
       type: 'supergroup',

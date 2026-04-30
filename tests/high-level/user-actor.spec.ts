@@ -176,7 +176,7 @@ describe('User actor', () => {
 
       await user.sendText('trigger');
 
-      expect(chats.outgoing.getMethods().filter((m) => m === 'sendMessage')).toHaveLength(2);
+      expect(chats.outgoing.getMethods().filter((method) => method === 'sendMessage')).toHaveLength(2);
     });
   });
 });

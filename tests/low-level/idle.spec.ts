@@ -29,6 +29,7 @@ describe('chats.idle()', () => {
 
     bot.on('message:text', (context) => {
       // Intentionally fire-and-forget:
+      // eslint-disable-next-line no-void -- fire-and-forget demo
       void context.api.sendMessage(123, 'fire-and-forget');
     });
 
@@ -65,6 +66,7 @@ describe('chats.idle()', () => {
 
     bot.on('message:text', (context) => {
       setTimeout(() => {
+        // eslint-disable-next-line no-void -- fire-and-forget demo
         void context.api.sendMessage(123, 'late');
       }, 100);
     });

@@ -33,6 +33,7 @@ describe('reference: sessions', () => {
     let observed: string | undefined;
 
     bot.use(mockSessionMiddleware);
+
     bot.on('message:text', async (context) => {
       observed = context.session.language;
       await context.reply(`lang=${context.session.language ?? 'unknown'}`);
@@ -58,6 +59,7 @@ describe('reference: sessions', () => {
     const observed: (string | undefined)[] = [];
 
     bot.use(mockSessionMiddleware);
+
     bot.on('message:text', (context) => {
       observed.push(context.session.language);
     });
@@ -80,11 +82,12 @@ describe('reference: sessions', () => {
     });
 
     const bot = new Bot<Ctx>('test-token');
-    let observed: boolean | undefined;
+    let didObserve: boolean | undefined;
 
     bot.use(mockChatSessionMiddleware);
+
     bot.on('message:text', (context) => {
-      observed = context.chatSession.isBotAdmin;
+      didObserve = context.chatSession.isBotAdmin;
     });
 
     const { chats } = await prepareBot<Ctx>(bot);
@@ -92,7 +95,7 @@ describe('reference: sessions', () => {
 
     await user.sendText('hi');
 
-    expect(observed).toBe(true);
+    expect(didObserve).toBe(true);
   });
 
   it('combined mockSession + mockChatSession in one bot', async () => {
@@ -110,6 +113,7 @@ describe('reference: sessions', () => {
     const { mockSessionMiddleware } = mockSession<SessionData, Ctx>({
       language: 'en',
     });
+
     const { mockChatSessionMiddleware } = mockChatSession<ChatSessionData, Ctx>({
       isBotAdmin: true,
     });
@@ -119,6 +123,7 @@ describe('reference: sessions', () => {
 
     bot.use(mockSessionMiddleware);
     bot.use(mockChatSessionMiddleware);
+
     bot.on('message:text', (context) => {
       combined = `${context.session.language ?? '?'}|${String(context.chatSession.isBotAdmin)}`;
     });

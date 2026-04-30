@@ -40,7 +40,7 @@ describe('user.replies filter rule', () => {
 
     bot.on('message:text', async (ctx) => {
       // Reply with @-mention of the sending user; mark the mention via entities.
-      const username = ctx.message.from?.username;
+      const { username } = ctx.message.from;
 
       if (!username) {
         return;
@@ -49,7 +49,7 @@ describe('user.replies filter rule', () => {
       const text = `Welcome, @${username}!`;
       const offset = text.indexOf(`@${username}`);
 
-      await ctx.api.sendMessage(ctx.chat!.id, text, {
+      await ctx.api.sendMessage(ctx.chat.id, text, {
         entities: [{ type: 'mention', offset, length: username.length + 1 }],
       });
     });

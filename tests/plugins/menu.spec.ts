@@ -15,6 +15,8 @@
  * callback_data. Always match by visible button text, not by data.
  */
 
+import assert from 'node:assert';
+
 import { Menu } from '@grammyjs/menu';
 import { Bot } from 'grammy';
 import { describe, expect, it } from 'vitest';
@@ -24,10 +26,10 @@ import { prepareBot } from '../../src/index';
 describe('plugin: @grammyjs/menu', () => {
   it('menu button click triggers the registered handler', async () => {
     const bot = new Bot('test-token');
-    let handlerRan = false;
+    let didHandlerRun = false;
 
     const menu = new Menu('main-menu').text('Click me', async (ctx) => {
-      handlerRan = true;
+      didHandlerRun = true;
       await ctx.reply('Button clicked!');
     });
 
@@ -44,12 +46,14 @@ describe('plugin: @grammyjs/menu', () => {
 
     const reply = chats.repliesFor(user).last;
 
-    expect(reply?.text).toBe('Choose:');
-    expect(reply?.buttons.map((b) => b.text)).toContain('Click me');
+    assert.ok(reply);
 
-    await reply!.clickButton('Click me');
+    expect(reply.text).toBe('Choose:');
+    expect(reply.buttons.map((button) => button.text)).toContain('Click me');
 
-    expect(handlerRan).toBe(true);
+    await reply.clickButton('Click me');
+
+    expect(didHandlerRun).toBe(true);
     expect(chats.repliesFor(user).last?.text).toBe('Button clicked!');
   });
 
@@ -80,7 +84,9 @@ describe('plugin: @grammyjs/menu', () => {
 
     const reply = chats.repliesFor(user).last;
 
-    await reply!.clickButton('No');
+    assert.ok(reply);
+
+    await reply.clickButton('No');
 
     expect(chosen).toBe('no');
     expect(chats.repliesFor(user).last?.text).toBe('You chose no');

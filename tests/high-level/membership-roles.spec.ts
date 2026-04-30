@@ -16,10 +16,10 @@ describe('Membership roles', () => {
         can_restrict_members: true,
       });
 
-      const m = user.in(group);
+      const membership = user.in(group);
 
-      expect(m?.status).toBe('administrator');
-      expect(m?.permissions.can_delete_messages).toBe(true);
+      expect(membership?.status).toBe('administrator');
+      expect(membership?.permissions.can_delete_messages).toBe(true);
     });
 
     it('default permissions are permissive', async () => {
@@ -30,10 +30,10 @@ describe('Membership roles', () => {
 
       group.promote(user);
 
-      const m = user.in(group);
+      const membership = user.in(group);
 
-      expect(m?.permissions.can_change_info).toBe(true);
-      expect(m?.permissions.can_delete_messages).toBe(true);
+      expect(membership?.permissions.can_change_info).toBe(true);
+      expect(membership?.permissions.can_delete_messages).toBe(true);
     });
   });
 
@@ -46,11 +46,11 @@ describe('Membership roles', () => {
 
       group.restrict(user, { can_send_messages: false }, 1_700_000_000);
 
-      const m = user.in(group);
+      const membership = user.in(group);
 
-      expect(m?.status).toBe('restricted');
-      expect(m?.permissions.can_send_messages).toBe(false);
-      expect(m?.untilDate).toBe(1_700_000_000);
+      expect(membership?.status).toBe('restricted');
+      expect(membership?.permissions.can_send_messages).toBe(false);
+      expect(membership?.untilDate).toBe(1_700_000_000);
     });
   });
 

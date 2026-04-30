@@ -27,17 +27,14 @@ describe('error simulation', () => {
       description: 'Forbidden: bot was blocked by the user',
     });
 
-    try {
-      await bot.api.sendMessage(1, 'hi');
-      throw new Error('expected to reject');
-    } catch (error) {
-      expect(error).toBeInstanceOf(GrammyError);
-      const grammyError = error as GrammyError;
+    const thrown = await bot.api.sendMessage(1, 'hi').catch((error: unknown) => error);
 
-      expect(grammyError.error_code).toBe(403);
+    expect(thrown).toBeInstanceOf(GrammyError);
 
-      expect(grammyError.description).toBe('Forbidden: bot was blocked by the user');
-    }
+    const grammyError = thrown as GrammyError;
+
+    expect(grammyError.error_code).toBe(403);
+    expect(grammyError.description).toBe('Forbidden: bot was blocked by the user');
   });
 
   it('failNext accepts a real GrammyError', async () => {
@@ -48,12 +45,9 @@ describe('error simulation', () => {
 
     chats.outgoing.failNext('sendMessage', explicitError);
 
-    try {
-      await bot.api.sendMessage(1, 'hi');
-      throw new Error('expected to reject');
-    } catch (error) {
-      expect(error).toBe(explicitError);
-    }
+    const thrown = await bot.api.sendMessage(1, 'hi').catch((error: unknown) => error);
+
+    expect(thrown).toBe(explicitError);
   });
 
   it('failAll rejects every matching call until clearOverrides', async () => {

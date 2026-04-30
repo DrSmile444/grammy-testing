@@ -18,6 +18,8 @@
  * v0.2.x gaps: none for this pattern category at v0.2.
  */
 
+import assert from 'node:assert';
+
 import { Bot, InlineKeyboard } from 'grammy';
 import { describe, expect, it } from 'vitest';
 
@@ -26,7 +28,7 @@ import { prepareBot } from '../../src/index';
 describe('reference: menu flows', () => {
   it('basic flow: reply with keyboard, user clicks, callback handler runs', async () => {
     const bot = new Bot('test-token');
-    let acked = false;
+    let didAck = false;
 
     bot.command('start', async (context) => {
       const kb = new InlineKeyboard().text('Yes', 'cb-yes').text('No', 'cb-no');
@@ -36,7 +38,7 @@ describe('reference: menu flows', () => {
 
     bot.on('callback_query:data', async (context) => {
       if (context.callbackQuery.data === 'cb-yes') {
-        acked = true;
+        didAck = true;
         await context.reply('proceeding');
       }
     });
@@ -48,11 +50,13 @@ describe('reference: menu flows', () => {
 
     const reply = chats.repliesFor(user).last;
 
-    expect(reply?.buttons.map((b) => b.text)).toEqual(['Yes', 'No']);
+    assert.ok(reply);
 
-    await reply!.clickButton('Yes');
+    expect(reply.buttons.map((button) => button.text)).toEqual(['Yes', 'No']);
 
-    expect(acked).toBe(true);
+    await reply.clickButton('Yes');
+
+    expect(didAck).toBe(true);
     expect(chats.repliesFor(user).last?.text).toBe('proceeding');
   });
 
@@ -90,13 +94,17 @@ describe('reference: menu flows', () => {
 
     const first = chats.repliesFor(user).last;
 
-    await first!.clickButton('Start');
+    assert.ok(first);
+
+    await first.clickButton('Start');
 
     const second = chats.repliesFor(user).last;
 
-    expect(second?.buttons.map((b) => b.text)).toEqual(['Option A', 'Option B']);
+    assert.ok(second);
 
-    await second!.clickButton('Option A');
+    expect(second.buttons.map((button) => button.text)).toEqual(['Option A', 'Option B']);
+
+    await second.clickButton('Option A');
 
     expect(finalChoice).toBe('cb-a');
     expect(chats.repliesFor(user).last?.text).toBe('chose cb-a');
@@ -124,7 +132,9 @@ describe('reference: menu flows', () => {
 
     const reply = chats.repliesFor(user).last;
 
-    await reply!.clickButton({ data: 'cb-greet' });
+    assert.ok(reply);
+
+    await reply.clickButton({ callbackData: 'cb-greet' });
 
     expect(dataObserved).toBe('cb-greet');
   });
@@ -145,6 +155,8 @@ describe('reference: menu flows', () => {
 
     const reply = chats.repliesFor(user).last;
 
-    await expect(reply!.clickButton('Open')).rejects.toThrow(/URL buttons/);
+    assert.ok(reply);
+
+    await expect(reply.clickButton('Open')).rejects.toThrow(/URL buttons/);
   });
 });

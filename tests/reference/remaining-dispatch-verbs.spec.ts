@@ -23,6 +23,7 @@ describe('reference: remaining dispatch verbs', () => {
 
       const { chats } = await prepareBot(bot);
       const user = chats.newUser();
+
       await user.sendAudio('aud-001');
 
       expect(observed).toBe('aud-001');
@@ -38,6 +39,7 @@ describe('reference: remaining dispatch verbs', () => {
 
       const { chats } = await prepareBot(bot);
       const user = chats.newUser();
+
       await user.sendAudio();
 
       expect(observed).toMatch(/^stub-file-\d+$/u);
@@ -54,6 +56,7 @@ describe('reference: remaining dispatch verbs', () => {
       const { chats } = await prepareBot(bot);
       const user = chats.newUser();
       const group = chats.newSupergroup();
+
       await user.sendAudio('aud-001', { chat: group });
 
       expect(observedChatId).toBe(group.id);
@@ -71,6 +74,7 @@ describe('reference: remaining dispatch verbs', () => {
 
       const { chats } = await prepareBot(bot);
       const user = chats.newUser();
+
       await user.sendVoice('voi-001');
 
       expect(observed).toBe('voi-001');
@@ -86,6 +90,7 @@ describe('reference: remaining dispatch verbs', () => {
 
       const { chats } = await prepareBot(bot);
       const user = chats.newUser();
+
       await user.sendVoice();
 
       expect(observed).toMatch(/^stub-file-\d+$/u);
@@ -103,6 +108,7 @@ describe('reference: remaining dispatch verbs', () => {
 
       const { chats } = await prepareBot(bot);
       const user = chats.newUser();
+
       await user.sendVideoNote('vn-001');
 
       expect(observed).toBe('vn-001');
@@ -118,6 +124,7 @@ describe('reference: remaining dispatch verbs', () => {
 
       const { chats } = await prepareBot(bot);
       const user = chats.newUser();
+
       await user.sendVideoNote();
 
       expect(observed).toMatch(/^stub-file-\d+$/u);
@@ -135,6 +142,7 @@ describe('reference: remaining dispatch verbs', () => {
 
       const { chats } = await prepareBot(bot);
       const user = chats.newUser();
+
       await user.sendAnimation('anim-001');
 
       expect(observed).toBe('anim-001');
@@ -150,6 +158,7 @@ describe('reference: remaining dispatch verbs', () => {
 
       const { chats } = await prepareBot(bot);
       const user = chats.newUser();
+
       await user.sendAnimation();
 
       expect(observed).toMatch(/^stub-file-\d+$/u);
@@ -167,6 +176,7 @@ describe('reference: remaining dispatch verbs', () => {
 
       const { chats } = await prepareBot(bot);
       const user = chats.newUser();
+
       await user.sendSticker('stk-001');
 
       expect(observed).toBe('stk-001');
@@ -182,6 +192,7 @@ describe('reference: remaining dispatch verbs', () => {
 
       const { chats } = await prepareBot(bot);
       const user = chats.newUser();
+
       await user.sendSticker();
 
       expect(observed).toMatch(/^stub-file-\d+$/u);
@@ -201,6 +212,7 @@ describe('reference: remaining dispatch verbs', () => {
 
       const { chats } = await prepareBot(bot);
       const user = chats.newUser();
+
       await user.sendLocation(51.5074, -0.1278);
 
       expect(observedLat).toBe(51.5074);
@@ -218,6 +230,7 @@ describe('reference: remaining dispatch verbs', () => {
       const { chats } = await prepareBot(bot);
       const user = chats.newUser();
       const group = chats.newSupergroup();
+
       await user.sendLocation(0, 0, { chat: group });
 
       expect(observedChatId).toBe(group.id);
@@ -235,6 +248,7 @@ describe('reference: remaining dispatch verbs', () => {
 
       const { chats } = await prepareBot(bot);
       const user = chats.newUser();
+
       await user.sendContact('+1234567890', 'Alice');
 
       expect(observedContact?.phone_number).toBe('+1234567890');
@@ -251,6 +265,7 @@ describe('reference: remaining dispatch verbs', () => {
 
       const { chats } = await prepareBot(bot);
       const user = chats.newUser();
+
       await user.sendContact('+1234567890', 'Alice', { lastName: 'Smith' });
 
       expect(observedContact?.last_name).toBe('Smith');
@@ -268,6 +283,7 @@ describe('reference: remaining dispatch verbs', () => {
 
       const { chats } = await prepareBot(bot);
       const user = chats.newUser();
+
       await user.sendVenue(51.5074, -0.1278, 'Big Ben', 'Westminster, London');
 
       expect(observedVenue?.title).toBe('Big Ben');
@@ -287,6 +303,7 @@ describe('reference: remaining dispatch verbs', () => {
 
       const { chats } = await prepareBot(bot);
       const user = chats.newUser();
+
       await user.sendPoll('Favorite color?', ['Red', 'Blue', 'Green']);
 
       expect(observedPoll?.question).toBe('Favorite color?');
@@ -306,6 +323,7 @@ describe('reference: remaining dispatch verbs', () => {
 
       const { chats } = await prepareBot(bot);
       const user = chats.newUser();
+
       await user.sendDice();
 
       expect(observedDice?.emoji).toBe('🎲');
@@ -322,6 +340,7 @@ describe('reference: remaining dispatch verbs', () => {
 
       const { chats } = await prepareBot(bot);
       const user = chats.newUser();
+
       await user.sendDice('🎯');
 
       expect(observedEmoji).toBe('🎯');

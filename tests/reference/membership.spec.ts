@@ -30,10 +30,10 @@ describe('reference: membership', () => {
 
     group.promote(user, { can_delete_messages: true });
 
-    const m = user.in(group);
+    const membership = user.in(group);
 
-    expect(m?.status).toBe('administrator');
-    expect(m?.permissions.can_delete_messages).toBe(true);
+    expect(membership?.status).toBe('administrator');
+    expect(membership?.permissions.can_delete_messages).toBe(true);
   });
 
   it('restrict with permission flags + untilDate is observable', async () => {
@@ -44,12 +44,12 @@ describe('reference: membership', () => {
 
     group.restrict(user, { can_send_messages: false, can_send_photos: false }, 1_700_000_000);
 
-    const m = user.in(group);
+    const membership = user.in(group);
 
-    expect(m?.status).toBe('restricted');
-    expect(m?.permissions.can_send_messages).toBe(false);
-    expect(m?.permissions.can_send_photos).toBe(false);
-    expect(m?.untilDate).toBe(1_700_000_000);
+    expect(membership?.status).toBe('restricted');
+    expect(membership?.permissions.can_send_messages).toBe(false);
+    expect(membership?.permissions.can_send_photos).toBe(false);
+    expect(membership?.untilDate).toBe(1_700_000_000);
   });
 
   it('changeMemberStatus dispatches my_chat_member with old + new', async () => {

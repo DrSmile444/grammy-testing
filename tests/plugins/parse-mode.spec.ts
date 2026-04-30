@@ -42,7 +42,7 @@ describe('plugin: @grammyjs/parse-mode', () => {
     const reply = chats.repliesFor(user).last;
 
     expect(reply?.text).toBe('Hello, world!');
-    expect(reply?.entities?.some((e) => e.type === 'bold')).toBe(true);
+    expect(reply?.entities?.some((entity) => entity.type === 'bold')).toBe(true);
   });
 
   it('fmt with multiple markers produces merged entities', async () => {
@@ -63,7 +63,7 @@ describe('plugin: @grammyjs/parse-mode', () => {
 
     expect(reply?.text).toBe('Important: note');
 
-    const types = reply?.entities?.map((e) => e.type);
+    const types = reply?.entities?.map((entity) => entity.type);
 
     expect(types).toContain('bold');
     expect(types).toContain('italic');

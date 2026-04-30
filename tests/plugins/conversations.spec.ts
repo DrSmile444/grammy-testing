@@ -29,8 +29,19 @@ import { prepareBot } from '../../src/index';
 type MyContext = ConversationFlavor<Context>;
 type MyConversation = Conversation<MyContext, MyContext>;
 
+interface OkFetchReturnJson {
+  ok: boolean;
+  result: boolean;
+}
+
+interface OkFetchReturn {
+  ok: boolean;
+  json: () => Promise<OkFetchReturnJson>;
+  text: () => Promise<string>;
+}
+
 /** Returns a minimal success response for any Telegram API call. */
-const okFetch = (): Promise<{ ok: boolean; json: () => Promise<{ ok: boolean; result: boolean }>; text: () => Promise<string> }> =>
+const okFetch = (): Promise<OkFetchReturn> =>
   Promise.resolve({
     ok: true,
     json: () => Promise.resolve({ ok: true, result: true }),

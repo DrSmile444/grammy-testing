@@ -20,22 +20,22 @@ describe('mockContextField (generic)', () => {
       foo: string;
     }
 
-    interface Context_ extends Context {
+    interface TestContext extends Context {
       myField: ContextMyField;
     }
     interface Result {
-      myField: Context_['myField'];
-      myFieldMiddleware: MockContextFieldReturnType<Context_, 'myField'>['middleware'];
+      myField: TestContext['myField'];
+      myFieldMiddleware: MockContextFieldReturnType<TestContext, 'myField'>['middleware'];
     }
 
-    const factory = mockContextField<Context_, 'myField', Result>('myField', ({ mocked, middleware }) => ({
+    const factory = mockContextField<TestContext, 'myField', Result>('myField', ({ mocked, middleware }) => ({
       myField: mocked,
       myFieldMiddleware: middleware,
     }));
 
     const { myField, myFieldMiddleware } = factory({ foo: 'bar' });
 
-    const bot = new Bot<Context_>('test-token');
+    const bot = new Bot<TestContext>('test-token');
     let observed: string | undefined;
 
     bot.use(myFieldMiddleware);
@@ -44,7 +44,7 @@ describe('mockContextField (generic)', () => {
       observed = context.myField.foo;
     });
 
-    await prepareBot<Context_>(bot);
+    await prepareBot<TestContext>(bot);
     await bot.handleUpdate(new MessagePrivateMockUpdate('hi').build());
 
     expect(observed).toBe('bar');
@@ -56,22 +56,22 @@ describe('mockContextField (generic)', () => {
       count: number;
     }
 
-    interface Context_ extends Context {
+    interface TestContext extends Context {
       myField: ContextMyField2;
     }
     interface Result {
-      myField: Context_['myField'];
-      myFieldMiddleware: MockContextFieldReturnType<Context_, 'myField'>['middleware'];
+      myField: TestContext['myField'];
+      myFieldMiddleware: MockContextFieldReturnType<TestContext, 'myField'>['middleware'];
     }
 
-    const factory = mockContextField<Context_, 'myField', Result>('myField', ({ mocked, middleware }) => ({
+    const factory = mockContextField<TestContext, 'myField', Result>('myField', ({ mocked, middleware }) => ({
       myField: mocked,
       myFieldMiddleware: middleware,
     }));
 
     const { myField, myFieldMiddleware } = factory({ count: 0 });
 
-    const bot = new Bot<Context_>('test-token');
+    const bot = new Bot<TestContext>('test-token');
     const seen: number[] = [];
 
     bot.use(myFieldMiddleware);
@@ -80,7 +80,7 @@ describe('mockContextField (generic)', () => {
       seen.push(context.myField.count);
     });
 
-    await prepareBot<Context_>(bot);
+    await prepareBot<TestContext>(bot);
 
     await bot.handleUpdate(new MessagePrivateMockUpdate('a').build());
     myField.count = 7;
@@ -92,13 +92,13 @@ describe('mockContextField (generic)', () => {
 
 describe('mockSession', () => {
   it('injects partial session and reflects mutations', async () => {
-    type Context_ = SessionContext<{ language?: string }>;
+    type TestContext = SessionContext<{ language?: string }>;
 
-    const { session, mockSessionMiddleware } = mockSession<{ language?: string }, Context_>({
+    const { session, mockSessionMiddleware } = mockSession<{ language?: string }, TestContext>({
       language: 'en',
     });
 
-    const bot = new Bot<Context_>('test-token');
+    const bot = new Bot<TestContext>('test-token');
     let observed: string | undefined;
 
     bot.use(mockSessionMiddleware);
@@ -107,7 +107,7 @@ describe('mockSession', () => {
       observed = context.session.language;
     });
 
-    await prepareBot<Context_>(bot);
+    await prepareBot<TestContext>(bot);
     await bot.handleUpdate(new MessagePrivateMockUpdate('hi').build());
 
     expect(observed).toBe('en');
@@ -121,35 +121,35 @@ describe('mockSession', () => {
 
 describe('mockChatSession', () => {
   it('injects partial chat session', async () => {
-    type Context_ = ChatSessionContext<{ isBotAdmin: boolean }>;
+    type TestContext = ChatSessionContext<{ isBotAdmin: boolean }>;
 
-    const { mockChatSessionMiddleware } = mockChatSession<{ isBotAdmin: boolean }, Context_>({
+    const { mockChatSessionMiddleware } = mockChatSession<{ isBotAdmin: boolean }, TestContext>({
       isBotAdmin: true,
     });
 
-    const bot = new Bot<Context_>('test-token');
-    let observed: boolean | undefined;
+    const bot = new Bot<TestContext>('test-token');
+    let didObserve: boolean | undefined;
 
     bot.use(mockChatSessionMiddleware);
 
     bot.on('message:text', (context) => {
-      observed = context.chatSession.isBotAdmin;
+      didObserve = context.chatSession.isBotAdmin;
     });
 
-    await prepareBot<Context_>(bot);
+    await prepareBot<TestContext>(bot);
     await bot.handleUpdate(new MessagePrivateMockUpdate('hi').build());
 
-    expect(observed).toBe(true);
+    expect(didObserve).toBe(true);
   });
 });
 
 describe('mockState', () => {
   it('injects partial state', async () => {
-    type Context_ = StateContext<{ foo: number }>;
+    type TestContext = StateContext<{ foo: number }>;
 
-    const { mockStateMiddleware } = mockState<{ foo: number }, Context_>({ foo: 1 });
+    const { mockStateMiddleware } = mockState<{ foo: number }, TestContext>({ foo: 1 });
 
-    const bot = new Bot<Context_>('test-token');
+    const bot = new Bot<TestContext>('test-token');
     let observed: number | undefined;
 
     bot.use(mockStateMiddleware);
@@ -158,7 +158,7 @@ describe('mockState', () => {
       observed = context.state.foo;
     });
 
-    await prepareBot<Context_>(bot);
+    await prepareBot<TestContext>(bot);
     await bot.handleUpdate(new MessagePrivateMockUpdate('hi').build());
 
     expect(observed).toBe(1);

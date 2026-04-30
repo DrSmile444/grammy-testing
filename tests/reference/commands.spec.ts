@@ -40,10 +40,10 @@ describe('reference: commands', () => {
 
   it('/lang en parses the arg correctly', async () => {
     const bot = new Bot('test-token');
-    let observedArg: string | undefined;
+    let observedArgument: string | undefined;
 
     bot.command('lang', async (context) => {
-      observedArg = context.match;
+      observedArgument = context.match;
       await context.reply(`switching to ${context.match}`);
     });
 
@@ -52,7 +52,7 @@ describe('reference: commands', () => {
 
     await user.sendCommand('/lang', 'en');
 
-    expect(observedArg).toBe('en');
+    expect(observedArgument).toBe('en');
     expect(chats.repliesFor(user).last?.text).toBe('switching to en');
   });
 

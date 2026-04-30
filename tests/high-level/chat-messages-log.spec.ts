@@ -47,7 +47,7 @@ describe('chat.messages log', () => {
       bot.on('message:text', (ctx) => {
         captured = {
           senderChatId: ctx.message.sender_chat?.id,
-          fromUsername: ctx.message.from?.username,
+          fromUsername: ctx.message.from.username,
           text: ctx.message.text,
         };
       });

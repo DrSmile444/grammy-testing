@@ -23,8 +23,9 @@ describe('reference: ContextConstructor option', () => {
         observed = ctx.tag;
       });
 
-      const { chats } = await prepareComposer(composer, { ContextConstructor: CustomCtx });
+      const { chats } = await prepareComposer(composer, { contextConstructor: CustomCtx });
       const user = chats.newUser();
+
       await user.sendText('hi');
 
       expect(observed).toBe('custom');
@@ -32,40 +33,43 @@ describe('reference: ContextConstructor option', () => {
 
     it('preserves existing behavior when ContextConstructor is omitted', async () => {
       const composer = new Composer<Context>();
-      let reached = false;
+      let didReach = false;
 
       composer.on('message:text', () => {
-        reached = true;
+        didReach = true;
       });
 
       const { chats } = await prepareComposer(composer);
       const user = chats.newUser();
+
       await user.sendText('hi');
 
-      expect(reached).toBe(true);
+      expect(didReach).toBe(true);
     });
 
     it('responses option still works alongside ContextConstructor', async () => {
       const composer = new Composer<CustomCtx>();
       let tagSeen: string | undefined;
-      let replySent = false;
+      let didSendReply = false;
 
       composer.on('message:text', async (ctx) => {
         tagSeen = ctx.tag;
         await ctx.reply('pong');
-        replySent = true;
+        didSendReply = true;
       });
 
       // Pass a responses override alongside ContextConstructor — both must apply
       const { chats } = await prepareComposer(composer, {
-        ContextConstructor: CustomCtx,
+        contextConstructor: CustomCtx,
         responses: {},
       });
+
       const user = chats.newUser();
+
       await user.sendText('hi');
 
       expect(tagSeen).toBe('custom');
-      expect(replySent).toBe(true);
+      expect(didSendReply).toBe(true);
       expect(chats.repliesFor(user).last?.text).toBe('pong');
     });
   });
@@ -78,25 +82,27 @@ describe('reference: ContextConstructor option', () => {
         observed = ctx.tag;
       };
 
-      const { chats } = await prepareMiddleware(middleware, { ContextConstructor: CustomCtx });
+      const { chats } = await prepareMiddleware(middleware, { contextConstructor: CustomCtx });
       const user = chats.newUser();
+
       await user.sendText('hi');
 
       expect(observed).toBe('custom');
     });
 
     it('preserves existing behavior when ContextConstructor is omitted', async () => {
-      let reached = false;
+      let didReach = false;
 
       const middleware: MiddlewareFn = () => {
-        reached = true;
+        didReach = true;
       };
 
       const { chats } = await prepareMiddleware(middleware);
       const user = chats.newUser();
+
       await user.sendText('hi');
 
-      expect(reached).toBe(true);
+      expect(didReach).toBe(true);
     });
   });
 });

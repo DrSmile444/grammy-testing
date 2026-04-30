@@ -33,7 +33,7 @@ describe('MessagePrivateMockUpdate', () => {
     expect(update.update_id).toBeDefined();
     expect(update.message?.text).toBe('hello');
     expect(update.message?.chat.type).toBe('private');
-    expect(update.message?.from?.is_bot).toBe(false);
+    expect(update.message?.from.is_bot).toBe(false);
   });
 
   it('buildOverwrite deep-merges fields', () => {
@@ -70,8 +70,8 @@ describe('MessageMockUpdate (supergroup)', () => {
 
     expect(update.message?.entities).toEqual([{ offset: 0, length: 1, type: 'mention' }]);
 
-    expect(update.message?.from?.username).toBe('override');
-    expect(update.message?.from?.id).toBe(1_111_111);
+    expect(update.message?.from.username).toBe('override');
+    expect(update.message?.from.id).toBe(1_111_111);
   });
 });
 

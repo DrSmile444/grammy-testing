@@ -1,3 +1,5 @@
+import assert from 'node:assert';
+
 import { Bot, InlineKeyboard } from 'grammy';
 import { describe, expect, it } from 'vitest';
 
@@ -81,7 +83,9 @@ describe('Reply objects', () => {
 
       const reply = chats.repliesFor(user).last;
 
-      await reply!.clickButton('Confirm');
+      assert.ok(reply);
+
+      await reply.clickButton('Confirm');
 
       expect(cbData).toBe('cb-confirm');
     });
@@ -107,7 +111,9 @@ describe('Reply objects', () => {
 
       const reply = chats.repliesFor(user).last;
 
-      await reply!.clickButton({ data: 'cb-confirm' });
+      assert.ok(reply);
+
+      await reply.clickButton({ callbackData: 'cb-confirm' });
 
       expect(cbData).toBe('cb-confirm');
     });
@@ -128,7 +134,9 @@ describe('Reply objects', () => {
 
       const reply = chats.repliesFor(user).last;
 
-      await expect(reply!.clickButton('Open')).rejects.toThrow(/URL buttons/);
+      assert.ok(reply);
+
+      await expect(reply.clickButton('Open')).rejects.toThrow(/URL buttons/);
     });
   });
 

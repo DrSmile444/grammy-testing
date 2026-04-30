@@ -23,6 +23,7 @@ describe('reference: special message verbs', () => {
 
       const { chats } = await prepareBot(bot);
       const user = chats.newUser();
+
       await user.sendWebAppData('{"action":"submit"}', 'Open App');
 
       expect(observed?.data).toBe('{"action":"submit"}');
@@ -40,6 +41,7 @@ describe('reference: special message verbs', () => {
       const { chats } = await prepareBot(bot);
       const user = chats.newUser();
       const group = chats.newSupergroup();
+
       await user.sendWebAppData('data', 'btn', { chat: group });
 
       expect(observedChatId).toBe(group.id);
@@ -57,6 +59,7 @@ describe('reference: special message verbs', () => {
 
       const { chats } = await prepareBot(bot);
       const user = chats.newUser();
+
       await user.sendSuccessfulPayment('order-123', 'USD', 1000);
 
       expect(observed?.invoice_payload).toBe('order-123');
@@ -76,6 +79,7 @@ describe('reference: special message verbs', () => {
 
       const { chats } = await prepareBot(bot);
       const user = chats.newUser();
+
       await user.sendInlineQuery('cats');
 
       expect(observed?.query).toBe('cats');
@@ -93,6 +97,7 @@ describe('reference: special message verbs', () => {
 
       const { chats } = await prepareBot(bot);
       const user = chats.newUser();
+
       await user.sendInlineQuery('dogs', { chatType: 'group' });
 
       expect(observedChatType).toBe('group');
@@ -110,6 +115,7 @@ describe('reference: special message verbs', () => {
 
       const { chats } = await prepareBot(bot);
       const user = chats.newUser();
+
       await user.sendChosenInlineResult('result-1', 'cats');
 
       expect(observed?.result_id).toBe('result-1');
@@ -129,6 +135,7 @@ describe('reference: special message verbs', () => {
 
       const { chats } = await prepareBot(bot);
       const user = chats.newUser();
+
       await user.sendPreCheckoutQuery('order-456', 'EUR', 2000);
 
       expect(observed?.invoice_payload).toBe('order-456');
@@ -149,6 +156,7 @@ describe('reference: special message verbs', () => {
 
       const { chats } = await prepareBot(bot);
       const user = chats.newUser();
+
       await user.sendShippingQuery('order-789', {
         country_code: 'US',
         city: 'New York',

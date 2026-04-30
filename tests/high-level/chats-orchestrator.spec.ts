@@ -1,3 +1,5 @@
+import assert from 'node:assert';
+
 import { Bot } from 'grammy';
 import { describe, expect, it } from 'vitest';
 
@@ -41,7 +43,8 @@ describe('Chats orchestrator', () => {
       const admin = chats.newAdmin();
 
       expect(chats.defaultGroup).toBeDefined();
-      const membership = admin.in(chats.defaultGroup!);
+      assert.ok(chats.defaultGroup);
+      const membership = admin.in(chats.defaultGroup);
 
       expect(membership?.status).toBe('administrator');
     });
@@ -49,15 +52,17 @@ describe('Chats orchestrator', () => {
     it('honors permission overrides', async () => {
       const bot = new Bot('test-token');
       const { chats } = await prepareBot(bot);
+
       const admin = chats.newAdmin(undefined, {
         can_delete_messages: true,
         can_restrict_members: false,
       });
 
-      const m = admin.in(chats.defaultGroup!);
+      assert.ok(chats.defaultGroup);
+      const membership = admin.in(chats.defaultGroup);
 
-      expect(m?.permissions.can_delete_messages).toBe(true);
-      expect(m?.permissions.can_restrict_members).toBe(false);
+      expect(membership?.permissions.can_delete_messages).toBe(true);
+      expect(membership?.permissions.can_restrict_members).toBe(false);
     });
   });
 

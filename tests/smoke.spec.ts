@@ -22,10 +22,10 @@ describe('smoke: real-bot patterns from the inspiration corpus', () => {
 
   it('Pattern 6: private command with bot_command entity', async () => {
     const bot = new Bot('test-token');
-    let invoked = false;
+    let didInvoke = false;
 
     bot.command('language', async (context) => {
-      invoked = true;
+      didInvoke = true;
       await context.reply('language menu');
     });
 
@@ -39,7 +39,7 @@ describe('smoke: real-bot patterns from the inspiration corpus', () => {
 
     await bot.handleUpdate(update);
 
-    expect(invoked).toBe(true);
+    expect(didInvoke).toBe(true);
     expect(chats.outgoing.getMethods()).toEqual(['sendMessage']);
 
     expect(chats.outgoing.getLast()?.payload).toMatchObject({

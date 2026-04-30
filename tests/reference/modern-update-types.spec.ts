@@ -5,6 +5,8 @@
  * managed_bot, purchased_paid_media, message_reaction_count, poll state.
  */
 
+import assert from 'node:assert';
+
 import { Bot } from 'grammy';
 import type {
   ChatBoostUpdated,
@@ -41,14 +43,17 @@ describe('reference: modern-update-types', () => {
         const user = chats.newUser();
 
         await user.sendText('hello');
-        const reply = chats.repliesFor(user).last!;
+        const reply = chats.repliesFor(user).last;
+
+        assert.ok(reply);
 
         await user.reactTo(reply, '👍');
 
         expect(observed).toBeDefined();
-        expect(observed!.new_reaction[0]).toMatchObject({ type: 'emoji', emoji: '👍' });
-        expect(observed!.message_id).toBe(reply.messageId);
-        expect(observed!.user?.id).toBe(user.id);
+        assert.ok(observed);
+        expect(observed.new_reaction[0]).toMatchObject({ type: 'emoji', emoji: '👍' });
+        expect(observed.message_id).toBe(reply.messageId);
+        expect(observed.user?.id).toBe(user.id);
       });
 
       it('dispatches message_reaction with a full ReactionType object', async () => {
@@ -67,12 +72,16 @@ describe('reference: modern-update-types', () => {
         const user = chats.newUser();
 
         await user.sendText('hello');
-        const reply = chats.repliesFor(user).last!;
+        const reply = chats.repliesFor(user).last;
+
+        assert.ok(reply);
 
         await user.reactTo(reply, { type: 'emoji', emoji: '🔥' });
 
-        expect(observed!.new_reaction[0]).toMatchObject({ type: 'emoji', emoji: '🔥' });
-        expect(observed!.old_reaction).toEqual([]);
+        expect(observed).toBeDefined();
+        assert.ok(observed);
+        expect(observed.new_reaction[0]).toMatchObject({ type: 'emoji', emoji: '🔥' });
+        expect(observed.old_reaction).toEqual([]);
       });
     });
   });
@@ -95,13 +104,16 @@ describe('reference: modern-update-types', () => {
         const user = chats.newUser();
 
         await user.sendText('go');
-        const pollReply = chats.repliesFor(user).last!;
+        const pollReply = chats.repliesFor(user).last;
+
+        assert.ok(pollReply);
 
         await user.answerPoll(pollReply, [0]);
 
         expect(observed).toBeDefined();
-        expect(observed!.option_ids).toEqual([0]);
-        expect(observed!.user?.id).toBe(user.id);
+        assert.ok(observed);
+        expect(observed.option_ids).toEqual([0]);
+        expect(observed.user?.id).toBe(user.id);
       });
     });
 
@@ -117,7 +129,9 @@ describe('reference: modern-update-types', () => {
         const user = chats.newUser();
 
         await user.sendText('trigger');
-        const textReply = chats.repliesFor(user).last!;
+        const textReply = chats.repliesFor(user).last;
+
+        assert.ok(textReply);
 
         await expect(user.answerPoll(textReply, [0])).rejects.toThrow('poll');
       });
@@ -141,8 +155,9 @@ describe('reference: modern-update-types', () => {
         await user.requestJoin(group);
 
         expect(observed).toBeDefined();
-        expect(observed!.from.id).toBe(user.id);
-        expect(observed!.user_chat_id).toBe(user.id);
+        assert.ok(observed);
+        expect(observed.from.id).toBe(user.id);
+        expect(observed.user_chat_id).toBe(user.id);
       });
 
       it('dispatches chat_join_request for a supergroup', async () => {
@@ -159,7 +174,10 @@ describe('reference: modern-update-types', () => {
 
         await user.requestJoin(sg);
 
-        expect(observed!.chat_join_request!.chat.id).toBe(sg.id);
+        expect(observed).toBeDefined();
+        assert.ok(observed);
+        assert.ok(observed.chat_join_request);
+        expect(observed.chat_join_request.chat.id).toBe(sg.id);
       });
     });
   });
@@ -182,10 +200,11 @@ describe('reference: modern-update-types', () => {
         await group.dispatchMemberUpdate(admin, target, 'administrator');
 
         expect(observed).toBeDefined();
-        expect(observed!.from.id).toBe(admin.id);
-        expect(observed!.new_chat_member.status).toBe('administrator');
-        expect(observed!.old_chat_member.status).toBe('member');
-        expect(observed!.chat.id).toBe(group.id);
+        assert.ok(observed);
+        expect(observed.from.id).toBe(admin.id);
+        expect(observed.new_chat_member.status).toBe('administrator');
+        expect(observed.old_chat_member.status).toBe('member');
+        expect(observed.chat.id).toBe(group.id);
       });
 
       it('respects options.oldStatus override', async () => {
@@ -203,8 +222,10 @@ describe('reference: modern-update-types', () => {
 
         await sg.dispatchMemberUpdate(admin, target, 'kicked', { oldStatus: 'restricted' });
 
-        expect(observed!.old_chat_member.status).toBe('restricted');
-        expect(observed!.new_chat_member.status).toBe('kicked');
+        expect(observed).toBeDefined();
+        assert.ok(observed);
+        expect(observed.old_chat_member.status).toBe('restricted');
+        expect(observed.new_chat_member.status).toBe('kicked');
       });
     });
   });
@@ -218,9 +239,9 @@ describe('reference: modern-update-types', () => {
         let observedMessageId: number | undefined;
 
         bot.on('edited_channel_post', (ctx) => {
-          observedText = ctx.update.edited_channel_post?.text;
-          observedChatId = ctx.update.edited_channel_post?.chat.id;
-          observedMessageId = ctx.update.edited_channel_post?.message_id;
+          observedText = ctx.update.edited_channel_post.text;
+          observedChatId = ctx.update.edited_channel_post.chat.id;
+          observedMessageId = ctx.update.edited_channel_post.message_id;
         });
 
         const { chats } = await prepareBot(bot);
@@ -253,9 +274,11 @@ describe('reference: modern-update-types', () => {
 
         expect(typeof boostId).toBe('string');
         expect(boostId.length).toBeGreaterThan(0);
-        expect(observed!.boost.source.user?.id).toBe(user.id);
-        expect(observed!.chat.id).toBe(group.id);
-        expect(observed!.boost.boost_id).toBe(boostId);
+        expect(observed).toBeDefined();
+        assert.ok(observed);
+        expect(observed.boost.source.user?.id).toBe(user.id);
+        expect(observed.chat.id).toBe(group.id);
+        expect(observed.boost.boost_id).toBe(boostId);
       });
     });
   });
@@ -268,8 +291,8 @@ describe('reference: modern-update-types', () => {
         let observedChatId: number | undefined;
 
         bot.on('removed_chat_boost', (ctx) => {
-          observedBoostId = ctx.update.removed_chat_boost?.boost_id;
-          observedChatId = ctx.update.removed_chat_boost?.chat.id;
+          observedBoostId = ctx.update.removed_chat_boost.boost_id;
+          observedChatId = ctx.update.removed_chat_boost.chat.id;
         });
 
         const { chats } = await prepareBot(bot);
@@ -277,6 +300,7 @@ describe('reference: modern-update-types', () => {
         const group = chats.newGroup();
 
         const boostId = await user.boostChat(group);
+
         await user.removeBoost(group, boostId);
 
         expect(observedBoostId).toBe(boostId);
@@ -301,9 +325,10 @@ describe('reference: modern-update-types', () => {
         await user.manageBot({ id: 99_999, first_name: 'MyBot' });
 
         expect(observed).toBeDefined();
-        expect(observed!.user.id).toBe(user.id);
-        expect(observed!.bot.id).toBe(99_999);
-        expect(observed!.bot.is_bot).toBe(true);
+        assert.ok(observed);
+        expect(observed.user.id).toBe(user.id);
+        expect(observed.bot.id).toBe(99_999);
+        expect(observed.bot.is_bot).toBe(true);
       });
     });
   });
@@ -324,8 +349,9 @@ describe('reference: modern-update-types', () => {
         await user.purchasePaidMedia('payload-token-abc');
 
         expect(observed).toBeDefined();
-        expect(observed!.paid_media_payload).toBe('payload-token-abc');
-        expect(observed!.from.id).toBe(user.id);
+        assert.ok(observed);
+        expect(observed.paid_media_payload).toBe('payload-token-abc');
+        expect(observed.from.id).toBe(user.id);
       });
     });
   });
@@ -346,9 +372,10 @@ describe('reference: modern-update-types', () => {
         await group.dispatchReactionCount(100, [{ type: { type: 'emoji', emoji: '👍' }, total_count: 5 }]);
 
         expect(observed).toBeDefined();
-        expect(observed!.message_id).toBe(100);
-        expect(observed!.chat.id).toBe(group.id);
-        expect(observed!.reactions[0].total_count).toBe(5);
+        assert.ok(observed);
+        expect(observed.message_id).toBe(100);
+        expect(observed.chat.id).toBe(group.id);
+        expect(observed.reactions[0].total_count).toBe(5);
       });
     });
   });
@@ -368,8 +395,10 @@ describe('reference: modern-update-types', () => {
 
         await channel.dispatchReactionCount(200, [{ type: { type: 'emoji', emoji: '🔥' }, total_count: 12 }]);
 
-        expect(observed!.chat.id).toBe(channel.id);
-        expect(observed!.reactions[0].total_count).toBe(12);
+        expect(observed).toBeDefined();
+        assert.ok(observed);
+        expect(observed.chat.id).toBe(channel.id);
+        expect(observed.reactions[0].total_count).toBe(12);
       });
     });
   });
@@ -401,9 +430,10 @@ describe('reference: modern-update-types', () => {
         await chats.dispatchPollState(pollPayload);
 
         expect(observed).toBeDefined();
-        expect(observed!.id).toBe('poll-state-1');
-        expect(observed!.is_closed).toBe(true);
-        expect(observed!.total_voter_count).toBe(10);
+        assert.ok(observed);
+        expect(observed.id).toBe('poll-state-1');
+        expect(observed.is_closed).toBe(true);
+        expect(observed.total_voter_count).toBe(10);
       });
     });
   });

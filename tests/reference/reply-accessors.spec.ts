@@ -22,6 +22,7 @@ describe('reference: reply accessors', () => {
 
       const { chats } = await prepareBot(bot);
       const user = chats.newUser();
+
       await user.sendText('trigger');
 
       const reply = chats.repliesFor(user).last;
@@ -39,6 +40,7 @@ describe('reference: reply accessors', () => {
 
       const { chats } = await prepareBot(bot);
       const user = chats.newUser();
+
       await user.sendText('trigger');
 
       expect(chats.repliesFor(user).last?.replyMarkup).toBeUndefined();
@@ -65,6 +67,7 @@ describe('reference: reply accessors', () => {
 
       await user.sendText('first');
       const replyA = chats.repliesFor(user).last;
+
       firstMessageId = replyA?.messageId;
 
       await user.sendText('second');
@@ -86,6 +89,7 @@ describe('reference: reply accessors', () => {
 
       const { chats } = await prepareBot(bot);
       const user = chats.newUser();
+
       await user.sendText('hello');
 
       // The bot replied to the incoming user message — not a captured Reply

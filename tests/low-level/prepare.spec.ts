@@ -4,6 +4,8 @@ import { describe, expect, it } from 'vitest';
 import { prepareBot, prepareComposer, prepareMiddleware } from '../../src/index';
 import { MessagePrivateMockUpdate } from '../../src/low-level';
 
+const passThroughMiddleware: Parameters<typeof prepareMiddleware>[0] = (_context, next) => next();
+
 describe('entry points', () => {
   describe('prepareBot', () => {
     it('resolves with a chats handle exposing outgoing and idle', async () => {
@@ -77,9 +79,9 @@ describe('entry points', () => {
 
       await prepareBot(bot, {
         responses: {
-          getChatMember: ({ user_id }) => ({
+          getChatMember: ({ user_id: userId }) => ({
             status: 'member',
-            user: usersById[user_id],
+            user: usersById[userId],
           }),
         },
       });
@@ -101,16 +103,6 @@ describe('entry points', () => {
       });
 
       const { chats } = await prepareComposer(composer);
-
-      const update = new MessagePrivateMockUpdate('/ping').buildOverwrite({
-        message: {
-          entities: [{ offset: 0, length: 5, type: 'bot_command' }],
-        },
-      });
-
-      // The composer is wrapped in an internal bot we don't have a handle to,
-      // but we can verify the surface by dispatching through prepareBot directly:
-      void update;
 
       expect(chats.outgoing).toBeDefined();
       expect(typeof chats.idle).toBe('function');
@@ -139,13 +131,13 @@ describe('entry points', () => {
     it('all three return { chats } with outgoing and idle', async () => {
       const bot = new Bot('test-token');
       const composer = new Composer();
-      const middleware: Parameters<typeof prepareMiddleware>[0] = (_context, next) => next();
+      const middleware = passThroughMiddleware;
 
-      const a = await prepareBot(bot);
-      const b = await prepareComposer(composer);
-      const c = await prepareMiddleware(middleware);
+      const botResult = await prepareBot(bot);
+      const composerResult = await prepareComposer(composer);
+      const middlewareResult = await prepareMiddleware(middleware);
 
-      for (const { chats } of [a, b, c]) {
+      for (const { chats } of [botResult, composerResult, middlewareResult]) {
         expect(chats.outgoing).toBeDefined();
         expect(typeof chats.idle).toBe('function');
       }
