@@ -3,7 +3,7 @@
   "version": "0.7.1",
   "type": "module",
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=18.0.0"
   },
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -45,7 +45,7 @@
     "typecheck": "npx tsc --noEmit",
     "test": "npx vitest",
     "test:run": "npx vitest run",
-    "test:cjs": "node -e \"const t=require('./dist/index.cjs');const ll=require('./dist/low-level.cjs');[t.prepareBot,t.OutgoingRequests,t.mockSession,ll.MessagePrivateMockUpdate].forEach(f=>{if(typeof f!=='function')throw new Error('CJS export missing: '+f)});console.log('CJS exports OK')\"",
+    "test:cjs": "node scripts/verify-cjs.js",
     "test:coverage": "npx vitest run --coverage",
     "bump-version": "npx tsx ./scripts/bump-version.script.ts && npm audit fix",
     "parse-llm-response": "npx tsx ./scripts/split-plain-code.wrap.ts",
