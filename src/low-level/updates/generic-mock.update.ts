@@ -2,6 +2,8 @@ import deepmergeImport from 'deepmerge';
 import type { Chat, ChatMemberAdministrator, ChatMemberMember, ChatMemberOwner, Message, Update, User, UserFromGetMe } from 'grammy/types';
 import type { PartialDeep } from 'type-fest';
 
+// deepmerge@4 ships a CJS-only bundle; some bundlers (tsup ESM output) wrap it in { default: fn }.
+// The fallback ?? deepmergeImport handles both the direct-function and the wrapped-default shapes.
 const deepmerge = (deepmergeImport as unknown as { default?: typeof deepmergeImport }).default ?? deepmergeImport;
 
 /**

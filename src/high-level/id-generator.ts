@@ -18,6 +18,8 @@ export class IdGenerator {
 
   private fileCounter = 1;
 
+  private updateCounter = 1_000_000;
+
   nextUserId(): number {
     const id = this.userCounter;
 
@@ -72,5 +74,13 @@ export class IdGenerator {
     this.fileCounter += 1;
 
     return `stub-file-${String(id)}`;
+  }
+
+  nextUpdateId(): number {
+    const id = this.updateCounter;
+
+    this.updateCounter += 1;
+
+    return id;
   }
 }
