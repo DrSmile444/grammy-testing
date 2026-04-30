@@ -1,9 +1,6 @@
 /**
  * Pattern: Service messages — new_chat_members / left_chat_member.
  *
- * Source: ua-anti-spam-bot/tests/bot.spec.ts (NewMember + LeftMember tests)
- * Inspired-by tests: ~10
- *
  * What this exercises: service messages emitted when users join or leave
  * a chat. Bots routinely delete these or run welcome flows.
  *

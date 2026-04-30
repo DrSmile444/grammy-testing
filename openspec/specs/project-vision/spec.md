@@ -6,22 +6,6 @@ TBD - created by archiving change update-project-vision. Update Purpose after ar
 
 ## Requirements
 
-### Requirement: Project doc documents ua-anti-spam-bot as inspiration corpus only
-
-`docs/project.md` SHALL describe the relationship between `@grammyjs/testing` and `ua-anti-spam-bot` as an inspiration source for test patterns and a low-level proof of feasibility — NOT as a migration target. The doc SHALL NOT promise that the bot's `src/testing/` directory will be deleted, that the bot's tests will be migrated to import from `@grammyjs/testing` via find-and-replace, or that a successful migration PR is the v1.0 acceptance test.
-
-#### Scenario: Doc avoids migration-target language
-
-- **WHEN** a reader scans `docs/project.md` for the strings "delete the in-repo `src/testing/`", "migration PR", or "find-and-replace migration"
-- **THEN** none of those strings appear as commitments
-- **AND** the surrounding sections describe the bot as an "inspiration corpus" or "reference of feasibility"
-
-#### Scenario: Doc names the replacement validation strategy
-
-- **WHEN** a reader looks for "how do we know v1 is good enough"
-- **THEN** the doc points at the in-repo reference suite as the answer
-- **AND** explicitly states that every audited pattern from the anti-spam suite is expressible in `@grammyjs/testing` and exercised by tests in this repo
-
 ### Requirement: Project doc records the v0.1 / v0.2 / v0.3 phase plan
 
 `docs/project.md` SHALL contain a dedicated section that names the three pre-1.0 phases, the scope of each, and the OpenSpec change that delivers each phase.
@@ -71,13 +55,12 @@ TBD - created by archiving change update-project-vision. Update Purpose after ar
 
 ### Requirement: Project doc designates an updated validation gate for v1.0
 
-`docs/project.md` SHALL describe the v1.0 release criteria in terms of the in-repo reference suite, NOT a migration PR against `ua-anti-spam-bot`. The criteria SHALL include: every reference-suite pattern passes, at least one external user has tried the plugin, and the grammY team has reviewed it.
+`docs/project.md` SHALL describe the v1.0 release criteria in terms of the in-repo reference suite. The criteria SHALL include: every reference-suite pattern passes, at least one external user has tried the plugin, and the grammY team has reviewed it.
 
 #### Scenario: Versioning section names reference suite
 
 - **WHEN** a reader reads §"Versioning & release plan"
 - **THEN** the v1.0 cut criteria reference the in-repo reference suite as the parity proof
-- **AND** do not require any change to land in the `MoC-OSS/ua-anti-spam-bot` repository
 
 ### Requirement: Strategic doc edits are tracked through OpenSpec changes
 
@@ -85,7 +68,7 @@ Substantive edits to `docs/project.md` that change the strategic claims listed a
 
 #### Scenario: A new strategic decision triggers a project-vision update
 
-- **WHEN** a future change introduces a new strategic shift (e.g., conversations interop becomes core, ua-anti-spam-bot migration is reinstated, a fourth phase is added)
+- **WHEN** a future change introduces a new strategic shift (e.g., conversations interop becomes core, a fourth phase is added)
 - **THEN** that change includes a delta to `openspec/specs/project-vision/spec.md` reflecting the shift
 - **AND** edits `docs/project.md` in the same change
 

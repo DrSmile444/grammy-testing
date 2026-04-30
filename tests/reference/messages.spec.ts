@@ -1,11 +1,6 @@
 /**
  * Pattern: Text messages — entities, parse_mode, replies, forwards, edits.
  *
- * Source: ua-anti-spam-bot/tests/bot/composers/hotline-security.composer.spec.ts,
- *         ua-anti-spam-bot/tests/bot/composers/messages/no-channel-messages.composer.spec.ts,
- *         ua-anti-spam-bot/tests/edit-message.spec.ts
- * Inspired-by tests: ~40
- *
  * What this exercises: text-message variations bot tests routinely deal with.
  * `parse_mode`, custom entities, `reply_parameters`, forwarded messages
  * (forward_origin), edited messages, and nested reply chains.

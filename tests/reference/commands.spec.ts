@@ -1,11 +1,6 @@
 /**
  * Pattern: Commands with bot_command entities.
  *
- * Source: ua-anti-spam-bot/tests/bot.spec.ts (private command helper),
- *         ua-anti-spam-bot/tests/bot/commands/public/help.command.spec.ts,
- *         ua-anti-spam-bot/tests/bot/commands/public/start.command.spec.ts
- * Inspired-by tests: ~30
- *
  * What this exercises: /start, /help, /lang style commands with the
  * `bot_command` Telegram entity. Both private and supergroup chats.
  * Arg parsing and admin-only command guards.

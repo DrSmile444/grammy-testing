@@ -1,9 +1,6 @@
 /**
  * Pattern: Membership and role transitions (my_chat_member status changes).
  *
- * Source: ua-anti-spam-bot/tests/bot/composers/join-leave.composer.spec.ts:98-127
- * Inspired-by tests: ~30 (high-frequency Coverage-audit gap #7)
- *
  * What this exercises: per-chat role transitions for users — promote /
  * restrict / changeMemberStatus. Includes admin-only command guards
  * driven by `chat.changeMemberStatus` and `user.in(group)` reads.

@@ -1,6 +1,6 @@
 # Reference test suite
 
-This directory is the **v1.0 acceptance suite** for `@grammyjs/testing`. Per the [project-vision spec](../../openspec/specs/project-vision/spec.md) and [`docs/project.md` §"Reference test suite"](../../docs/project.md), v1.0 cuts only when every test in here passes — these are the patterns the plugin must support to credibly claim parity with `ua-anti-spam-bot`'s real-world test surface.
+This directory is the **v1.0 acceptance suite** for `@grammyjs/testing`. v1.0 cuts only when every test in here passes — these are the patterns the plugin must support.
 
 ## Organization
 
@@ -18,7 +18,7 @@ Files are organized by **pattern category**, not by capability. A test author as
 | [`error-simulation.spec.ts`](./error-simulation.spec.ts) | `failNext` / `failAll` / `respondNext`; rate-limit handling; blocked-user handling.                              |
 | [`menu-flows.spec.ts`](./menu-flows.spec.ts)             | `clickButton` end-to-end flows; chained keyboards; URL-button rejection.                                         |
 
-Each file ships with a JSDoc header describing the corresponding `ua-anti-spam-bot` source range, what the pattern exercises, the v0.2 API verbs used, and any v0.2.x gap notes.
+Each file ships with a JSDoc header describing what the pattern exercises, the v0.2 API verbs used, and any v0.2.x gap notes.
 
 ## v0.2.x gap catalog
 
@@ -41,7 +41,7 @@ Plugin ecosystem compatibility lives in **[`tests/plugins/`](../plugins/)**, sep
 
 ## Conventions
 
-- **No domain-specific terminology.** Tests describe testing patterns ("deletes a forwarded message"), not anti-spam business logic ("flags a swindler"). Anti-spam-specific tests stay in the `ua-anti-spam-bot` repository.
+- **No domain-specific terminology.** Tests describe testing patterns ("deletes a forwarded message"), not application-specific business logic.
 - **Highest-API-surface first.** A reference test reaches for `buildOverwrite()` or low-level builders only when no v0.2 verb covers the pattern — and tags the usage with a `// v0.2.x gap: <description>` comment.
 - **Generic example bots.** `/start` welcome bots, echo bots, simple menu bots, language pickers. Each example focuses on one testing pattern.
 - **Header block per file.** `grep -rn "v0.2.x gap" tests/reference/` enumerates every escape-hatch usage; each one has a row above.

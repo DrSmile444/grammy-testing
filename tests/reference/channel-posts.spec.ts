@@ -1,9 +1,6 @@
 /**
  * Pattern: Channel posts into a supergroup (sender_chat scenarios).
  *
- * Source: ua-anti-spam-bot/tests/bot/composers/messages/no-channel-messages.composer.spec.ts
- * Inspired-by tests: ~20 (high-frequency Coverage-audit gap #3)
- *
  * What this exercises: bot detection of messages whose author is a
  * channel rather than a user. Real Telegram inserts `sender_chat = <channel>`
  * and `from = Channel_Bot` (id 136817688) for these.

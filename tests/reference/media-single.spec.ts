@@ -1,8 +1,6 @@
 /**
  * Pattern: Single-media dispatch — photo, document, video.
  *
- * Source: ua-anti-spam-bot/tests/bot.spec.ts (media-handling patterns)
- *
  * What this exercises: bots that gate logic on incoming media type,
  * read `message.photo[0].file_id`, `message.document.file_id`, or
  * `message.video.file_id`, or echo media back to the sender.

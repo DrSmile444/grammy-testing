@@ -38,7 +38,7 @@ The reference suite SHALL include at least one passing test for each pattern in 
 
 ### Requirement: Each spec file ships with a documentation header
 
-Every file under `tests/reference/` SHALL start with a JSDoc-style header that identifies (a) the pattern category name, (b) the corresponding `ua-anti-spam-bot` source (file path and line range, when traceable), (c) what the pattern exercises, (d) which v0.2 API verbs are used, and (e) any current escape-hatch usage tagged as a `v0.2.x gap`.
+Every file under `tests/reference/` SHALL start with a JSDoc-style header that identifies (a) the pattern category name, (b) what the pattern exercises, (c) which v0.2 API verbs are used, and (d) any current escape-hatch usage tagged as a `v0.2.x gap`.
 
 #### Scenario: Header format is grep-friendly
 
@@ -48,7 +48,7 @@ Every file under `tests/reference/` SHALL start with a JSDoc-style header that i
 #### Scenario: Header content is informative
 
 - **WHEN** a contributor opens any single reference-suite file
-- **THEN** the header explains what the pattern is, where it came from, and how the v0.2 API expresses it
+- **THEN** the header explains what the pattern is and how the v0.2 API expresses it
 - **AND** notes any `buildOverwrite()` or low-level `MockUpdate` fallback the file relies on
 
 ### Requirement: Escape-hatch usages are cataloged in the README
@@ -69,7 +69,7 @@ Every file under `tests/reference/` SHALL start with a JSDoc-style header that i
 
 ### Requirement: Reference suite uses generic, domain-neutral examples
 
-Reference-suite tests SHALL use generic bot examples (`/start` welcome bot, echo bot, simple menu bot, language-picker bot, etc.) and SHALL NOT embed `ua-anti-spam-bot`-specific terminology, assertions, or business logic. Anti-spam-specific tests stay in the anti-spam-bot repository.
+Reference-suite tests SHALL use generic bot examples (`/start` welcome bot, echo bot, simple menu bot, language-picker bot, etc.) and SHALL NOT embed application-specific terminology, assertions, or business logic.
 
 #### Scenario: No domain-specific terminology
 

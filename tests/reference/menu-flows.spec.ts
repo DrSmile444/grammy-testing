@@ -1,11 +1,6 @@
 /**
  * Pattern: Menu flows (inline keyboard click → callback_query).
  *
- * Source: ua-anti-spam-bot has limited menu flows but the pattern is
- *         pervasive across grammY bots; the audit list calls out
- *         clickButton coverage as a "major DX win" for menu-driven bots.
- * Inspired-by tests: pattern-driven, ~10–20 in typical menu-bot suites
- *
  * What this exercises: bot replies with an inline keyboard, user clicks
  * a button, the resulting callback_query update is dispatched and the
  * bot's callback handler runs. Includes chained-keyboard flows where

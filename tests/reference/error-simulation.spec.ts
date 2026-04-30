@@ -1,11 +1,6 @@
 /**
  * Pattern: API failure simulation.
  *
- * Source: ua-anti-spam-bot/tests/bot.spec.ts (no direct equivalent —
- *         the inspiration handles errors via real-world try/catch on api
- *         calls; the testing framework needs to simulate these explicitly)
- * Inspired-by tests: ~5–10 across the audit
- *
  * What this exercises: forced rejections from grammY API methods so the
  * bot's error-handling code is exercised. Rate limits (429), blocked
  * users (403), chat-not-found (400), one-shot custom payloads.

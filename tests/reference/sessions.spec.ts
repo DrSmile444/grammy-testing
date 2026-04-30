@@ -1,9 +1,6 @@
 /**
  * Pattern: Mocked sessions (session, chatSession, state).
  *
- * Source: ua-anti-spam-bot/tests/bot.spec.ts (mockSession + mockChatSession setup)
- * Inspired-by tests: ~50 (used across nearly every spec)
- *
  * What this exercises: the mockSession / mockChatSession / mockState
  * helpers — both the initial-value injection and cross-call mutation.
  * Bots that key behavior off ctx.session.language or ctx.chatSession.isBotAdmin

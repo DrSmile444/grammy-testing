@@ -1,9 +1,6 @@
 /**
  * Pattern: Media groups (shared media_group_id, N-update dispatch).
  *
- * Source: ua-anti-spam-bot/tests/bot.spec.ts:322-383 (swindler-detection-in-captions)
- * Inspired-by tests: ~20 (high-frequency Coverage-audit gap #4)
- *
  * What this exercises: real Telegram delivers media groups as N separate
  * updates sharing a `media_group_id`. Bots that aggregate (e.g. detect
  * spam across all captions in a group) need to see each update individually.
