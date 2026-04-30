@@ -1,10 +1,11 @@
 import { Bot, type Composer, type Context } from 'grammy';
 
-import type { Chats } from './chats';
+import type { Chats } from '../high-level/chats';
+
 import { prepareBot, type PrepareOptions } from './prepare-bot';
 
 export interface PrepareWithConstructorOptions<TContext extends Context = Context> extends PrepareOptions {
-  ContextConstructor?: new (...args: ConstructorParameters<typeof Context>) => TContext;
+  contextConstructor?: new (...args: ConstructorParameters<typeof Context>) => TContext;
 }
 
 export interface PrepareComposerReturn<TContext extends Context = Context> {
@@ -27,7 +28,7 @@ export async function prepareComposer<TContext extends Context = Context>(
   options: PrepareWithConstructorOptions<TContext> = {},
 ): Promise<PrepareComposerReturn<TContext>> {
   const bot = new Bot<TContext>('test-token', {
-    ContextConstructor: options.ContextConstructor,
+    ContextConstructor: options.contextConstructor,
   });
 
   bot.use(composer);

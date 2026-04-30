@@ -181,19 +181,26 @@ export interface UserSendMediaGroupItem<TContext extends Context = Context> {
  * `Membership` record, not the user. See `user.in(chat)`.
  */
 export class User<TContext extends Context = Context> {
-  /** @internal — read by Group/Supergroup membership maps. */
+  /** @internal */
   readonly is_bot = false;
+
+  readonly first_name: string;
+
+  readonly last_name: string | undefined;
 
   constructor(
     public readonly id: number,
-    public readonly first_name: string,
-    public readonly last_name: string | undefined,
+    firstName: string,
+    lastName: string | undefined,
     public readonly username: string | undefined,
     /** @internal */
     private readonly ctx: UserContext<TContext>,
-    /** @internal — Chats fills this so `user.in(group)` works. */
+    /** @internal */
     private readonly membershipReader: (chat: AnyChat<TContext>) => Membership<TContext> | undefined,
-  ) {}
+  ) {
+    this.first_name = firstName;
+    this.last_name = lastName;
+  }
 
   in(chat: AnyChat<TContext>): Membership<TContext> | undefined {
     return this.membershipReader(chat);
@@ -247,9 +254,11 @@ export class User<TContext extends Context = Context> {
   }
 
   async joinChat(chat: Group<TContext> | Supergroup<TContext>): Promise<void> {
-    if (chat.type !== 'group' && chat.type !== 'supergroup') {
+    const chatWithType = chat as { type: string };
+
+    if (chatWithType.type !== 'group' && chatWithType.type !== 'supergroup') {
       throw new Error(
-        `joinChat: target chat type "${(chat as { type: string }).type}" does not support new_chat_members service messages — only groups and supergroups do`,
+        `joinChat: target chat type "${chatWithType.type}" does not support new_chat_members service messages — only groups and supergroups do`,
       );
     }
 
@@ -266,9 +275,11 @@ export class User<TContext extends Context = Context> {
   }
 
   async leaveChat(chat: Group<TContext> | Supergroup<TContext>): Promise<void> {
-    if (chat.type !== 'group' && chat.type !== 'supergroup') {
+    const chatWithType = chat as { type: string };
+
+    if (chatWithType.type !== 'group' && chatWithType.type !== 'supergroup') {
       throw new Error(
-        `leaveChat: target chat type "${(chat as { type: string }).type}" does not support left_chat_member service messages — only groups and supergroups do`,
+        `leaveChat: target chat type "${chatWithType.type}" does not support left_chat_member service messages — only groups and supergroups do`,
       );
     }
 
@@ -511,7 +522,7 @@ export class User<TContext extends Context = Context> {
       chat: targetChat,
       from: { id: this.id, is_bot: false, first_name: this.first_name, last_name: this.last_name, username: this.username },
       poll: {
-        id: `poll-${this.ctx.ids.nextMessageId()}`,
+        id: `poll-${String(this.ctx.ids.nextMessageId())}`,
         question,
         options: answerOptions.map((text) => ({ text, voter_count: 0 })),
         total_voter_count: 0,
@@ -540,7 +551,7 @@ export class User<TContext extends Context = Context> {
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
   }
 
-  async sendWebAppData(data: string, buttonText: string, options: SendWebAppDataOptions<TContext> = {}): Promise<void> {
+  async sendWebAppData(webAppData: string, buttonText: string, options: SendWebAppDataOptions<TContext> = {}): Promise<void> {
     const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
     const message: Message = {
@@ -548,7 +559,7 @@ export class User<TContext extends Context = Context> {
       date: Math.floor(Date.now() / 1000),
       chat: targetChat,
       from: { id: this.id, is_bot: false, first_name: this.first_name, last_name: this.last_name, username: this.username },
-      web_app_data: { data, button_text: buttonText },
+      web_app_data: { data: webAppData, button_text: buttonText },
     } as Message;
 
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
@@ -583,7 +594,7 @@ export class User<TContext extends Context = Context> {
     const update: Update = {
       update_id: this.ctx.ids.nextMessageId() + 800_000,
       inline_query: {
-        id: `iq-${this.ctx.ids.nextMessageId()}`,
+        id: `iq-${String(this.ctx.ids.nextMessageId())}`,
         from: { id: this.id, is_bot: false, first_name: this.first_name, last_name: this.last_name, username: this.username },
         query,
         offset: '',
@@ -611,7 +622,7 @@ export class User<TContext extends Context = Context> {
     const update: Update = {
       update_id: this.ctx.ids.nextMessageId() + 900_000,
       pre_checkout_query: {
-        id: `pcq-${this.ctx.ids.nextMessageId()}`,
+        id: `pcq-${String(this.ctx.ids.nextMessageId())}`,
         from: { id: this.id, is_bot: false, first_name: this.first_name, last_name: this.last_name, username: this.username },
         currency,
         total_amount: totalAmount,
@@ -626,7 +637,7 @@ export class User<TContext extends Context = Context> {
     const update: Update = {
       update_id: this.ctx.ids.nextMessageId() + 950_000,
       shipping_query: {
-        id: `shq-${this.ctx.ids.nextMessageId()}`,
+        id: `shq-${String(this.ctx.ids.nextMessageId())}`,
         from: { id: this.id, is_bot: false, first_name: this.first_name, last_name: this.last_name, username: this.username },
         invoice_payload: invoicePayload,
         shipping_address: shippingAddress,
@@ -676,9 +687,9 @@ export class User<TContext extends Context = Context> {
    * Dispatches a `message_reaction` update — the user reacting to a bot reply.
    * `reaction` may be a `ReactionType` object or a plain emoji string
    * (auto-wrapped as `{ type: 'emoji', emoji }`).
-   * @param reply
-   * @param reaction
-   * @param options
+   * @param reply - The captured bot reply the user is reacting to.
+   * @param reaction - The reaction to apply: a `ReactionType` object or a plain emoji string.
+   * @param options - Optional overrides such as a custom reaction timestamp.
    */
   async reactTo(reply: Reply<TContext>, reaction: ReactionType | string, options: ReactToOptions = {}): Promise<void> {
     const normalizedReaction: ReactionType = typeof reaction === 'string' ? ({ type: 'emoji', emoji: reaction } as ReactionType) : reaction;
@@ -714,9 +725,9 @@ export class User<TContext extends Context = Context> {
    * reply cannot be identified as a poll.
    *
    * Pass `options.voterChat` to simulate an anonymous poll vote from a chat.
-   * @param reply
-   * @param optionIndices
-   * @param options
+   * @param reply - The captured bot reply containing the poll.
+   * @param optionIndices - Zero-based indices of the poll options the user selects.
+   * @param options - Optional overrides such as a `voterChat` for anonymous votes.
    */
   async answerPoll(reply: Reply<TContext>, optionIndices: number[], options: AnswerPollOptions = {}): Promise<void> {
     const poll = reply.raw.poll as { id?: string } | undefined;
@@ -724,7 +735,7 @@ export class User<TContext extends Context = Context> {
     // The Telegram API assigns poll.id server-side; outgoing sendPoll
     // request payloads don't include it. Fall back to a synthetic id when
     // the reply has a `question` field (discriminator for sendPoll calls).
-    const pollId = poll?.id ?? (reply.raw.question === undefined ? undefined : `poll-reply-${reply.messageId}`);
+    const pollId = poll?.id ?? (reply.raw.question === undefined ? undefined : `poll-reply-${String(reply.messageId)}`);
 
     if (!pollId) {
       throw new Error('answerPoll: reply does not contain a poll — reply.raw.poll.id is missing');
@@ -755,8 +766,8 @@ export class User<TContext extends Context = Context> {
   /**
    * Dispatches a `chat_join_request` update — the user requesting to join a
    * group or supergroup.
-   * @param group
-   * @param options
+   * @param group - The group or supergroup the user wants to join.
+   * @param options - Optional overrides such as a custom `bio` string.
    */
   async requestJoin(group: Group<TContext> | Supergroup<TContext>, options: RequestJoinOptions = {}): Promise<void> {
     await this.ctx.bot.handleUpdate({
@@ -781,11 +792,12 @@ export class User<TContext extends Context = Context> {
    * Dispatches a `chat_boost` update — the user boosting a chat.
    * Returns the generated `boost_id` so callers can pass it to
    * `removeBoost`.
-   * @param chat
-   * @param options
+   * @param chat - The chat the user is boosting.
+   * @param options - Optional overrides such as a custom expiration duration.
+   * @returns The generated `boost_id` string for use with `removeBoost`.
    */
   async boostChat(chat: AnyChat<TContext>, options: BoostChatOptions = {}): Promise<string> {
-    const boostId = `boost-${this.ctx.ids.nextMessageId()}`;
+    const boostId = `boost-${String(this.ctx.ids.nextMessageId())}`;
     const now = Math.floor(Date.now() / 1000);
     const expirationDays = options.expirationDays ?? 30;
 
@@ -817,9 +829,9 @@ export class User<TContext extends Context = Context> {
   /**
    * Dispatches a `removed_chat_boost` update — the user removing a boost from
    * a chat. Pass the `boost_id` returned by `boostChat`.
-   * @param chat
-   * @param boostId
-   * @param options
+   * @param chat - The chat from which the boost is being removed.
+   * @param boostId - The `boost_id` returned by a prior `boostChat` call.
+   * @param options - Optional overrides such as a custom removal timestamp.
    */
   async removeBoost(chat: AnyChat<TContext>, boostId: string, options: RemoveBoostOptions = {}): Promise<void> {
     const now = Math.floor(Date.now() / 1000);
@@ -847,8 +859,8 @@ export class User<TContext extends Context = Context> {
   /**
    * Dispatches a `managed_bot` update — the user managing a bot they own.
    * `botUser` is a plain profile object with at minimum `id` and `first_name`.
-   * @param botUser
-   * @param options
+   * @param botUser - The bot profile being managed (requires at minimum `id` and `first_name`).
+   * @param options - Optional overrides such as a custom `update_id`.
    */
   async manageBot(botUser: BotUserProfile, options: ManageBotOptions = {}): Promise<void> {
     await this.ctx.bot.handleUpdate({
@@ -875,8 +887,8 @@ export class User<TContext extends Context = Context> {
   /**
    * Dispatches a `purchased_paid_media` update — the user purchasing paid
    * media from the bot. `payload` is the bot-specified paid media payload.
-   * @param payload
-   * @param options
+   * @param payload - The bot-specified paid media payload string.
+   * @param options - Optional overrides such as a custom `update_id`.
    */
   async purchasePaidMedia(payload: string, options: PurchasePaidMediaOptions = {}): Promise<void> {
     await this.ctx.bot.handleUpdate({
@@ -894,9 +906,3 @@ export class User<TContext extends Context = Context> {
     } as Update);
   }
 }
-
-/**
- * The synthetic Channel_Bot user — re-exported here for convenience.
- */
-
-export { makeChannelBotUser } from './dispatch';

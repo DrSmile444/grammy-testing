@@ -4,8 +4,6 @@ import type { InlineKeyboardButton, Message, MessageEntity, ParseMode, Update } 
 import type { AnyChat } from './chat';
 import type { IdGenerator } from './id-generator';
 
-export type { ParseMode } from 'grammy/types';
-
 export type MediaType = 'animation' | 'audio' | 'document' | 'photo' | 'sticker' | 'video' | 'video_note' | 'voice';
 
 export interface ReplyMedia {
@@ -44,7 +42,151 @@ interface ReplyDeps<TContext extends Context = Context> {
 }
 
 export interface ReplyClickButtonMatcher {
-  data: string;
+  callbackData: string;
+}
+
+interface FindButtonMatcher {
+  callbackData: string;
+}
+
+interface ClickerFrom {
+  id: number;
+  is_bot: boolean;
+  first_name: string;
+  username?: string;
+}
+
+interface Clicker {
+  userId: number;
+  from: ClickerFrom;
+}
+
+/**
+ * Extracts a media file ID from the raw outgoing payload.
+ * @param payload - The raw outgoing API payload.
+ * @returns A {@link ReplyMedia} describing the media type and file ID, or `undefined` if none found.
+ */
+function deriveMedia(payload: Record<string, unknown>): ReplyMedia | undefined {
+  for (const type of MEDIA_FIELDS) {
+    const value = payload[type];
+
+    if (value !== undefined) {
+      return { type, fileId: typeof value === 'string' ? value : '[non-string-file]' };
+    }
+  }
+
+  return undefined;
+}
+
+/**
+ * Reads the reply-to message ID from a raw outgoing payload.
+ * Supports both the legacy `reply_to_message_id` scalar and the modern
+ * `reply_parameters.message_id` shape.
+ * @param payload - The raw outgoing API payload.
+ * @returns The referenced message ID, or `undefined` if not present.
+ */
+function readReplyToMessageId(payload: Record<string, unknown>): number | undefined {
+  if (typeof payload.reply_to_message_id === 'number') {
+    return payload.reply_to_message_id;
+  }
+
+  const params = payload.reply_parameters as { message_id?: number } | undefined;
+
+  return params?.message_id;
+}
+
+/**
+ * Collects all `@mention` usernames from an entity-annotated text string.
+ * @param text - The message text, or `undefined` for non-text messages.
+ * @param entities - The message entity array, or `undefined`.
+ * @returns A `Set` of usernames without the leading `@`.
+ */
+function collectMentionUsernames(text: string | undefined, entities: MessageEntity[] | undefined): Set<string> {
+  const usernames = new Set<string>();
+
+  if (text === undefined || entities === undefined) {
+    return usernames;
+  }
+
+  for (const entity of entities) {
+    if (entity.type === 'mention') {
+      const slice = text.slice(entity.offset, entity.offset + entity.length);
+
+      if (slice.startsWith('@')) {
+        usernames.add(slice.slice(1));
+      }
+    }
+  }
+
+  return usernames;
+}
+
+/**
+ * Parses the inline keyboard from a raw outgoing payload into a flat button list.
+ * @param payload - The raw outgoing API payload.
+ * @returns An array of {@link ReplyButton} objects, empty if no inline keyboard is present.
+ */
+function collectButtons(payload: Record<string, unknown>): ReplyButton[] {
+  const replyMarkup = payload.reply_markup as { inline_keyboard?: InlineKeyboardButton[][] } | undefined;
+
+  if (!replyMarkup?.inline_keyboard) {
+    return [];
+  }
+
+  const buttons: ReplyButton[] = [];
+
+  for (const row of replyMarkup.inline_keyboard) {
+    for (const raw of row) {
+      buttons.push({
+        text: raw.text,
+        callbackData: 'callback_data' in raw ? raw.callback_data : undefined,
+        url: 'url' in raw ? raw.url : undefined,
+        raw,
+      });
+    }
+  }
+
+  return buttons;
+}
+
+/**
+ * Finds the first button in a list matching the given text or callback-data matcher.
+ * @param buttons - The button list to search.
+ * @param matcher - Either a button text string or a `{ callbackData }` matcher object.
+ * @returns The matching {@link ReplyButton}, or `undefined` if none found.
+ */
+function findButton(buttons: ReplyButton[], matcher: FindButtonMatcher | string): ReplyButton | undefined {
+  if (typeof matcher === 'string') {
+    return buttons.find((button) => button.text === matcher);
+  }
+
+  return buttons.find((button) => button.callbackData === matcher.callbackData);
+}
+
+/**
+ * Infers the clicker identity from a private-chat context.
+ * Returns `undefined` for group/channel chats where the clicker cannot be identified.
+ * @param chat - The chat associated with the reply.
+ * @returns A {@link Clicker} with user ID and Telegram `from` shape, or `undefined`.
+ */
+function inferClicker<TContext extends Context>(chat: AnyChat<TContext> | undefined): Clicker | undefined {
+  if (!chat) {
+    return undefined;
+  }
+
+  if (chat.type === 'private') {
+    return {
+      userId: chat.user.id,
+      from: {
+        id: chat.user.id,
+        is_bot: false,
+        first_name: chat.user.first_name,
+        username: chat.user.username,
+      },
+    };
+  }
+
+  return undefined;
 }
 
 /**
@@ -117,7 +259,11 @@ export class Reply<TContext extends Context = Context> {
       throw new Error(`clickButton: button "${button.text}" has only a url; URL buttons do not produce callback_query updates`);
     }
 
-    const callbackData = button.callbackData!;
+    if (button.callbackData === undefined) {
+      throw new Error(`clickButton: button "${button.text}" has no callback data`);
+    }
+
+    const { callbackData } = button;
     const clicker = inferClicker(this.chat);
 
     if (clicker) {
@@ -127,13 +273,13 @@ export class Reply<TContext extends Context = Context> {
     const update: Update = {
       update_id: 500_000 + this.deps.ids.nextMessageId(),
       callback_query: {
-        id: `cbq-${this.deps.ids.nextMessageId()}`,
+        id: `cbq-${String(this.deps.ids.nextMessageId())}`,
         from: clicker?.from ?? {
           id: 0,
           is_bot: false,
           first_name: 'unknown',
         },
-        chat_instance: `inst-${this.messageId}`,
+        chat_instance: `inst-${String(this.messageId)}`,
         message: this.toCapturedMessage(),
         data: callbackData,
       },
@@ -151,113 +297,4 @@ export class Reply<TContext extends Context = Context> {
       entities: this.entities,
     } as Message;
   }
-}
-
-function deriveMedia(payload: Record<string, unknown>): ReplyMedia | undefined {
-  for (const type of MEDIA_FIELDS) {
-    const value = payload[type];
-
-    if (value !== undefined) {
-      return { type, fileId: typeof value === 'string' ? value : '[non-string-file]' };
-    }
-  }
-
-  return undefined;
-}
-
-function readReplyToMessageId(payload: Record<string, unknown>): number | undefined {
-  if (typeof payload.reply_to_message_id === 'number') {
-    return payload.reply_to_message_id;
-  }
-
-  const params = payload.reply_parameters as { message_id?: number } | undefined;
-
-  return params?.message_id;
-}
-
-function collectMentionUsernames(text: string | undefined, entities: MessageEntity[] | undefined): Set<string> {
-  const usernames = new Set<string>();
-
-  if (text === undefined || entities === undefined) {
-    return usernames;
-  }
-
-  for (const entity of entities) {
-    if (entity.type === 'mention') {
-      const slice = text.slice(entity.offset, entity.offset + entity.length);
-
-      if (slice.startsWith('@')) {
-        usernames.add(slice.slice(1));
-      }
-    }
-  }
-
-  return usernames;
-}
-
-function collectButtons(payload: Record<string, unknown>): ReplyButton[] {
-  const replyMarkup = payload.reply_markup as { inline_keyboard?: InlineKeyboardButton[][] } | undefined;
-
-  if (!replyMarkup?.inline_keyboard) {
-    return [];
-  }
-
-  const buttons: ReplyButton[] = [];
-
-  for (const row of replyMarkup.inline_keyboard) {
-    for (const raw of row) {
-      buttons.push({
-        text: raw.text,
-        callbackData: 'callback_data' in raw ? raw.callback_data : undefined,
-        url: 'url' in raw ? raw.url : undefined,
-        raw,
-      });
-    }
-  }
-
-  return buttons;
-}
-
-interface FindButtonMatcher {
-  data: string;
-}
-
-function findButton(buttons: ReplyButton[], matcher: FindButtonMatcher | string): ReplyButton | undefined {
-  if (typeof matcher === 'string') {
-    return buttons.find((b) => b.text === matcher);
-  }
-
-  return buttons.find((b) => b.callbackData === matcher.data);
-}
-
-interface ClickerFrom {
-  id: number;
-  is_bot: boolean;
-  first_name: string;
-  username?: string;
-}
-
-interface Clicker {
-  userId: number;
-  from: ClickerFrom;
-}
-
-function inferClicker<TContext extends Context>(chat: AnyChat<TContext> | undefined): Clicker | undefined {
-  if (!chat) {
-    return undefined;
-  }
-
-  if (chat.type === 'private') {
-    return {
-      userId: chat.user.id,
-      from: {
-        id: chat.user.id,
-        is_bot: false,
-        first_name: chat.user.first_name,
-        username: chat.user.username,
-      },
-    };
-  }
-
-  return undefined;
 }

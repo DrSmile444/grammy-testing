@@ -20,7 +20,7 @@ let reactionCountCounter = 1;
 export class Channel<TContext extends Context = Context> implements ChatRefHolder<TContext> {
   readonly type = 'channel' as const;
 
-  /** @internal — assigned by Chats after construction. */
+  /** @internal */
   messages!: MessagesLog<TContext>;
 
   /**
@@ -51,7 +51,8 @@ export class Channel<TContext extends Context = Context> implements ChatRefHolde
     text: string,
     options: { messageId?: number } = {},
   ): Promise<void> {
-    const messageId = options.messageId ?? 5_000_000 + postCounter++;
+    postCounter += 1;
+    const messageId = options.messageId ?? 5_000_000 + postCounter;
 
     const message: Message = {
       message_id: messageId,
@@ -73,15 +74,17 @@ export class Channel<TContext extends Context = Context> implements ChatRefHolde
   /**
    * Dispatches an `edited_channel_post` update — simulating a channel post
    * being edited. `messageId` is the `message_id` of the original channel post.
-   * @param messageId
-   * @param newText
-   * @param options
+   * @param messageId - The `message_id` of the original channel post.
+   * @param newText - The replacement text for the post.
+   * @param options - Optional overrides for the original post timestamp.
    */
   async editPost(messageId: number, newText: string, options: EditPostOptions = {}): Promise<void> {
     const now = Math.floor(Date.now() / 1000);
 
+    editPostCounter += 1;
+
     const update: Update = {
-      update_id: 1_600_000 + editPostCounter++,
+      update_id: 1_600_000 + editPostCounter,
       edited_channel_post: {
         message_id: messageId,
         date: options.date ?? now,
@@ -97,13 +100,15 @@ export class Channel<TContext extends Context = Context> implements ChatRefHolde
   /**
    * Dispatches a `message_reaction_count` update — aggregate anonymous
    * reactions on a message in this channel.
-   * @param messageId
-   * @param reactions
-   * @param options
+   * @param messageId - The `message_id` of the message that received reactions.
+   * @param reactions - Array of `ReactionCount` objects describing reaction totals.
+   * @param options - Optional overrides for the update timestamp.
    */
   async dispatchReactionCount(messageId: number, reactions: ReactionCount[], options: DispatchReactionCountOptions = {}): Promise<void> {
+    reactionCountCounter += 1;
+
     await this.bot.handleUpdate({
-      update_id: 1_760_000 + reactionCountCounter++,
+      update_id: 1_760_000 + reactionCountCounter,
       message_reaction_count: {
         chat: this.toTelegramChat(),
         message_id: messageId,

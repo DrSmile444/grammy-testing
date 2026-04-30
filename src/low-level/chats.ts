@@ -8,6 +8,3 @@ import type { Chats } from '../high-level/chats';
  * exposes the v0.1 surface (`outgoing`, `idle`).
  */
 export type ChatsHandle<TContext extends Context = Context> = Chats<TContext>;
-
-/** v0.1-era public type alias. Keep exported for users still importing it. */
-export type { Chats } from '../high-level/chats';

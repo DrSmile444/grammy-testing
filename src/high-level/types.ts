@@ -1,6 +1,9 @@
 import type { Context } from 'grammy';
 import type { ChatAdministratorRights, ChatMember, ChatPermissions } from 'grammy/types';
 
+import type { AnyChat } from './chat';
+import type { User } from './user';
+
 export type ChatMemberStatus = ChatMember['status'];
 
 /**
@@ -24,8 +27,8 @@ export type PermissionFlags = Partial<ChatAdministratorRights & ChatPermissions>
 };
 
 export interface Membership<TContext extends Context = Context> {
-  user: import('./user').User<TContext>;
-  chat: import('./chat').AnyChat<TContext>;
+  user: User<TContext>;
+  chat: AnyChat<TContext>;
   status: ChatMemberStatus;
   permissions: PermissionFlags;
   untilDate?: number;

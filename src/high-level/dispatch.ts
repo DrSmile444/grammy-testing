@@ -4,6 +4,10 @@ import type { Chat, ChatMember, Message, MessageEntity, MessageOrigin, Update, U
 import type { ChatMemberStatus, PermissionFlags } from './types';
 import type { User } from './user';
 
+/**
+ * Exhaustive-switch guard — throws at runtime when an unhandled discriminant is reached.
+ * @param x - The value that should have been handled.
+ */
 function assertNever(x: never): never {
   throw new Error(`Unexpected value: ${String(x)}`);
 }
@@ -13,6 +17,7 @@ const CHANNEL_BOT_ID = 136_817_688;
 /**
  * Pure helper: build the synthetic `Channel_Bot` user that real
  * Telegram inserts as `from` on channel-posts-into-groups.
+ * @returns A `TelegramUser` representing the Telegram channel bot user.
  */
 export function makeChannelBotUser(): TelegramUser {
   return {
@@ -27,10 +32,11 @@ export function makeChannelBotUser(): TelegramUser {
  * Pure helper: build a `ChatMember` value matching Telegram's
  * shape for a given status + permissions. Used by `my_chat_member`
  * dispatch.
- * @param user
- * @param status
- * @param permissions
- * @param untilDate
+ * @param user - Telegram user object to embed in the chat member.
+ * @param status - The member's current chat status.
+ * @param permissions - Permission flags applicable for the given status.
+ * @param untilDate - Unix timestamp for temporary restrictions or bans.
+ * @returns A fully shaped `ChatMember` union value.
  */
 export function makeChatMember(user: TelegramUser, status: ChatMemberStatus, permissions: PermissionFlags, untilDate?: number): ChatMember {
   switch (status) {
@@ -117,6 +123,11 @@ interface MyChatMemberDispatch<TContext extends Context> {
 
 let mcmCounter = 1;
 
+/**
+ * Dispatches a `my_chat_member` update simulating a change in the bot's own membership status.
+ * @param bot - The grammY `Bot` instance to dispatch the update to.
+ * @param spec - Parameters describing the membership transition.
+ */
 export async function dispatchMyChatMember<TContext extends Context>(
   bot: Bot<TContext>,
   spec: MyChatMemberDispatch<TContext>,
@@ -129,8 +140,10 @@ export async function dispatchMyChatMember<TContext extends Context>(
     username: spec.user.username,
   };
 
+  mcmCounter += 1;
+
   const update: Update = {
-    update_id: 200_000 + mcmCounter++,
+    update_id: 200_000 + mcmCounter,
     my_chat_member: {
       chat: spec.chat,
       from: fromUser,
@@ -154,6 +167,11 @@ interface ServiceMessageDispatch<TContext extends Context> {
 
 let serviceMessageCounter = 1;
 
+/**
+ * Dispatches a `message` update containing a `new_chat_members` or `left_chat_member`
+ * service message for the given user.
+ * @param spec - Parameters describing the service message.
+ */
 export async function dispatchServiceMessage<TContext extends Context>(spec: ServiceMessageDispatch<TContext>): Promise<void> {
   const fromUser: TelegramUser = {
     id: spec.user.id,
@@ -175,8 +193,10 @@ export async function dispatchServiceMessage<TContext extends Context>(spec: Ser
       ? ({ ...baseMessage, new_chat_members: [fromUser] } as Message)
       : ({ ...baseMessage, left_chat_member: fromUser } as Message);
 
+  serviceMessageCounter += 1;
+
   const update: Update = {
-    update_id: spec.updateId + serviceMessageCounter++,
+    update_id: spec.updateId + serviceMessageCounter,
     message,
   } as Update;
 
@@ -192,6 +212,10 @@ interface EditedMessageDispatch<TContext extends Context> {
   updateId: number;
 }
 
+/**
+ * Dispatches an `edited_message` update for the given user and chat.
+ * @param spec - Parameters describing the edited message.
+ */
 export async function dispatchEditedMessage<TContext extends Context>(spec: EditedMessageDispatch<TContext>): Promise<void> {
   const fromUser: TelegramUser = {
     id: spec.user.id,
@@ -230,6 +254,10 @@ interface ChatMemberDispatch<TContext extends Context> {
 
 let cmCounter = 1;
 
+/**
+ * Dispatches a `chat_member` update representing an admin changing another user's membership status.
+ * @param spec - Parameters describing the chat member status change.
+ */
 export async function dispatchChatMember<TContext extends Context>(spec: ChatMemberDispatch<TContext>): Promise<void> {
   const adminUser: TelegramUser = {
     id: spec.fromAdmin.id,
@@ -247,8 +275,10 @@ export async function dispatchChatMember<TContext extends Context>(spec: ChatMem
     username: spec.targetUser.username,
   };
 
+  cmCounter += 1;
+
   const update: Update = {
-    update_id: 1_500_000 + cmCounter++,
+    update_id: 1_500_000 + cmCounter,
     chat_member: {
       chat: spec.chat,
       from: adminUser,
@@ -274,6 +304,10 @@ interface PrivateMessageDispatch<TContext extends Context> {
   forwardOrigin?: MessageOrigin;
 }
 
+/**
+ * Dispatches a text `message` update from a user in a given chat.
+ * @param spec - Parameters describing the outgoing text message.
+ */
 export async function dispatchTextMessage<TContext extends Context>(spec: PrivateMessageDispatch<TContext>): Promise<void> {
   const fromUser: TelegramUser = {
     id: spec.user.id,

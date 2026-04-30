@@ -3,7 +3,8 @@ import type { Animation, Audio, Document, PhotoSize, Sticker, Video, VideoNote, 
 /**
  * Returns a minimal PhotoSize stub suitable for synthetic incoming photo updates.
  * Bots that read `message.photo[0].file_id` will receive the supplied `fileId`.
- * @param fileId
+ * @param fileId - The `file_id` to embed in the stub.
+ * @returns A minimal `PhotoSize` object.
  */
 export function makePhotoSizeStub(fileId: string): PhotoSize {
   return {
@@ -16,7 +17,8 @@ export function makePhotoSizeStub(fileId: string): PhotoSize {
 
 /**
  * Returns a minimal Document stub suitable for synthetic incoming document updates.
- * @param fileId
+ * @param fileId - The `file_id` to embed in the stub.
+ * @returns A minimal `Document` object.
  */
 export function makeDocumentStub(fileId: string): Document {
   return {
@@ -28,7 +30,8 @@ export function makeDocumentStub(fileId: string): Document {
 
 /**
  * Returns a minimal Video stub suitable for synthetic incoming video updates.
- * @param fileId
+ * @param fileId - The `file_id` to embed in the stub.
+ * @returns A minimal `Video` object.
  */
 export function makeVideoStub(fileId: string): Video {
   return {
@@ -42,7 +45,8 @@ export function makeVideoStub(fileId: string): Video {
 
 /**
  * Returns a minimal Audio stub suitable for synthetic incoming audio updates.
- * @param fileId
+ * @param fileId - The `file_id` to embed in the stub.
+ * @returns A minimal `Audio` object.
  */
 export function makeAudioStub(fileId: string): Audio {
   return {
@@ -55,7 +59,8 @@ export function makeAudioStub(fileId: string): Audio {
 
 /**
  * Returns a minimal Voice stub suitable for synthetic incoming voice updates.
- * @param fileId
+ * @param fileId - The `file_id` to embed in the stub.
+ * @returns A minimal `Voice` object.
  */
 export function makeVoiceStub(fileId: string): Voice {
   return {
@@ -68,7 +73,8 @@ export function makeVoiceStub(fileId: string): Voice {
 
 /**
  * Returns a minimal VideoNote stub suitable for synthetic incoming video note updates.
- * @param fileId
+ * @param fileId - The `file_id` to embed in the stub.
+ * @returns A minimal `VideoNote` object.
  */
 export function makeVideoNoteStub(fileId: string): VideoNote {
   return {
@@ -81,7 +87,8 @@ export function makeVideoNoteStub(fileId: string): VideoNote {
 
 /**
  * Returns a minimal Animation stub suitable for synthetic incoming animation (GIF) updates.
- * @param fileId
+ * @param fileId - The `file_id` to embed in the stub.
+ * @returns A minimal `Animation` object.
  */
 export function makeAnimationStub(fileId: string): Animation {
   return {
@@ -95,7 +102,8 @@ export function makeAnimationStub(fileId: string): Animation {
 
 /**
  * Returns a minimal Sticker stub suitable for synthetic incoming sticker updates.
- * @param fileId
+ * @param fileId - The `file_id` to embed in the stub.
+ * @returns A minimal `Sticker` object.
  */
 export function makeStickerStub(fileId: string): Sticker {
   return {

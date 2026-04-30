@@ -34,11 +34,10 @@ export interface PrepareBotReturn<TContext extends Context = Context> {
  *   `chats.idle()` to await fire-and-forget API calls,
  *   `chats.newUser()` / `chats.newAdmin()` etc. for the v0.2 orchestrator.
  */
-export async function prepareBot<
-  TContext extends Context = Context,
-  TApi extends Api = Api,
-  TBot extends Bot<TContext, TApi> = Bot<TContext, TApi>,
->(bot: TBot, options: PrepareOptions = {}): Promise<PrepareBotReturn<TContext>> {
+export async function prepareBot<TContext extends Context = Context, TApi extends Api = Api>(
+  bot: Bot<TContext, TApi>,
+  options: PrepareOptions = {},
+): Promise<PrepareBotReturn<TContext>> {
   const outgoing = new OutgoingRequests();
   const idle = new IdleTracker();
   const chats = new Chats<TContext>(outgoing, idle);

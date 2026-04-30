@@ -23,10 +23,25 @@ interface OkReturn {
   result: unknown;
 }
 
+/**
+ * Wraps a raw result value into the `{ ok: true, result }` shape grammY expects.
+ * @param result - The API result value to wrap.
+ * @returns An `OkReturn` envelope.
+ */
 function ok(result: unknown): OkReturn {
   return { ok: true, result };
 }
 
+/**
+ * Resolves a single API call against the configured overrides and canned responses.
+ * Checks one-shot overrides first, then sticky fails, then the `responses` map,
+ * and falls back to `{ ok: true, result: true }`.
+ * @param outgoing - The `OutgoingRequests` collector holding active overrides.
+ * @param responses - Optional map of canned responses keyed by method name.
+ * @param method - The grammY API method being called.
+ * @param payload - The request payload for the call.
+ * @returns A resolved `OkReturn`, or throws a `GrammyError` if an override demands it.
+ */
 async function resolveCall<TM extends Methods>(
   outgoing: OutgoingRequests,
   responses: Responses | undefined,
@@ -53,7 +68,7 @@ async function resolveCall<TM extends Methods>(
   const resolver = responses?.[method];
 
   if (typeof resolver === 'function') {
-    const value = await (resolver as (payload: Payload<TM>, method: TM) => Promise<unknown> | unknown)(payload, method);
+    const value = await (resolver as (payload: Payload<TM>, method: TM) => Promise<unknown>)(payload, method);
 
     return ok(value);
   }
@@ -77,7 +92,7 @@ async function resolveCall<TM extends Methods>(
  * @param options.outgoing - The {@link OutgoingRequests} collector to push captures into.
  * @param options.idle - The {@link IdleTracker} that wraps every returned promise.
  * @param options.responses - Optional canned-response map.
- * @param options.onCapture
+ * @param options.onCapture - Optional synchronous hook called after each request is captured.
  * @returns A grammY transformer ready for `bot.api.config.use`.
  */
 export function createTransformer({ outgoing, idle, responses, onCapture }: TransformerOptions): Transformer {

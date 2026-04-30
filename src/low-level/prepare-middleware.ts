@@ -1,6 +1,7 @@
 import { Bot, type Context, type Middleware } from 'grammy';
 
-import type { Chats } from './chats';
+import type { Chats } from '../high-level/chats';
+
 import { prepareBot } from './prepare-bot';
 import type { PrepareWithConstructorOptions } from './prepare-composer';
 
@@ -24,7 +25,7 @@ export async function prepareMiddleware<TContext extends Context = Context>(
   options: PrepareWithConstructorOptions<TContext> = {},
 ): Promise<PrepareMiddlewareReturn<TContext>> {
   const bot = new Bot<TContext>('test-token', {
-    ContextConstructor: options.ContextConstructor,
+    ContextConstructor: options.contextConstructor,
   });
 
   bot.use(middleware);

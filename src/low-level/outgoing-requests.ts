@@ -36,8 +36,8 @@ export class OutgoingRequests<TMethod extends RealApiMethodKeys = RealApiMethodK
   requests: Request[] = [];
 
   /**
-   * @internal
    * Each method name maps to a FIFO queue of one-shot overrides.
+   * @internal
    */
   readonly oneShot = new Map<RealApiMethodKeys, OneShotOverride[]>();
 
@@ -63,6 +63,7 @@ export class OutgoingRequests<TMethod extends RealApiMethodKeys = RealApiMethodK
 
   /**
    * Names of every captured method, in capture order.
+   * @returns Array of method names in the order they were captured.
    */
   getMethods(): TMethod[] {
     return this.requests.map((request) => request.method as TMethod);
@@ -81,7 +82,11 @@ export class OutgoingRequests<TMethod extends RealApiMethodKeys = RealApiMethodK
   }
 
   getFirst<TApi extends TMethod>(): Request<TApi> | null {
-    return (this.requests[0] as Request<TApi>) ?? null;
+    if (this.requests.length === 0) {
+      return null;
+    }
+
+    return this.requests[0] as Request<TApi>;
   }
 
   getLast<TApi extends TMethod>(): Request<TApi> | null {
@@ -143,8 +148,9 @@ export class OutgoingRequests<TMethod extends RealApiMethodKeys = RealApiMethodK
    * subsequent calls revert to the canned response (or default).
    * @param method - grammY API method name.
    * @param errorOrSpec - Real {@link GrammyError} or `{ code, description }` sugar.
+   * @returns `this` for chaining.
    */
-  failNext<M extends RealApiMethodKeys>(method: M, errorOrSpec: GrammyError | GrammyErrorSpec): this {
+  failNext(method: RealApiMethodKeys, errorOrSpec: GrammyError | GrammyErrorSpec): this {
     this.enqueueOneShot(method, { kind: 'fail', error: errorOrSpec });
 
     return this;
@@ -155,8 +161,9 @@ export class OutgoingRequests<TMethod extends RealApiMethodKeys = RealApiMethodK
    * is called.
    * @param method - grammY API method name.
    * @param errorOrSpec - Real {@link GrammyError} or `{ code, description }` sugar.
+   * @returns `this` for chaining.
    */
-  failAll<M extends RealApiMethodKeys>(method: M, errorOrSpec: GrammyError | GrammyErrorSpec): this {
+  failAll(method: RealApiMethodKeys, errorOrSpec: GrammyError | GrammyErrorSpec): this {
     this.stickyFails.set(method, errorOrSpec);
 
     return this;
@@ -166,8 +173,9 @@ export class OutgoingRequests<TMethod extends RealApiMethodKeys = RealApiMethodK
    * Override the next call to `method` to resolve with a custom payload.
    * @param method - grammY API method name.
    * @param payload - Result value to return.
+   * @returns `this` for chaining.
    */
-  respondNext<M extends RealApiMethodKeys>(method: M, payload: unknown): this {
+  respondNext(method: RealApiMethodKeys, payload: unknown): this {
     this.enqueueOneShot(method, { kind: 'respond', payload });
 
     return this;
@@ -175,6 +183,7 @@ export class OutgoingRequests<TMethod extends RealApiMethodKeys = RealApiMethodK
 
   /**
    * Drop every per-method override (both one-shot and sticky).
+   * @returns `this` for chaining.
    */
   clearOverrides(): this {
     this.oneShot.clear();
@@ -184,7 +193,9 @@ export class OutgoingRequests<TMethod extends RealApiMethodKeys = RealApiMethodK
   }
 
   /**
-   * @param method
+   * Dequeues and returns the next one-shot override for `method`, or `undefined` if none.
+   * @param method - The API method name to look up.
+   * @returns The next queued one-shot override, or `undefined`.
    * @internal
    */
   consumeOneShot(method: RealApiMethodKeys): OneShotOverride | undefined {

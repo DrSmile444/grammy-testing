@@ -45,7 +45,9 @@ export { MessagesLog } from './high-level/messages-log';
 
 export { PrivateChat } from './high-level/private-chat';
 
-export { Reply, type MediaType, type ParseMode, type ReplyButton, type ReplyMedia } from './high-level/reply';
+export { Reply, type MediaType, type ReplyButton, type ReplyMedia } from './high-level/reply';
+
+export type { ParseMode } from 'grammy/types';
 
 export { Supergroup } from './high-level/supergroup';
 
@@ -59,6 +61,8 @@ export type {
   PromotePermissions,
   RestrictPermissions,
 } from './high-level/types';
+
+export { makeChannelBotUser } from './high-level/dispatch';
 
 export {
   User,

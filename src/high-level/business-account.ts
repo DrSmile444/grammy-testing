@@ -55,11 +55,13 @@ export class BusinessAccount<TContext extends Context = Context> {
 
   /**
    * Dispatches a `business_connection` update with `is_enabled: true`.
-   * @param options
+   * @param options - Optional overrides for the connection timestamp.
    */
   async connect(options: ConnectOptions = {}): Promise<void> {
+    bizConnectionCounter += 1;
+
     await this.ctx.bot.handleUpdate({
-      update_id: 1_700_000 + bizConnectionCounter++,
+      update_id: 1_700_000 + bizConnectionCounter,
       business_connection: {
         id: this.connectionId,
         user: {
@@ -78,11 +80,13 @@ export class BusinessAccount<TContext extends Context = Context> {
 
   /**
    * Dispatches a `business_connection` update with `is_enabled: false`.
-   * @param options
+   * @param options - Optional overrides for the disconnection timestamp.
    */
   async disconnect(options: ConnectOptions = {}): Promise<void> {
+    bizConnectionCounter += 1;
+
     await this.ctx.bot.handleUpdate({
-      update_id: 1_700_000 + bizConnectionCounter++,
+      update_id: 1_700_000 + bizConnectionCounter,
       business_connection: {
         id: this.connectionId,
         user: {
@@ -102,8 +106,8 @@ export class BusinessAccount<TContext extends Context = Context> {
   /**
    * Dispatches a `business_message` update. The message is a private chat
    * message from the business account owner, with `business_connection_id` set.
-   * @param text
-   * @param options
+   * @param text - The message text to send.
+   * @param options - Optional overrides for the message timestamp.
    */
   async sendMessage(text: string, options: BusinessSendMessageOptions = {}): Promise<void> {
     const now = Math.floor(Date.now() / 1000);
@@ -123,17 +127,19 @@ export class BusinessAccount<TContext extends Context = Context> {
       business_connection_id: this.connectionId,
     } as Message;
 
+    bizMessageCounter += 1;
+
     await this.ctx.bot.handleUpdate({
-      update_id: 1_710_000 + bizMessageCounter++,
+      update_id: 1_710_000 + bizMessageCounter,
       business_message: message,
     } as Update);
   }
 
   /**
    * Dispatches an `edited_business_message` update for the given message ID.
-   * @param messageId
-   * @param newText
-   * @param options
+   * @param messageId - The `message_id` of the message to edit.
+   * @param newText - The replacement text for the message.
+   * @param options - Optional overrides for the original message timestamp.
    */
   async editMessage(messageId: number, newText: string, options: BusinessEditMessageOptions = {}): Promise<void> {
     const now = Math.floor(Date.now() / 1000);
@@ -154,20 +160,24 @@ export class BusinessAccount<TContext extends Context = Context> {
       business_connection_id: this.connectionId,
     } as Message;
 
+    bizEditedMessageCounter += 1;
+
     await this.ctx.bot.handleUpdate({
-      update_id: 1_720_000 + bizEditedMessageCounter++,
+      update_id: 1_720_000 + bizEditedMessageCounter,
       edited_business_message: message,
     } as Update);
   }
 
   /**
    * Dispatches a `deleted_business_messages` update for the given message IDs.
-   * @param messageIds
-   * @param options
+   * @param messageIds - Array of `message_id` values to mark as deleted.
+   * @param options - Optional overrides such as a custom `chat_id`.
    */
   async deleteMessages(messageIds: number[], options: BusinessDeleteMessagesOptions = {}): Promise<void> {
+    bizDeletedMessagesCounter += 1;
+
     await this.ctx.bot.handleUpdate({
-      update_id: 1_730_000 + bizDeletedMessagesCounter++,
+      update_id: 1_730_000 + bizDeletedMessagesCounter,
       deleted_business_messages: {
         business_connection_id: this.connectionId,
         chat: {

@@ -19,30 +19,58 @@ export class IdGenerator {
   private fileCounter = 1;
 
   nextUserId(): number {
-    return this.userCounter++;
+    const id = this.userCounter;
+
+    this.userCounter += 1;
+
+    return id;
   }
 
   nextGroupId(): number {
-    return this.groupCounter--;
+    const id = this.groupCounter;
+
+    this.groupCounter -= 1;
+
+    return id;
   }
 
   nextSupergroupId(): number {
-    return this.supergroupCounter--;
+    const id = this.supergroupCounter;
+
+    this.supergroupCounter -= 1;
+
+    return id;
   }
 
   nextChannelId(): number {
-    return this.channelCounter--;
+    const id = this.channelCounter;
+
+    this.channelCounter -= 1;
+
+    return id;
   }
 
   nextMessageId(): number {
-    return this.messageCounter++;
+    const id = this.messageCounter;
+
+    this.messageCounter += 1;
+
+    return id;
   }
 
   nextMediaGroupId(): string {
-    return `mg-${this.mediaGroupCounter++}`;
+    const id = this.mediaGroupCounter;
+
+    this.mediaGroupCounter += 1;
+
+    return `mg-${String(id)}`;
   }
 
   nextFileId(): string {
-    return `stub-file-${this.fileCounter++}`;
+    const id = this.fileCounter;
+
+    this.fileCounter += 1;
+
+    return `stub-file-${String(id)}`;
   }
 }

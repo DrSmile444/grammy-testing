@@ -44,7 +44,7 @@ export class Supergroup<TContext extends Context = Context> implements ChatRefHo
 
   readonly members = new Map<number, Membership<TContext>>();
 
-  /** @internal — assigned by Chats after construction. */
+  /** @internal */
   messages!: MessagesLog<TContext>;
 
   /** @internal */
@@ -119,10 +119,10 @@ export class Supergroup<TContext extends Context = Context> implements ChatRefHo
    *
    * `old_chat_member` defaults to `{ status: 'member' }` and can be
    * overridden via `options.oldStatus`.
-   * @param fromAdmin
-   * @param targetUser
-   * @param newStatus
-   * @param options
+   * @param fromAdmin - The admin user performing the status change.
+   * @param targetUser - The user whose status is being changed.
+   * @param newStatus - The new membership status to assign.
+   * @param options - Optional overrides such as `oldStatus` and `permissions`.
    */
   async dispatchMemberUpdate(
     fromAdmin: User<TContext>,
@@ -144,13 +144,15 @@ export class Supergroup<TContext extends Context = Context> implements ChatRefHo
   /**
    * Dispatches a `message_reaction_count` update — aggregate anonymous
    * reactions on a message in this supergroup.
-   * @param messageId
-   * @param reactions
-   * @param options
+   * @param messageId - The `message_id` of the message that received reactions.
+   * @param reactions - Array of `ReactionCount` objects describing reaction totals.
+   * @param options - Optional overrides for the update timestamp.
    */
   async dispatchReactionCount(messageId: number, reactions: ReactionCount[], options: DispatchReactionCountOptions = {}): Promise<void> {
+    reactionCountCounter += 1;
+
     await this.bot.handleUpdate({
-      update_id: 1_760_000 + reactionCountCounter++,
+      update_id: 1_760_000 + reactionCountCounter,
       message_reaction_count: {
         chat: this.toTelegramChat(),
         message_id: messageId,
