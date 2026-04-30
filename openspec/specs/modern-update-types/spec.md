@@ -83,11 +83,30 @@ The system SHALL provide `user.removeBoost(chat, boostId)` that synthesizes a `r
 - **THEN** the bot receives a `removed_chat_boost` update with `boost_id === boostId`
 - **AND** `update.removed_chat_boost.chat.id === group.id`
 
-### Requirement: Business API update types are intentionally out of scope
+### Requirement: `chat.dispatchReactionCount` dispatches a message_reaction_count update
 
-The system SHALL NOT provide dispatch verbs for `business_connection`, `business_message`, `edited_business_message`, `deleted_business_messages`, or `managed_bot` updates. These update types require a verified Telegram Business account and represent a specialized use case outside the standard Bot API test surface. This exclusion SHALL be documented in `README.md`.
+The system SHALL provide `chat.dispatchReactionCount(messageId, reactions, options?)` on `Group`, `Supergroup`, and `Channel`. `reactions` SHALL be an array of `{ type: ReactionType, total_count: number }` objects passed directly by the caller. The method SHALL construct a `message_reaction_count` update with `chat`, `message_id`, `date`, and the supplied `reactions` array, then dispatch via `bot.handleUpdate`.
 
-#### Scenario: Documentation makes the exclusion discoverable
+#### Scenario: Bot receives message_reaction_count update on a group
 
-- **WHEN** a developer reads `README.md`
-- **THEN** they find a clearly labelled section listing the excluded update types and the reason for the exclusion
+- **WHEN** the test calls `await group.dispatchReactionCount(100, [{ type: { type: 'emoji', emoji: '👍' }, total_count: 5 }])`
+- **THEN** the bot receives a `message_reaction_count` update with `message_reaction_count.message_id === 100`
+- **AND** `message_reaction_count.chat.id === group.id`
+- **AND** `message_reaction_count.reactions[0].total_count === 5`
+
+#### Scenario: Bot receives message_reaction_count update on a channel
+
+- **WHEN** the test calls `await channel.dispatchReactionCount(200, [{ type: { type: 'emoji', emoji: '🔥' }, total_count: 12 }])`
+- **THEN** the bot receives a `message_reaction_count` update with `message_reaction_count.chat.id === channel.id`
+- **AND** `message_reaction_count.reactions[0].total_count === 12`
+
+### Requirement: `chats.dispatchPollState` dispatches a poll state update
+
+The system SHALL provide `chats.dispatchPollState(poll, options?)` on the `Chats` orchestrator. `poll` SHALL be a full `Poll` object provided by the caller. The method SHALL construct a `poll` update with the supplied object and dispatch via `bot.handleUpdate`.
+
+#### Scenario: Bot receives autonomous poll state update
+
+- **WHEN** the test calls `await chats.dispatchPollState({ id: 'poll-1', question: 'Favorite color?', options: [], is_closed: true, is_anonymous: true, type: 'regular', allows_multiple_answers: false, total_voter_count: 10 })`
+- **THEN** the bot receives a `poll` update with `poll.id === 'poll-1'`
+- **AND** `poll.is_closed === true`
+- **AND** `poll.total_voter_count === 10`
