@@ -29,11 +29,14 @@ type OneShotOverride = { kind: 'fail'; error: GrammyError | GrammyErrorSpec } | 
  * ({@link prepareBot}, {@link prepareComposer}, {@link prepareMiddleware}).
  */
 export class OutgoingRequests<TMethod extends RealApiMethodKeys = RealApiMethodKeys> {
+  private _requests: Request[] = [];
+
   /**
-   * Captured requests, in capture order. Mutate via `push` / `clear`
-   * rather than reassigning.
+   * Captured requests, in capture order. Read-only externally; use `push` / `clear`.
    */
-  requests: Request[] = [];
+  get requests(): readonly Request[] {
+    return this._requests;
+  }
 
   /**
    * Each method name maps to a FIFO queue of one-shot overrides.
@@ -47,7 +50,7 @@ export class OutgoingRequests<TMethod extends RealApiMethodKeys = RealApiMethodK
   readonly stickyFails = new Map<RealApiMethodKeys, GrammyError | GrammyErrorSpec>();
 
   get length(): number {
-    return this.requests.length;
+    return this._requests.length;
   }
 
   /**
@@ -66,39 +69,39 @@ export class OutgoingRequests<TMethod extends RealApiMethodKeys = RealApiMethodK
    * @returns Array of method names in the order they were captured.
    */
   getMethods(): TMethod[] {
-    return this.requests.map((request) => request.method as TMethod);
+    return this._requests.map((request) => request.method as TMethod);
   }
 
   push(...requests: Request<TMethod>[]): this {
-    this.requests.push(...requests);
+    this._requests.push(...requests);
 
     return this;
   }
 
   clear(): this {
-    this.requests = [];
+    this._requests.length = 0;
 
     return this;
   }
 
   getFirst<TApi extends TMethod>(): Request<TApi> | null {
-    if (this.requests.length === 0) {
+    if (this._requests.length === 0) {
       return null;
     }
 
-    return this.requests[0] as Request<TApi>;
+    return this._requests[0] as Request<TApi>;
   }
 
   getLast<TApi extends TMethod>(): Request<TApi> | null {
-    if (this.requests.length === 0) {
+    if (this._requests.length === 0) {
       return null;
     }
 
-    return this.requests.at(-1) as Request<TApi>;
+    return this._requests.at(-1) as Request<TApi>;
   }
 
   getTwoLast<TApi extends TMethod, TBot extends TMethod>(): [Request<TApi>?, Request<TBot>?] {
-    return this.requests.slice(-2) as [Request<TApi>?, Request<TBot>?];
+    return this._requests.slice(-2) as [Request<TApi>?, Request<TBot>?];
   }
 
   getThreeLast<TApi extends TMethod, TBot extends TMethod, TContext extends TMethod>(): [
@@ -106,7 +109,7 @@ export class OutgoingRequests<TMethod extends RealApiMethodKeys = RealApiMethodK
     Request<TBot>?,
     Request<TContext>?,
   ] {
-    return this.requests.slice(-3) as [Request<TApi>?, Request<TBot>?, Request<TContext>?];
+    return this._requests.slice(-3) as [Request<TApi>?, Request<TBot>?, Request<TContext>?];
   }
 
   getAll<TApi extends TMethod>(): [Request<TApi>?];
@@ -139,8 +142,84 @@ export class OutgoingRequests<TMethod extends RealApiMethodKeys = RealApiMethodK
     TFilter extends TMethod,
   >(): [Request<TApi>?, Request<TBot>?, Request<TContext>?, Request<TData>?, Request<TExtra>?, Request<TFilter>?];
 
+  getAll<
+    TApi extends TMethod,
+    TBot extends TMethod,
+    TContext extends TMethod,
+    TData extends TMethod,
+    TExtra extends TMethod,
+    TFilter extends TMethod,
+    T7 extends TMethod,
+  >(): [Request<TApi>?, Request<TBot>?, Request<TContext>?, Request<TData>?, Request<TExtra>?, Request<TFilter>?, Request<T7>?];
+
+  getAll<
+    TApi extends TMethod,
+    TBot extends TMethod,
+    TContext extends TMethod,
+    TData extends TMethod,
+    TExtra extends TMethod,
+    TFilter extends TMethod,
+    T7 extends TMethod,
+    T8 extends TMethod,
+  >(): [
+    Request<TApi>?,
+    Request<TBot>?,
+    Request<TContext>?,
+    Request<TData>?,
+    Request<TExtra>?,
+    Request<TFilter>?,
+    Request<T7>?,
+    Request<T8>?,
+  ];
+
+  getAll<
+    TApi extends TMethod,
+    TBot extends TMethod,
+    TContext extends TMethod,
+    TData extends TMethod,
+    TExtra extends TMethod,
+    TFilter extends TMethod,
+    T7 extends TMethod,
+    T8 extends TMethod,
+    T9 extends TMethod,
+  >(): [
+    Request<TApi>?,
+    Request<TBot>?,
+    Request<TContext>?,
+    Request<TData>?,
+    Request<TExtra>?,
+    Request<TFilter>?,
+    Request<T7>?,
+    Request<T8>?,
+    Request<T9>?,
+  ];
+
+  getAll<
+    TApi extends TMethod,
+    TBot extends TMethod,
+    TContext extends TMethod,
+    TData extends TMethod,
+    TExtra extends TMethod,
+    TFilter extends TMethod,
+    T7 extends TMethod,
+    T8 extends TMethod,
+    T9 extends TMethod,
+    T10 extends TMethod,
+  >(): [
+    Request<TApi>?,
+    Request<TBot>?,
+    Request<TContext>?,
+    Request<TData>?,
+    Request<TExtra>?,
+    Request<TFilter>?,
+    Request<T7>?,
+    Request<T8>?,
+    Request<T9>?,
+    Request<T10>?,
+  ];
+
   getAll() {
-    return this.requests as unknown as never;
+    return this._requests as unknown as never;
   }
 
   /**

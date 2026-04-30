@@ -20,8 +20,6 @@ import { Supergroup } from './supergroup';
 import type { Membership, PromotePermissions } from './types';
 import { User, type UserProfile } from './user';
 
-let pollStateCounter = 1;
-
 export interface DispatchPollStateOptions {
   /** Override the auto-generated update_id. */
   updateId?: number;
@@ -130,11 +128,13 @@ export class Chats<TContext extends Context = Context> {
 
   private readonly chats = new Map<number, AnyChat<TContext>>();
 
-  /** click->user association for the user.replies filter rule. */
-  private readonly clickers = new Map<string, number>();
+  /** click->user+chat association for the user.replies filter rule. */
+  private readonly clickers = new Map<string, { userId: number; chatId: number }>();
 
   /** messageId->Reply registry for reply.replyingTo resolution. */
   private readonly messageIdToReply = new Map<number, Reply<TContext>>();
+
+  private pollStateCounter = 0;
 
   /** @internal */
   bot: Bot<TContext> | undefined;
@@ -241,7 +241,7 @@ export class Chats<TContext extends Context = Context> {
    */
   newGroup(title?: string): Group<TContext> {
     const id = this.ids.nextGroupId();
-    const group = new Group<TContext>(id, title ?? `Group${String(-id)}`);
+    const group = new Group<TContext>(id, title ?? `Group${String(-id)}`, this.ids);
 
     this.registerChat(group);
 
@@ -255,7 +255,7 @@ export class Chats<TContext extends Context = Context> {
    */
   newSupergroup(title?: string): Supergroup<TContext> {
     const id = this.ids.nextSupergroupId();
-    const supergroup = new Supergroup<TContext>(id, title ?? `Supergroup${String(-id)}`);
+    const supergroup = new Supergroup<TContext>(id, title ?? `Supergroup${String(-id)}`, this.ids);
 
     this.registerChat(supergroup);
 
@@ -269,7 +269,7 @@ export class Chats<TContext extends Context = Context> {
    */
   newChannel(title?: string): Channel<TContext> {
     const id = this.ids.nextChannelId();
-    const channel = new Channel<TContext>(id, title ?? `Channel${String(-id)}`);
+    const channel = new Channel<TContext>(id, title ?? `Channel${String(-id)}`, this.ids);
 
     this.registerChat(channel);
 
@@ -302,10 +302,10 @@ export class Chats<TContext extends Context = Context> {
       throw new Error('Bot not attached — call prepareBot() first');
     }
 
-    pollStateCounter += 1;
+    this.pollStateCounter += 1;
 
     await this.bot.handleUpdate({
-      update_id: options.updateId ?? 1_770_000 + pollStateCounter,
+      update_id: options.updateId ?? this.ids.nextUpdateId(),
       poll,
     } as Update);
   }
@@ -343,8 +343,8 @@ export class Chats<TContext extends Context = Context> {
     const reply = new Reply<TContext>(payload, chat, {
       bot,
       ids: this.ids,
-      recordClick: (callbackData, byUserId) => {
-        this.clickers.set(callbackData, byUserId);
+      recordClick: (callbackData, byUserId, byChatId) => {
+        this.clickers.set(callbackData, { userId: byUserId, chatId: byChatId });
       },
       resolveReply: (messageId) => this.messageIdToReply.get(messageId),
     });
@@ -388,10 +388,9 @@ export class Chats<TContext extends Context = Context> {
       return true;
     }
 
-    // Rule 4: response after a clickButton by this user
-    // (heuristic: most-recent click whose callbackData matches the user)
-    for (const [, byUserId] of this.clickers) {
-      if (byUserId === entry.user.id) {
+    // Rule 4: response after a clickButton by this user in this chat
+    for (const [, { userId: byUserId, chatId: byChatId }] of this.clickers) {
+      if (byUserId === entry.user.id && byChatId === chat.id) {
         return true;
       }
     }

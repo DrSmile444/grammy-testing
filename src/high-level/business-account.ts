@@ -4,11 +4,6 @@ import type { Message, Update } from 'grammy/types';
 import type { IdGenerator } from './id-generator';
 import type { User } from './user';
 
-let bizConnectionCounter = 1;
-let bizMessageCounter = 1;
-let bizEditedMessageCounter = 1;
-let bizDeletedMessagesCounter = 1;
-
 interface BusinessAccountContext<TContext extends Context> {
   bot: Bot<TContext>;
   ids: IdGenerator;
@@ -58,10 +53,8 @@ export class BusinessAccount<TContext extends Context = Context> {
    * @param options - Optional overrides for the connection timestamp.
    */
   async connect(options: ConnectOptions = {}): Promise<void> {
-    bizConnectionCounter += 1;
-
     await this.ctx.bot.handleUpdate({
-      update_id: 1_700_000 + bizConnectionCounter,
+      update_id: this.ctx.ids.nextUpdateId(),
       business_connection: {
         id: this.connectionId,
         user: {
@@ -83,10 +76,8 @@ export class BusinessAccount<TContext extends Context = Context> {
    * @param options - Optional overrides for the disconnection timestamp.
    */
   async disconnect(options: ConnectOptions = {}): Promise<void> {
-    bizConnectionCounter += 1;
-
     await this.ctx.bot.handleUpdate({
-      update_id: 1_700_000 + bizConnectionCounter,
+      update_id: this.ctx.ids.nextUpdateId(),
       business_connection: {
         id: this.connectionId,
         user: {
@@ -127,10 +118,8 @@ export class BusinessAccount<TContext extends Context = Context> {
       business_connection_id: this.connectionId,
     } as Message;
 
-    bizMessageCounter += 1;
-
     await this.ctx.bot.handleUpdate({
-      update_id: 1_710_000 + bizMessageCounter,
+      update_id: this.ctx.ids.nextUpdateId(),
       business_message: message,
     } as Update);
   }
@@ -160,10 +149,8 @@ export class BusinessAccount<TContext extends Context = Context> {
       business_connection_id: this.connectionId,
     } as Message;
 
-    bizEditedMessageCounter += 1;
-
     await this.ctx.bot.handleUpdate({
-      update_id: 1_720_000 + bizEditedMessageCounter,
+      update_id: this.ctx.ids.nextUpdateId(),
       edited_business_message: message,
     } as Update);
   }
@@ -174,10 +161,8 @@ export class BusinessAccount<TContext extends Context = Context> {
    * @param options - Optional overrides such as a custom `chat_id`.
    */
   async deleteMessages(messageIds: number[], options: BusinessDeleteMessagesOptions = {}): Promise<void> {
-    bizDeletedMessagesCounter += 1;
-
     await this.ctx.bot.handleUpdate({
-      update_id: 1_730_000 + bizDeletedMessagesCounter,
+      update_id: this.ctx.ids.nextUpdateId(),
       deleted_business_messages: {
         business_connection_id: this.connectionId,
         chat: {

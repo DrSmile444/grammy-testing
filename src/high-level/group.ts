@@ -3,6 +3,7 @@ import type { Chat, ReactionCount, Update } from 'grammy/types';
 
 import { type ChatRefHolder, setBotRef } from './chat';
 import { dispatchChatMember, dispatchMyChatMember } from './dispatch';
+import type { IdGenerator } from './id-generator';
 import type { MessagesLog } from './messages-log';
 import type {
   ChatMemberStatus,
@@ -14,8 +15,6 @@ import type {
   RestrictPermissions,
 } from './types';
 import type { User } from './user';
-
-let reactionCountCounter = 1;
 
 const FULL_ADMIN_RIGHTS = {
   is_anonymous: false,
@@ -53,6 +52,7 @@ export class Group<TContext extends Context = Context> implements ChatRefHolder<
   constructor(
     public readonly id: number,
     public readonly title: string,
+    private readonly ids: IdGenerator,
   ) {}
 
   [setBotRef](bot: Bot<TContext>): void {
@@ -101,6 +101,7 @@ export class Group<TContext extends Context = Context> implements ChatRefHolder<
       toStatus: transition.to,
       permissions: transition.permissions ?? {},
       untilDate: transition.untilDate,
+      updateId: this.ids.nextUpdateId(),
     });
 
     this.members.set(user.id, {
@@ -138,6 +139,7 @@ export class Group<TContext extends Context = Context> implements ChatRefHolder<
       newStatus,
       oldStatus: options.oldStatus,
       permissions: options.permissions,
+      updateId: this.ids.nextUpdateId(),
     });
   }
 
@@ -149,10 +151,8 @@ export class Group<TContext extends Context = Context> implements ChatRefHolder<
    * @param options - Optional overrides for the update timestamp.
    */
   async dispatchReactionCount(messageId: number, reactions: ReactionCount[], options: DispatchReactionCountOptions = {}): Promise<void> {
-    reactionCountCounter += 1;
-
     await this.bot.handleUpdate({
-      update_id: 1_760_000 + reactionCountCounter,
+      update_id: this.ids.nextUpdateId(),
       message_reaction_count: {
         chat: this.toTelegramChat(),
         message_id: messageId,

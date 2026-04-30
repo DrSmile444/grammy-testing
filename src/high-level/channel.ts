@@ -4,13 +4,10 @@ import type { Chat, Message, ReactionCount, Update } from 'grammy/types';
 import { type ChatRefHolder, setBotRef } from './chat';
 import { makeChannelBotUser } from './dispatch';
 import type { Group } from './group';
+import type { IdGenerator } from './id-generator';
 import type { MessagesLog } from './messages-log';
 import type { Supergroup } from './supergroup';
 import type { DispatchReactionCountOptions, Membership } from './types';
-
-let postCounter = 1;
-let editPostCounter = 1;
-let reactionCountCounter = 1;
 
 /**
  * Channel actor. The only verb in v0.2 is `postMessageTo` which
@@ -36,6 +33,7 @@ export class Channel<TContext extends Context = Context> implements ChatRefHolde
   constructor(
     public readonly id: number,
     public readonly title: string,
+    private readonly ids: IdGenerator,
   ) {}
 
   [setBotRef](bot: Bot<TContext>): void {
@@ -51,8 +49,8 @@ export class Channel<TContext extends Context = Context> implements ChatRefHolde
     text: string,
     options: { messageId?: number } = {},
   ): Promise<void> {
-    postCounter += 1;
-    const messageId = options.messageId ?? 5_000_000 + postCounter;
+    const updateId = this.ids.nextUpdateId();
+    const messageId = options.messageId ?? updateId;
 
     const message: Message = {
       message_id: messageId,
@@ -64,7 +62,7 @@ export class Channel<TContext extends Context = Context> implements ChatRefHolde
     } as Message;
 
     const update: Update = {
-      update_id: 300_000 + postCounter,
+      update_id: updateId,
       message,
     } as Update;
 
@@ -81,10 +79,8 @@ export class Channel<TContext extends Context = Context> implements ChatRefHolde
   async editPost(messageId: number, newText: string, options: EditPostOptions = {}): Promise<void> {
     const now = Math.floor(Date.now() / 1000);
 
-    editPostCounter += 1;
-
     const update: Update = {
-      update_id: 1_600_000 + editPostCounter,
+      update_id: this.ids.nextUpdateId(),
       edited_channel_post: {
         message_id: messageId,
         date: options.date ?? now,
@@ -105,10 +101,8 @@ export class Channel<TContext extends Context = Context> implements ChatRefHolde
    * @param options - Optional overrides for the update timestamp.
    */
   async dispatchReactionCount(messageId: number, reactions: ReactionCount[], options: DispatchReactionCountOptions = {}): Promise<void> {
-    reactionCountCounter += 1;
-
     await this.bot.handleUpdate({
-      update_id: 1_760_000 + reactionCountCounter,
+      update_id: this.ids.nextUpdateId(),
       message_reaction_count: {
         chat: this.toTelegramChat(),
         message_id: messageId,

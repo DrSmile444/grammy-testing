@@ -119,9 +119,8 @@ interface MyChatMemberDispatch<TContext extends Context> {
   toStatus: ChatMemberStatus;
   permissions: PermissionFlags;
   untilDate?: number;
+  updateId: number;
 }
-
-let mcmCounter = 1;
 
 /**
  * Dispatches a `my_chat_member` update simulating a change in the bot's own membership status.
@@ -140,10 +139,8 @@ export async function dispatchMyChatMember<TContext extends Context>(
     username: spec.user.username,
   };
 
-  mcmCounter += 1;
-
   const update: Update = {
-    update_id: 200_000 + mcmCounter,
+    update_id: spec.updateId,
     my_chat_member: {
       chat: spec.chat,
       from: fromUser,
@@ -164,8 +161,6 @@ interface ServiceMessageDispatch<TContext extends Context> {
   messageId: number;
   updateId: number;
 }
-
-let serviceMessageCounter = 1;
 
 /**
  * Dispatches a `message` update containing a `new_chat_members` or `left_chat_member`
@@ -193,10 +188,8 @@ export async function dispatchServiceMessage<TContext extends Context>(spec: Ser
       ? ({ ...baseMessage, new_chat_members: [fromUser] } as Message)
       : ({ ...baseMessage, left_chat_member: fromUser } as Message);
 
-  serviceMessageCounter += 1;
-
   const update: Update = {
-    update_id: spec.updateId + serviceMessageCounter,
+    update_id: spec.updateId,
     message,
   } as Update;
 
@@ -250,9 +243,8 @@ interface ChatMemberDispatch<TContext extends Context> {
   newStatus: ChatMemberStatus;
   oldStatus?: ChatMemberStatus;
   permissions?: PermissionFlags;
+  updateId: number;
 }
-
-let cmCounter = 1;
 
 /**
  * Dispatches a `chat_member` update representing an admin changing another user's membership status.
@@ -275,10 +267,8 @@ export async function dispatchChatMember<TContext extends Context>(spec: ChatMem
     username: spec.targetUser.username,
   };
 
-  cmCounter += 1;
-
   const update: Update = {
-    update_id: 1_500_000 + cmCounter,
+    update_id: spec.updateId,
     chat_member: {
       chat: spec.chat,
       from: adminUser,
