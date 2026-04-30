@@ -1,6 +1,7 @@
 # remaining-dispatch-verbs Specification
 
 ## Purpose
+
 Defines the remaining media and structured-data dispatch verbs on the `user` actor: `sendAudio`, `sendVoice`, `sendVideoNote`, `sendAnimation`, `sendSticker`, `sendLocation`, `sendContact`, `sendVenue`, `sendPoll`, and `sendDice`. Each verb constructs a synthetic `Update` with the appropriate message field populated and dispatches it through the middleware chain.
 
 ## Requirements

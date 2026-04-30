@@ -1,8 +1,11 @@
 # bot-test-harness Specification
 
 ## Purpose
+
 TBD - created by archiving change add-low-level-testing-primitives. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: `prepareBot` initializes a bot for in-process testing
 
 The system SHALL expose `prepareBot(bot, options?)` that installs an outgoing-API transformer, sets a default `botInfo`, awaits `bot.init()`, and resolves to `{ chats }`. After resolution, the bot under test SHALL be ready to receive updates via `bot.handleUpdate` and the test author SHALL be able to access captured outgoing requests via `chats.outgoing`.
@@ -102,4 +105,3 @@ This requirement extends the v0.1 "All three entry points return the same shape"
 - **WHEN** the test calls each of `prepareBot`, `prepareComposer`, `prepareMiddleware` and inspects each returned `chats`
 - **THEN** each `chats` exposes the same v0.2 orchestrator surface
 - **AND** code that calls `chats.newUser()` works identically regardless of entry point
-

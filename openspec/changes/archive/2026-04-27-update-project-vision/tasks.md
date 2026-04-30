@@ -8,7 +8,7 @@
 ## 2. Replace the migration milestone section
 
 - [x] 2.1 §"Migration milestone: replace ua-anti-spam-bot's in-repo testing framework" renamed to §"Reference test suite: prove parity using anti-spam patterns".
-- [x] 2.2 Section body rewritten: explains we re-implement audited patterns in `tests/reference/`; lists the patterns to demonstrate; drops the `@testing/*` swap step list; explains *why* a migration PR was rejected (release coupling, name-parity constraints, weaker validation signal).
+- [x] 2.2 Section body rewritten: explains we re-implement audited patterns in `tests/reference/`; lists the patterns to demonstrate; drops the `@testing/*` swap step list; explains _why_ a migration PR was rejected (release coupling, name-parity constraints, weaker validation signal).
 - [x] 2.3 Success criterion updated: "every reference-suite test passes" replaces "the migration PR merges green".
 - [x] 2.4 Cross-references updated in §"Versioning & release plan" and §"Plugin's own test strategy" to point at the new section. §"Documentation strategy" line about "Anti-spam-specific tests stay in the bot repo as the migration acceptance test" rewritten to "as inspiration only".
 

@@ -1,8 +1,11 @@
 # context-field-mocking Specification
 
 ## Purpose
+
 TBD - created by archiving change add-low-level-testing-primitives. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: `mockContextField` produces a typed mocked value plus middleware
 
 The system SHALL expose a generic `mockContextField<TContext, TField, TResult>(fieldName, remap)` that returns a factory function. The factory SHALL accept a `PartialDeep<TContext[TField]>` value and return the result of `remap({ mocked, middleware })`. The produced `middleware` SHALL be a grammY middleware function that assigns `mocked` to `context[fieldName]` and then calls `next()`.
@@ -58,4 +61,3 @@ The system SHALL expose `mockState(partial)` returning `{ state, mockStateMiddle
 - **AND** registers the resulting middleware
 - **AND** dispatches an update
 - **THEN** the handler observes `ctx.state.foo === 1`
-

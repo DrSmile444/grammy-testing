@@ -5,6 +5,7 @@ The build chain is: TypeScript source → tsup → `dist/` (ESM `.js` + CJS `.cj
 ## Goals / Non-Goals
 
 **Goals:**
+
 - `npm run build` produces a correct dual-format `dist/` that consumers can `import` (ESM) and `require` (CJS).
 - Internal test suite (`vitest run`) still works without a prior build step.
 - CI matrix proves Node 18/20/22 pass on every commit.
@@ -13,6 +14,7 @@ The build chain is: TypeScript source → tsup → `dist/` (ESM `.js` + CJS `.cj
 - `jsr.json` scaffold is in place for when the grammY team grants `@grammyjs` JSR scope access.
 
 **Non-Goals:**
+
 - Full Jest test suite parity (one smoke test suffices to prove runner-agnosticism).
 - Deno publish (blocked on `@grammyjs` JSR scope; scaffold only).
 - npm publish automation — `prepublishOnly` hook covers manual `npm publish`; a publish workflow is post-v1.0.

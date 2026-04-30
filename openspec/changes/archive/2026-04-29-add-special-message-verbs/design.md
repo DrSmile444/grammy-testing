@@ -9,6 +9,7 @@ Two categories of update are missing from `User`:
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Add `user.sendWebAppData(data, buttonText, options?)` — message-type update with `web_app_data`
 - Add `user.sendSuccessfulPayment(invoicePayload, currency, totalAmount, options?)` — message-type update with `successful_payment`; stubs the required `telegram_payment_charge_id` and `provider_payment_charge_id` fields with placeholder strings
 - Add `user.sendInlineQuery(query, options?)` — dispatches `update.inline_query`; `options.chatType` sets `chat_type` (defaults to `'sender'`)
@@ -17,6 +18,7 @@ Two categories of update are missing from `User`:
 - Add `user.sendShippingQuery(invoicePayload, shippingAddress, options?)` — dispatches `update.shipping_query`; auto-generates `id`; `shippingAddress` is a full `ShippingAddress` object passed through directly
 
 **Non-Goals:**
+
 - Simulating Telegram's payment provider round-trip
 - `sendGame` (games are sent by bots, not dispatched by users in tests)
 - `passport_data` (Telegram Passport — extremely niche)

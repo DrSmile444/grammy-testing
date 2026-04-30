@@ -5,6 +5,7 @@ The package currently exports TypeScript source files directly (`./src/index.ts`
 ## What Changes
 
 **Already done (pre-implemented in working tree):**
+
 - `tsup.config.ts` — ESM + CJS dual-format build with `.d.ts` declarations
 - `package.json` exports updated from `./src/*.ts` → `./dist/*.{js,cjs,d.ts}`
 - `package.json` scripts: `build` (`tsup`), `prepublishOnly` (`npm run build`)
@@ -13,6 +14,7 @@ The package currently exports TypeScript source files directly (`./src/index.ts`
 - `tsconfig.json` includes `tsup.config.ts`, adds `ignoreDeprecations: "6.0"` for TypeScript 6
 
 **Remaining work:**
+
 - Add `"files": ["dist"]` to `package.json` to limit what is published to npm
 - Verify `npm run build` produces a correct `dist/` with both entry points and declaration files
 - Fix `vitest.config.ts` so tests continue to resolve source via `tsconfigPaths` even after exports point at `dist/` — add an explicit `resolve.alias` override for the test environment

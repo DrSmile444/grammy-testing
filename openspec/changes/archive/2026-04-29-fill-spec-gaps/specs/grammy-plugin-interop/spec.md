@@ -10,13 +10,13 @@ Note: `ctx.replyWithHTML`, `ctx.replyFmt`, and `ParseModeFlavor` are v1 APIs not
 
 #### Scenario: fmt with bold marker is captured as text + bold entity
 
-- **WHEN** a bot uses `fmt\`${b}Hello${b}, world!\`` and passes `.text` / `.entities` to `ctx.reply`
+- **WHEN** a bot uses `fmt\`${b}Hello${b}, world!\``and passes`.text`/`.entities`to`ctx.reply`
 - **THEN** `chats.repliesFor(user).last?.text` equals `'Hello, world!'`
 - **AND** `chats.repliesFor(user).last?.entities` contains an entry with `type === 'bold'`
 - **AND** `chats.repliesFor(user).last?.parseMode` is `undefined`
 
 #### Scenario: fmt with multiple markers produces merged entities
 
-- **WHEN** a bot uses `fmt\`${b}Important${b}: ${i}note${i}\`` and replies with `.text` / `.entities`
+- **WHEN** a bot uses `fmt\`${b}Important${b}: ${i}note${i}\``and replies with`.text`/`.entities`
 - **THEN** `Reply.text` equals `'Important: note'`
 - **AND** `Reply.entities` contains both a `'bold'` and an `'italic'` entry

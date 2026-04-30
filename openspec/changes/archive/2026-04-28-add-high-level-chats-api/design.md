@@ -5,7 +5,7 @@ v0.1 ships the low-level layer: every entry point returns `{ chats }` where `cha
 Two architectural questions drive this design:
 
 1. **What does `user.replies` actually filter on?** The doc commits to a three-layered model (`user.replies` filtered, `chat.messages` canonical, `chats.outgoing` raw), but the filtering rule for `user.replies` is non-trivial — Telegram's Bot API doesn't have an "addressee" field on a message; addressing is implicit via `reply_to_message`, `@`-mention entities, or button-callback target.
-2. **How do we keep the participant/chat model honest under the role-not-identity decision?** A user can be admin in one chat and a regular member in another; promotion happens *to a chat*, not to a person. The internal data model has to reflect that.
+2. **How do we keep the participant/chat model honest under the role-not-identity decision?** A user can be admin in one chat and a regular member in another; promotion happens _to a chat_, not to a person. The internal data model has to reflect that.
 
 The high-frequency Coverage-audit gaps (sender_chat / media groups / my_chat_member transitions) are explicitly v0.2 must-haves — punting them to v0.2.x would force users back to `buildOverwrite()` for ~70 of the audited anti-spam tests.
 
@@ -66,14 +66,14 @@ If a chat-wide message has no specific addressee but the user is a participant, 
 
 ### D3. `Membership` model — admin is per-chat state, not identity
 
-**Decision:** `User` has no permissions. `Group` (and `Supergroup`) has an internal map `Map<UserId, Membership>` that tracks each user's role in *that* chat. `group.promote(user, perms?)` updates the map and returns a `Membership` view scoped to (this user, this group). `user.in(group)` reads the same map.
+**Decision:** `User` has no permissions. `Group` (and `Supergroup`) has an internal map `Map<UserId, Membership>` that tracks each user's role in _that_ chat. `group.promote(user, perms?)` updates the map and returns a `Membership` view scoped to (this user, this group). `user.in(group)` reads the same map.
 
 `chats.newAdmin(profile?, perms?)` is sugar:
 
 ```ts
 function newAdmin(profile, perms) {
   const user = chats.newUser(profile);
-  const defaultGroup = chats.defaultGroup ??= chats.newSupergroup('default-group');
+  const defaultGroup = (chats.defaultGroup ??= chats.newSupergroup('default-group'));
   defaultGroup.promote(user, perms);
   return user; // typed as User, with a Membership accessible via user.in(defaultGroup)
 }
@@ -122,7 +122,7 @@ The dispatch order is preserved. `await user.sendMediaGroup([...])` resolves onc
 
 **Rationale:** Real Telegram media groups arrive as N separate updates sharing a `media_group_id`. Bots that aggregate captions across group members need to see all N. One `await` resolving after all of them lands cleanly in test code.
 
-In v0.2 we don't ship the underlying media verbs themselves (`sendPhoto`, etc.) — but `sendMediaGroup` works against the message *shape*. Items in v0.2 are limited to text-shaped fixtures (`{ caption?, media_group_id }` plus minimal `photo`/`video` placeholders); full media verbs land in v0.2.x.
+In v0.2 we don't ship the underlying media verbs themselves (`sendPhoto`, etc.) — but `sendMediaGroup` works against the message _shape_. Items in v0.2 are limited to text-shaped fixtures (`{ caption?, media_group_id }` plus minimal `photo`/`video` placeholders); full media verbs land in v0.2.x.
 
 **Alternatives considered:**
 
@@ -187,6 +187,6 @@ Rollback: revert the high-level files; the low-level layer keeps working.
 
 ## Open Questions
 
-- Should `Reply` carry a typed `update.kind` field (`'message' | 'edited_message' | 'channel_post' | ...`)? Useful for filter-driven assertions but adds surface area. **Default for now: no — `Reply` is the *output* shape, the input update kind is internal. If a real test demands it, add later.**
+- Should `Reply` carry a typed `update.kind` field (`'message' | 'edited_message' | 'channel_post' | ...`)? Useful for filter-driven assertions but adds surface area. **Default for now: no — `Reply` is the _output_ shape, the input update kind is internal. If a real test demands it, add later.**
 - Should `chats.newGroup()` and `chats.newSupergroup()` differ in capabilities, or is `Group` a single class with a `type` discriminant? **Default for now: separate types so TypeScript catches "you can't restrict members in a regular group" at compile time. Revisit if the type tax outweighs the safety benefit.**
 - Does `Channel.postMessageTo(group, text)` need an `into-its-own-channel` variant? In Telegram, channels post to themselves; we model the "channel posts into group" case here because that's gap #3. **Default for now: no — channel-self-posting is gap #6 (low frequency) and defers to v0.2.x.**

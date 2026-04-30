@@ -12,7 +12,7 @@ The `reply-objects` spec documents two `Reply` accessors that are not yet implem
 
 ### New Capabilities
 
-*(none)*
+_(none)_
 
 ### Modified Capabilities
 

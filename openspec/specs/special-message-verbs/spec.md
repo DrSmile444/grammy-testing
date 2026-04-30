@@ -1,8 +1,11 @@
 # special-message-verbs Specification
 
 ## Purpose
+
 TBD - created by syncing change add-special-message-verbs. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: `user.sendWebAppData` dispatches a Web App data message
 
 The system SHALL provide `user.sendWebAppData(data, buttonText, options?)` that constructs a synthetic `Update` with `message.web_app_data` set to `{ data, button_text: buttonText }`. `options.chat` MAY override the destination (defaults to the user's private chat). The call SHALL resolve once the middleware chain settles.

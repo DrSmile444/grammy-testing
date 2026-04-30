@@ -1,8 +1,11 @@
 # reply-objects Specification
 
 ## Purpose
+
 TBD - created by archiving change add-high-level-chats-api. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: `Reply` is a normalized object derived from each message-shape outgoing call
 
 For every captured outgoing API call whose method produces a message in a chat (`sendMessage`, `sendPhoto`, `sendDocument`, etc., or any call that produces a `Message` shape), the system SHALL derive a `Reply<TContext>` object exposing normalized accessors:
@@ -169,4 +172,3 @@ For captured outgoing calls whose payload contains a media field (`photo`, `docu
 
 - **WHEN** the bot replies with `ctx.reply('hello')`
 - **THEN** the corresponding `Reply.media` is `undefined`
-

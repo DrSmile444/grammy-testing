@@ -7,12 +7,14 @@ The `IdGenerator` already sequences message and media-group IDs. `Reply` infers 
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Add `user.sendPhoto(file?, options?)`, `user.sendDocument(file?, options?)`, `user.sendVideo(file?, options?)` dispatch verbs
 - Fix `user.sendMediaGroup` to populate proper `PhotoSize[]` / `Document` / `Video` stubs
 - Add `reply.media` accessor (`{ type, fileId }`) derived from outgoing captured payload
 - Add `ids.nextFileId()` to generate stable `'stub-file-<n>'` IDs
 
 **Non-Goals:**
+
 - `Buffer` / `Uint8Array` / `ReadableStream` file inputs (deferred — `InputFile` complexity not needed for current test patterns)
 - `user.sendAudio`, `user.sendVoice`, `user.sendAnimation`, `user.sendSticker` (can follow the same pattern in a future change)
 - Outgoing `CapturedFile` with eager buffer drain (explore-doc mention — deferred)

@@ -9,6 +9,7 @@ A late-stage exploration shifted one strategic constraint: **`ua-anti-spam-bot` 
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Ship the foundation primitives every higher-level surface depends on.
 - Provide three explicit entry points so test authors pick the granularity that matches what they're testing.
 - Make outgoing API capture transparent — the bot under test never knows it's being tested.
@@ -16,6 +17,7 @@ A late-stage exploration shifted one strategic constraint: **`ua-anti-spam-bot` 
 - Keep the public surface Web-platform-shaped so Bun and Deno work without per-runtime branches.
 
 **Non-Goals:**
+
 - High-level `Chats` / `newUser` / `newAdmin` / `Reply` / per-user replies-inbox / `clickButton` API (deferred to `add-high-level-chats-api`, v0.2).
 - Anti-spam reference test suite (deferred to its own validation-gate proposal).
 - grammY plugin interop examples (deferred — conversations, menu, hydrate, etc.).
@@ -44,6 +46,7 @@ A late-stage exploration shifted one strategic constraint: **`ua-anti-spam-bot` 
 **Real impact on the inspiration corpus:** `ua-anti-spam-bot/src/bot/plugins/self-destructed.plugin.ts:53` and `tests/listeners/test-tensor.listener.ts:255` both use `setTimeout`. Tests for those flows will need to combine `await chats.idle()` with `await vi.advanceTimersByTimeAsync(60_000)`. Document this explicitly.
 
 **Alternatives considered:**
+
 - `async_hooks` / `AsyncLocalStorage` instrumentation. Rejected: Node-leaning, observable side-effects, hidden global state.
 - "Just `await bot.handleUpdate(u)`" without any tracking. Rejected: misses unawaited `void ctx.api.sendMessage(...)`, which the anti-spam codebase uses in error handlers.
 
@@ -70,6 +73,7 @@ A late-stage exploration shifted one strategic constraint: **`ua-anti-spam-bot` 
 **Rationale:** The `GrammyError` constructor takes four arguments, three of which are boilerplate the test author copies from grammY source. The sugar spec collapses 90% of error tests to a one-line assertion-driving setup.
 
 **Alternatives considered:**
+
 - Sugar only. Rejected: real bots sometimes throw subclasses or carry custom `parameters`; users need a direct-constructor escape hatch.
 - Constructor only. Rejected: forces every test to import `GrammyError` and write boilerplate.
 
@@ -84,12 +88,14 @@ A late-stage exploration shifted one strategic constraint: **`ua-anti-spam-bot` 
 ### D7. Layered package exports: `@grammyjs/testing` (curated) and `@grammyjs/testing/low-level` (escape hatch)
 
 **Decision:** Two entry points in `package.json#exports`:
+
 - `.` re-exports the entry points (`prepareBot`/`prepareComposer`/`prepareMiddleware`), `OutgoingRequests` instance methods (via the `chats.outgoing` access path), error-simulation API, async helpers, canned-response config, and context-field mocks (`mockContextField`, `mockSession`, `mockChatSession`, `mockState`).
 - `./low-level` re-exports everything in `.` PLUS the update-builder primitives (`GenericMockUpdate`, `MessagePrivateMockUpdate`, etc.) and generic fixtures (`genericUser`, `genericPrivateChat`, etc.).
 
 **Rationale:** The update-builder primitives are explicitly an escape hatch (per the doc's "API design principles"). Putting them under `/low-level` makes the import statement itself signal "I'm reaching into the unsafe layer" — same pattern as React's `react-dom/server` or Node's `node:fs/promises`. The default `.` import gives the curated, future-stable surface.
 
 **Alternatives considered:**
+
 - Single entry exporting everything. Rejected: removes the signaling value; users would reach for builders before trying the (eventually higher-level) curated surface.
 - Separate package `@grammyjs/testing-low-level`. Rejected: dual-package version-drift hazard, more publish overhead, no upside over a subpath export. Subpath exports work natively in Node, Bun, JSR, and Deno (`npm:@grammyjs/testing@x/low-level`).
 
@@ -121,6 +127,7 @@ A late-stage exploration shifted one strategic constraint: **`ua-anti-spam-bot` 
 ## Migration Plan
 
 This is a greenfield change — no migration needed. However, the boilerplate-to-plugin transition is mildly invasive and warrants explicit steps in the implementation tasks:
+
 1. Delete `src/main.ts`, `tests/main.spec.ts`, and `docs/typescript-boilerplate-banner.svg`.
 2. Rename `package.json#name` to `@grammyjs/testing`, license to MIT, set `version` to `0.1.0`, add `exports` map, peer-deps, etc.
 3. Create the new source layout (`src/low-level/`, `src/index.ts`, `src/low-level.ts`).

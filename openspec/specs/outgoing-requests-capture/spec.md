@@ -1,8 +1,11 @@
 # outgoing-requests-capture Specification
 
 ## Purpose
+
 TBD - created by archiving change add-low-level-testing-primitives. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: `OutgoingRequests` captures every grammY API call
 
 The system SHALL provide an `OutgoingRequests` collector, accessible as `chats.outgoing`, that records every outgoing call made via `bot.api.*` and `ctx.api.*` and via grammY context helpers (`ctx.reply`, `ctx.replyWithPhoto`, etc.). Each captured entry SHALL include the API `method` name, the `payload` argument, and any `signal` passed by the caller.
@@ -100,4 +103,3 @@ The transformer SHALL track every promise it returns to grammY. The set of unset
 - **AND** the test does `await bot.handleUpdate(update)` and `await chats.idle()`
 - **THEN** `chats.idle()` resolves
 - **AND** the rejected call appears in `chats.outgoing.requests`
-

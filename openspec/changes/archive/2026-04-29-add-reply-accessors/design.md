@@ -5,10 +5,12 @@
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Expose `reply.replyMarkup` as `Record<string, unknown> | undefined` read directly from `rawPayload.reply_markup`
 - Expose `reply.replyingTo` as `Reply<TContext> | undefined` by resolving `replyToMessageId` through a registry owned by `Chats`
 
 **Non-Goals:**
+
 - Strongly-typing `replyMarkup` as the full grammy union (`InlineKeyboardMarkup | ReplyKeyboardMarkup | ...`) — the escape-hatch semantics call for a plain object type; callers that need the specific type can cast from `raw`
 - Resolving `replyingTo` when the referenced ID belongs to an incoming user message — those IDs are not registered, so `replyingTo` correctly returns `undefined`
 
@@ -22,7 +24,7 @@
 
 `ReplyDeps` gains a new `resolveReply: (messageId: number) => Reply<TContext> | undefined` callback. The `Reply` constructor calls it immediately with `this.replyToMessageId` to set `this.replyingTo`.
 
-`Chats` maintains a private `messageIdToReply = new Map<number, Reply<TContext>>()`. After `new Reply(...)` returns, `Chats.deriveFromCapture` registers it: `this.messageIdToReply.set(reply.messageId, reply)`. This means `replyingTo` can only resolve Replies that were created in *earlier* captured calls, which is the correct semantics — a bot message cannot reply to itself or a message that hasn't been captured yet.
+`Chats` maintains a private `messageIdToReply = new Map<number, Reply<TContext>>()`. After `new Reply(...)` returns, `Chats.deriveFromCapture` registers it: `this.messageIdToReply.set(reply.messageId, reply)`. This means `replyingTo` can only resolve Replies that were created in _earlier_ captured calls, which is the correct semantics — a bot message cannot reply to itself or a message that hasn't been captured yet.
 
 ### Registration happens after construction
 

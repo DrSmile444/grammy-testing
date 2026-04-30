@@ -9,12 +9,14 @@
 ## Goals / Non-Goals
 
 **Goals:**
+
 - One test file per supported plugin demonstrating the minimal working recipe.
 - Tests are self-contained: install the plugin, run a test, assert on output — no external infrastructure.
 - Each file has a JSDoc header that names the recipe pattern and any known constraints.
 
 **Non-Goals:**
-- Full test suite coverage of each plugin's own functionality. We test that *our framework* works *with* the plugin, not the plugin itself.
+
+- Full test suite coverage of each plugin's own functionality. We test that _our framework_ works _with_ the plugin, not the plugin itself.
 - `@grammyjs/runner` — requires polling/webhook infrastructure incompatible with `handleUpdate` dispatch.
 - `@grammyjs/files` — requires a real `file_id` from Telegram; no synthetic substitute.
 - `@grammyjs/fluent` — adds i18n setup complexity without exercising a new testing pattern; not enough value for the pitch.

@@ -7,11 +7,13 @@
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Allow `prepareComposer` and `prepareMiddleware` to accept a `ContextConstructor` and forward it to the internal bot
 - Keep the API minimal and backward-compatible — no new required parameters
 - Share a single options type between both functions
 
 **Non-Goals:**
+
 - Exposing other `BotConfig` fields (`client`, `botInfo`) — `botInfo` is overridden by the test harness anyway; `client` has no meaning in tests
 - Changing `prepareBot` — the bot is passed in, so the constructor is already baked in
 
@@ -22,8 +24,7 @@
 Introduce one new exported type that extends `PrepareOptions`:
 
 ```typescript
-export interface PrepareWithConstructorOptions<TContext extends Context = Context>
-  extends PrepareOptions {
+export interface PrepareWithConstructorOptions<TContext extends Context = Context> extends PrepareOptions {
   ContextConstructor?: new (...args: ConstructorParameters<typeof Context>) => TContext;
 }
 ```
@@ -41,6 +42,7 @@ The type constraint `new (...args: ConstructorParameters<typeof Context>) => TCo
 ### Forward via BotConfig argument
 
 Inside both functions:
+
 ```typescript
 const bot = new Bot<TContext>('test-token', {
   ContextConstructor: options.ContextConstructor,

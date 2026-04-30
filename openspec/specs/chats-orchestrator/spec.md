@@ -1,8 +1,11 @@
 # chats-orchestrator Specification
 
 ## Purpose
+
 TBD - created by archiving change add-high-level-chats-api. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: `chats.newUser` mints a participant
 
 The system SHALL provide `chats.newUser(profile?)` that returns a `User<TContext>` instance. The optional `profile` parameter SHALL accept `{ id?, first_name?, last_name?, username?, ... }` partial Telegram `User` fields; missing fields SHALL be filled from sensible defaults derived from the v0.1 `genericUserAtom` fixture, with unique IDs generated per call.
@@ -69,4 +72,3 @@ Each chat factory SHALL produce a chat with a unique numeric `chat.id` and the a
 - **WHEN** the test calls `await prepareBot(bot)` and inspects the returned `chats`
 - **THEN** `chats.outgoing` is the `OutgoingRequests` collector
 - **AND** `chats.idle` is a function returning `Promise<void>`
-

@@ -5,6 +5,7 @@ The `User` actor already has dispatch verbs for text, photo, document, video, an
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Add `user.sendAudio`, `user.sendVoice`, `user.sendVideoNote`, `user.sendAnimation`, `user.sendSticker` — file-based media verbs following the same stub pattern as `sendPhoto`/`sendDocument`/`sendVideo`
 - Add `user.sendLocation(latitude, longitude, options?)` — structured verb with required coordinate args
 - Add `user.sendContact(phoneNumber, firstName, options?)` — structured verb with required contact args
@@ -14,6 +15,7 @@ The `User` actor already has dispatch verbs for text, photo, document, video, an
 - Add stub helpers for the five new file-based types in `media-stubs.ts`
 
 **Non-Goals:**
+
 - Configuring dice value or poll state — tests observe these as sent but don't manipulate their state
 - Forwarding or editing verbs for the new types — covered by `sendForwarded` + `editMessage` already
 - Venue/location live update simulation

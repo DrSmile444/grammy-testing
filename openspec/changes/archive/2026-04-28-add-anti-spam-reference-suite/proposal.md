@@ -2,7 +2,7 @@
 
 The `project-vision` spec (now in `openspec/specs/project-vision/spec.md`) commits the project to validating v1.0 readiness via an in-repo **reference suite** that re-implements every audited pattern from `ua-anti-spam-bot/tests/`. v0.1 (low-level primitives) and v0.2 (high-level Chats/User/Reply API) are now both shipped. Until the reference suite exists, two things stay open: (1) the v1.0 acceptance criterion is unmet, and (2) we have no end-to-end shake-down of the v0.2 API against real-world test patterns — friction or gaps in the high-level layer are still hypothetical.
 
-This change lands the reference suite as a coherent, runnable artifact — a peer of `tests/low-level/` and `tests/high-level/`, but organized by *pattern* (the patterns the doc commits us to support) rather than by *capability*. Each file demonstrates how the v0.2 API expresses one category of real-bot test, with explicit notes whenever a `buildOverwrite()` or low-level escape hatch is needed (those become the catalog of v0.2.x gaps).
+This change lands the reference suite as a coherent, runnable artifact — a peer of `tests/low-level/` and `tests/high-level/`, but organized by _pattern_ (the patterns the doc commits us to support) rather than by _capability_. Each file demonstrates how the v0.2 API expresses one category of real-bot test, with explicit notes whenever a `buildOverwrite()` or low-level escape hatch is needed (those become the catalog of v0.2.x gaps).
 
 ## What Changes
 
@@ -40,6 +40,6 @@ None. The v0.1/v0.2 capability specs (`bot-test-harness`, `outgoing-requests-cap
 - **v0.2.x gap catalog**: the README's gap section becomes a living document. Each escape-hatch use is a future v0.2.x candidate (high-level verb proposals like `add-forwarded-message-dispatch`, `add-edited-message-dispatch`, `add-service-message-verbs`, etc.).
 - **Out of scope (separate proposals)**:
   - Implementing any new high-level verb the gap catalog surfaces — those are individual v0.2.x proposals.
-  - Anti-spam-domain assertions (swindler detection logic, NSFW classifier wiring, language-detection assertions). The reference suite tests the *grammY-testing API*, not the *anti-spam bot's domain logic*.
+  - Anti-spam-domain assertions (swindler detection logic, NSFW classifier wiring, language-detection assertions). The reference suite tests the _grammY-testing API_, not the _anti-spam bot's domain logic_.
   - VitePress docs site that links to the reference suite as proof — that's `add-runtime-and-runner-support` / `add-vitepress-docs-site` (v0.3).
   - Plugin interop examples — `add-grammy-plugin-interop` (v0.3).

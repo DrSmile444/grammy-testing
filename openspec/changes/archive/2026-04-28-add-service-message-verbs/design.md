@@ -63,6 +63,7 @@ if (existing && (existing.status === 'administrator' || existing.status === 'cre
 **Decision:** `user.leaveChat(group)` sets `chat.members[user.id]` to `{ user, chat, status: 'left', permissions: {} }`. The entry stays in the map.
 
 **Rationale:** Three benefits:
+
 - `user.in(group)?.status === 'left'` works as a queryable fact after departure. Useful for tests asserting on bot reactions to leave events.
 - Re-joining via `joinChat` is a clean transition (D2 explicitly upgrades 'left' to 'member').
 - Matches Telegram's actual semantics — `left` is a known status, not "no longer in any state".

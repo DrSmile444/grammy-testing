@@ -9,11 +9,13 @@ Two spec requirements exist but are unimplemented:
 ## Goals / Non-Goals
 
 **Goals:**
+
 - `PrivateChat` exposes `messages: MessagesLog<TContext>` as a public field
 - Private chat replies land in both `chat.messages` and `user.replies`
 - `tests/plugins/parse-mode.spec.ts` covers `ctx.replyWithHTML` producing `parseMode === 'HTML'` and `ctx.replyFmt` using the `ParseModeFlavor` middleware
 
 **Non-Goals:**
+
 - Changing the filtering logic for `user.replies` — private DMs already land there
 - Supporting `fmt` template literal helpers producing a `parse_mode` string — they use entities, not parse_mode, by design
 

@@ -1,8 +1,11 @@
 # project-vision Specification
 
 ## Purpose
+
 TBD - created by archiving change update-project-vision. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Project doc documents ua-anti-spam-bot as inspiration corpus only
 
 `docs/project.md` SHALL describe the relationship between `@grammyjs/testing` and `ua-anti-spam-bot` as an inspiration source for test patterns and a low-level proof of feasibility — NOT as a migration target. The doc SHALL NOT promise that the bot's `src/testing/` directory will be deleted, that the bot's tests will be migrated to import from `@grammyjs/testing` via find-and-replace, or that a successful migration PR is the v1.0 acceptance test.
@@ -90,4 +93,3 @@ Substantive edits to `docs/project.md` that change the strategic claims listed a
 
 - **WHEN** a contributor fixes a typo in `docs/project.md` that does not change any strategic claim
 - **THEN** they MAY commit the fix without an OpenSpec change proposal
-

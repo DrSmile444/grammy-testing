@@ -1,8 +1,11 @@
 # media-group-dispatch Specification
 
 ## Purpose
+
 TBD - created by archiving change add-high-level-chats-api. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: `user.sendMediaGroup` dispatches N updates with shared media_group_id
 
 The system SHALL provide `user.sendMediaGroup(items)` that accepts an array of media-group items (each item shape: `{ type?, caption?, media_group_id?, photo?, video?, document?, ... }`), generates a single `media_group_id` (or uses the first item's if all items already share one), and dispatches `items.length` separate `bot.handleUpdate` calls in sequence. Each dispatched update SHALL carry a message with the same `media_group_id` and the per-item caption/payload from the input array.
@@ -49,4 +52,3 @@ The dispatched updates SHALL flow through `bot.handleUpdate` exactly as N separa
 - **AND** `user.sendMediaGroup` dispatches three items
 - **THEN** the handler runs three times
 - **AND** each invocation's `ctx.message.media_group_id` is the same string
-

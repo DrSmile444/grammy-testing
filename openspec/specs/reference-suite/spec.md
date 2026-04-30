@@ -1,8 +1,11 @@
 # reference-suite Specification
 
 ## Purpose
+
 TBD - created by archiving change add-anti-spam-reference-suite. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Reference suite exists under `tests/reference/`
 
 The system SHALL maintain a reference test suite at `tests/reference/` containing one spec file per pattern category from the audit in `docs/project.md` §"Reference test suite". The suite SHALL be runnable by the project's standard test command (`npm run test:run`) and SHALL pass green at all times on the default branch.
@@ -77,4 +80,3 @@ Reference-suite tests SHALL use generic bot examples (`/start` welcome bot, echo
 
 - **WHEN** a reviewer reads any test name in the reference suite
 - **THEN** the name describes a testing pattern (e.g. "deletes a forwarded message", "applies cooldown after warning") rather than a specific business feature
-

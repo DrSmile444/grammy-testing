@@ -1,8 +1,11 @@
 # update-builders Specification
 
 ## Purpose
+
 TBD - created by archiving change add-low-level-testing-primitives. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Update builders are reachable only via `@grammyjs/testing/low-level`
 
 The system SHALL export the update-builder primitives and generic fixtures from the `@grammyjs/testing/low-level` subpath only. The default `@grammyjs/testing` entry SHALL NOT re-export these symbols. Both subpath entries SHALL be declared in `package.json#exports` so resolution works under Node, Bun, and Deno (`npm:` import) without per-runtime configuration.
@@ -84,4 +87,3 @@ Builder outputs SHALL use Telegram type definitions from grammY (`Update`, `Mess
 - **WHEN** a test inspects the result of any `.build()` call
 - **THEN** the result is structurally a `Update` from `grammy/types` (or the underlying `@grammyjs/types`)
 - **AND** no `Buffer` or Node-stream value appears anywhere in the structure
-

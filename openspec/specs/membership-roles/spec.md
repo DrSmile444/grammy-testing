@@ -1,8 +1,11 @@
 # membership-roles Specification
 
 ## Purpose
+
 TBD - created by archiving change add-high-level-chats-api. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: `Membership` represents a per-chat role view
 
 The system SHALL provide a `Membership` type returned from `group.promote(user, perms?)`, `group.restrict(user, perms?)`, and `user.in(group)`. A `Membership` SHALL carry: `user` (the participant), `chat` (the group/supergroup/channel), `status` (`'creator' | 'administrator' | 'member' | 'restricted' | 'left' | 'kicked'`), `permissions` (the role's specific permission flags or restrictions), and `untilDate` (optional, for time-bounded restrictions).
@@ -117,4 +120,3 @@ When `user.leaveChat(group)` is dispatched, the system SHALL update `group.membe
 - **WHEN** a freshly minted user calls `await user.leaveChat(group)` (no prior entry)
 - **THEN** the service message dispatches without error
 - **AND** `user.in(group)?.status` equals `'left'`
-

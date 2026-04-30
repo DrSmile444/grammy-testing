@@ -7,11 +7,13 @@ Forwarded messages are structurally a text message with an extra `forward_origin
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Extend `dispatchTextMessage` minimally to support `forward_origin` (one optional field).
 - Add a new `dispatchEditedMessage` dispatch function for the `edited_message` update shape.
 - Keep both verbs consistent with existing ones: same `{ chat?, ... }` options pattern, same ID generation strategy.
 
 **Non-Goals:**
+
 - Full edit history tracking (mapping original send time to `date`).
 - `edited_message` for media or other non-text message types.
 - Forwarded messages with `forward_origin.type` other than what `MessageOrigin` already provides via grammy types — no custom validation.

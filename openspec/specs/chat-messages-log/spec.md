@@ -1,8 +1,11 @@
 # chat-messages-log Specification
 
 ## Purpose
+
 TBD - created by archiving change add-high-level-chats-api. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: `chat.messages` is the canonical per-chat message log
 
 For every captured outgoing API call whose payload targets a particular `Chat` (a `chat_id` equal to the chat's id), the system SHALL append the corresponding `Reply` object to `chat.messages` in capture order. The log includes ALL bot-originated messages into this chat, regardless of addressee — making `chat.messages` the canonical record at the chat granularity. This applies to ALL chat types: groups, supergroups, channels, and private chats.
@@ -54,4 +57,3 @@ The call SHALL resolve once `bot.handleUpdate` settles. The resulting bot-side r
 - **THEN** the bot under test receives an update where `message.sender_chat.id === channel.id`
 - **AND** `message.from.username === 'Channel_Bot'`
 - **AND** `message.text === 'Channel announcement'`
-
