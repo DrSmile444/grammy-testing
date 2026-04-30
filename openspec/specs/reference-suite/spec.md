@@ -2,13 +2,13 @@
 
 ## Purpose
 
-TBD - created by archiving change add-anti-spam-reference-suite. Update Purpose after archive.
+The reference suite is the v1.0 acceptance suite for `@grammyjs/testing`. It lives at `tests/reference/` and contains one spec file per pattern category. The suite proves that the library supports real-world testing patterns at the highest available API surface. v1.0 cuts only when every test in this suite passes.
 
 ## Requirements
 
 ### Requirement: Reference suite exists under `tests/reference/`
 
-The system SHALL maintain a reference test suite at `tests/reference/` containing one spec file per pattern category from the audit in `docs/project.md` §"Reference test suite". The suite SHALL be runnable by the project's standard test command (`npm run test:run`) and SHALL pass green at all times on the default branch.
+The system SHALL maintain a reference test suite at `tests/reference/` containing one spec file per pattern category. The suite SHALL be runnable by the project's standard test command (`npm run test:run`) and SHALL pass green at all times on the default branch.
 
 #### Scenario: Reference suite directory exists and runs
 
@@ -19,7 +19,7 @@ The system SHALL maintain a reference test suite at `tests/reference/` containin
 #### Scenario: Each audited pattern category has a dedicated file
 
 - **WHEN** a contributor lists `tests/reference/`
-- **THEN** there is at least one spec file per audited pattern category — at minimum: commands, messages, channel-posts, media-groups, membership, service-messages, sessions, error-simulation, menu-flows.
+- **THEN** there is at least one spec file per pattern category — at minimum: `business-api`, `channel-posts`, `commands`, `context-constructor`, `error-simulation`, `media-groups`, `media-single`, `membership`, `menu-flows`, `messages`, `modern-update-types`, `private-chat-messages`, `remaining-dispatch-verbs`, `reply-accessors`, `service-messages`, `sessions`, `special-message-verbs`.
 
 ### Requirement: Every audited pattern is exercised by a passing test
 
