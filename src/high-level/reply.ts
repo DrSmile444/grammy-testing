@@ -36,7 +36,7 @@ interface ReplyDeps<TContext extends Context = Context> {
   bot: Bot<TContext>;
   ids: IdGenerator;
   /** Records a click association so user.replies can include the resulting message. */
-  recordClick: (callbackData: string, byUserId: number) => void;
+  recordClick: (callbackData: string, byUserId: number, byChatId: number) => void;
   /** Looks up an earlier captured Reply by its synthetic messageId. */
   resolveReply: (messageId: number) => Reply<TContext> | undefined;
 }
@@ -266,8 +266,8 @@ export class Reply<TContext extends Context = Context> {
     const { callbackData } = button;
     const clicker = inferClicker(this.chat);
 
-    if (clicker) {
-      this.deps.recordClick(callbackData, clicker.userId);
+    if (clicker && this.chat) {
+      this.deps.recordClick(callbackData, clicker.userId, this.chat.id);
     }
 
     const update: Update = {
