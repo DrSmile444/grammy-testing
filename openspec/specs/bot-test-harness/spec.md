@@ -134,3 +134,25 @@ All update IDs generated during dispatch — including `my_chat_member`, `chat_m
 - **WHEN** the test calls `chats.newGroup()`, `chats.newSupergroup()`, or `chats.newChannel()`
 - **THEN** the returned chat holds a reference to the same `IdGenerator` as `chats.outgoing` (i.e., the one owned by the `Chats` instance)
 - **AND** any subsequent dispatch from that chat uses `ids.nextUpdateId()` for the `update_id`
+
+### Requirement: `IdGenerator` provides instance-scoped message IDs
+
+`IdGenerator` SHALL expose a `nextMessageId(): number` method that returns monotonically increasing integers starting at `1`. This counter SHALL be independent of the update-ID counter (`nextUpdateId()`), so message IDs and update IDs do not share state.
+
+#### Scenario: nextMessageId starts at 1 and increments independently
+
+- **WHEN** a fresh `IdGenerator` is created
+- **AND** the test calls `ids.nextMessageId()` followed by `ids.nextUpdateId()`
+- **THEN** the first `nextMessageId()` call returns `1`
+- **AND** the first `nextUpdateId()` call returns its own starting value (in the `1_000_000+` range)
+- **AND** neither counter affects the other
+
+### Requirement: `Chats.dispatchPollState` has no module-level or unused instance counter
+
+The `dispatchPollState` method (and any helpers it delegates to) SHALL derive all IDs exclusively from the `Chats`-instance's `IdGenerator`. There SHALL be no module-level counter variable and no unused instance-level counter field associated with poll-state dispatch.
+
+#### Scenario: Poll-state dispatch uses only the instance IdGenerator
+
+- **WHEN** `chats.dispatchPollState(...)` is called on a `Chats` instance
+- **THEN** the resulting `update_id` is produced by `this.ids.nextUpdateId()`
+- **AND** no module-level counter is incremented as a side-effect
