@@ -170,8 +170,6 @@ Full list of dependencies is available in `package.json`.
 
 ---
 
----
-
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
