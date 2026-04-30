@@ -11,6 +11,7 @@ Five concrete issues were identified during an exploration session:
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Remove all dead code introduced by the example
 - Make `ParseMode` track grammy upstream automatically
 - Make `MEDIA_FIELDS` a compile-time-checked exhaustive record
@@ -18,6 +19,7 @@ Five concrete issues were identified during an exploration session:
 - Introduce `assertNever` as the standard exhaustiveness tool
 
 **Non-Goals:**
+
 - Exhaustiveness on `AnyChat` branches — those are binary (private vs. non-private) today and not a practical risk
 - Converting every union in the codebase — only the three concrete gaps identified
 - Any public API or behaviour change
@@ -34,8 +36,14 @@ Alternative considered: create `src/utils.ts` now. Rejected: premature; adds a f
 
 ```typescript
 const MEDIA_FIELDS_GUARD: Record<MediaType, true> = {
-  animation: true, audio: true, document: true, photo: true,
-  sticker:   true, video: true, video_note: true, voice: true,
+  animation: true,
+  audio: true,
+  document: true,
+  photo: true,
+  sticker: true,
+  video: true,
+  video_note: true,
+  voice: true,
 };
 const MEDIA_FIELDS = Object.keys(MEDIA_FIELDS_GUARD) as MediaType[];
 ```
@@ -49,11 +57,14 @@ Alternative considered: a type-level `Exclude<MediaType, typeof MEDIA_FIELDS[num
 ### `makeChatMember` — explicit `'kicked'` + `assertNever` on default
 
 Replace:
+
 ```typescript
 case 'kicked':
 default: { return { status: 'kicked', ... }; }
 ```
+
 With:
+
 ```typescript
 case 'kicked': { return { status: 'kicked', ... }; }
 default: { return assertNever(status); }

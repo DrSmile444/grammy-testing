@@ -3,6 +3,7 @@
 The ESLint config at `eslint.config.mjs` references a shared `.eslint/` fragment library that enables a comprehensive rule set: JSDoc enforcement, unicorn best practices, naming conventions, TypeScript strictness, and more. During the initial development pass, rather than fixing violations as they were introduced, two blanket override blocks were added. The result is a two-tier system: the config says one thing, the overrides say another, and the linter effectively enforces nothing on the code that matters most.
 
 The violation breakdown (from running lint without overrides):
+
 - **JSDoc**: ~110 violations — missing `@param` descriptions, `@returns`, top-level JSDoc on exported functions
 - **Barrel files**: 32 violations — `no-barrel-files` rule applies globally but fires on the library's intentional entry points
 - **Unicorn abbreviations**: ~140 violations — almost entirely `ctx`, which is grammy's canonical context variable name
@@ -13,6 +14,7 @@ The violation breakdown (from running lint without overrides):
 ## Goals / Non-Goals
 
 **Goals:**
+
 - `eslint.config.mjs` has no override blocks suppressing rules
 - `npm run lint` exits 0 with zero errors
 - Every exported function and non-trivial internal has JSDoc with descriptions, `@param`, and `@returns`
@@ -20,6 +22,7 @@ The violation breakdown (from running lint without overrides):
 - The unicorn `allowList` reflects the grammy ecosystem vocabulary
 
 **Non-Goals:**
+
 - Adding new features or changing library behavior
 - Modifying the shared `.eslint/` config rules themselves (only the allowList and barrel-file ignore)
 - Achieving 100% JSDoc coverage on trivial one-liner private functions (the `require-jsdoc` rule already limits scope)
@@ -41,6 +44,7 @@ Alternatives considered: rename all `ctx` to `context` (rejected — breaks gram
 `no-barrel-files` is designed to prevent barrel files in application code (hurts tree-shaking). A published npm library must have barrel entry points (`src/index.ts`, `src/low-level.ts`). The fix is a targeted file-level ignore for those two files, not disabling the rule globally.
 
 Add to `eslint.config.mjs` as a narrow override:
+
 ```js
 { files: ['src/index.ts', 'src/low-level.ts'], rules: { 'no-barrel-files/no-barrel-files': 'off' } }
 ```
@@ -54,7 +58,7 @@ The pattern `observed!.field` and `chats.repliesFor(user).last!` should become:
 ```ts
 const reply = chats.repliesFor(user).last;
 expect(reply).toBeDefined();
-if (!reply) return;  // or throw — narrows type for subsequent assertions
+if (!reply) return; // or throw — narrows type for subsequent assertions
 ```
 
 This is strictly better: if the assertion fails, the test fails with a clear message instead of a runtime TypeError. The `if (!value) return` guard is the idiomatic vitest narrowing pattern.
