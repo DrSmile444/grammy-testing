@@ -6,17 +6,25 @@ This directory is the **v1.0 acceptance suite** for `@grammyjs/testing`. v1.0 cu
 
 Files are organized by **pattern category**, not by capability. A test author asks "how do I test commands?" — that's how you find the file.
 
-| File                                                     | What it covers                                                                                                   |
-| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| [`commands.spec.ts`](./commands.spec.ts)                 | `/start`, `/help`, `/lang en` style commands with `bot_command` entities; arg parsing; admin-only commands.      |
-| [`messages.spec.ts`](./messages.spec.ts)                 | Text messages with custom entities, `parse_mode`, single-level replies, forwarded messages, edited messages.     |
-| [`channel-posts.spec.ts`](./channel-posts.spec.ts)       | Channel-as-author posts into a supergroup (Coverage-audit gap #3).                                               |
-| [`media-groups.spec.ts`](./media-groups.spec.ts)         | N-update dispatch with shared `media_group_id`; caption-on-first-only; bot-side aggregation by `media_group_id`. |
-| [`membership.spec.ts`](./membership.spec.ts)             | `promote` / `restrict` / `changeMemberStatus`; admin-only command guards; restriction-with-`untilDate`.          |
-| [`service-messages.spec.ts`](./service-messages.spec.ts) | `new_chat_members` / `left_chat_member` via `user.joinChat` / `user.leaveChat`.                                  |
-| [`sessions.spec.ts`](./sessions.spec.ts)                 | `mockSession` / `mockChatSession` / `mockState`; cross-call mutation; combined session usage.                    |
-| [`error-simulation.spec.ts`](./error-simulation.spec.ts) | `failNext` / `failAll` / `respondNext`; rate-limit handling; blocked-user handling.                              |
-| [`menu-flows.spec.ts`](./menu-flows.spec.ts)             | `clickButton` end-to-end flows; chained keyboards; URL-button rejection.                                         |
+| File                                                                     | What it covers                                                                                                     |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| [`business-api.spec.ts`](./business-api.spec.ts)                         | `BusinessAccount` actor: `connect`, `disconnect`, `sendMessage`, `editMessage`, `deleteMessages`.                  |
+| [`channel-posts.spec.ts`](./channel-posts.spec.ts)                       | Channel-as-author posts into a supergroup (sender_chat scenarios).                                                 |
+| [`commands.spec.ts`](./commands.spec.ts)                                 | `/start`, `/help`, `/lang en` style commands with `bot_command` entities; arg parsing; admin-only commands.        |
+| [`context-constructor.spec.ts`](./context-constructor.spec.ts)           | `prepareComposer` / `prepareMiddleware` with a class-based custom context (`ContextConstructor` option).           |
+| [`error-simulation.spec.ts`](./error-simulation.spec.ts)                 | `failNext` / `failAll` / `respondNext`; rate-limit handling; blocked-user handling.                                |
+| [`media-groups.spec.ts`](./media-groups.spec.ts)                         | N-update dispatch with shared `media_group_id`; caption-on-first-only; bot-side aggregation by `media_group_id`.   |
+| [`media-single.spec.ts`](./media-single.spec.ts)                         | Single-media dispatch — photo, document, video; `file_id` propagation; caption handling.                           |
+| [`membership.spec.ts`](./membership.spec.ts)                             | `promote` / `restrict` / `changeMemberStatus`; admin-only command guards; restriction-with-`untilDate`.            |
+| [`menu-flows.spec.ts`](./menu-flows.spec.ts)                             | `clickButton` end-to-end flows; chained keyboards; URL-button rejection.                                           |
+| [`messages.spec.ts`](./messages.spec.ts)                                 | Text messages with custom entities, `parse_mode`, single-level replies, forwarded messages, edited messages.       |
+| [`modern-update-types.spec.ts`](./modern-update-types.spec.ts)           | Bot API 7+ updates: `message_reaction`, `poll_answer`, `chat_join_request`, `chat_boost`, `managed_bot`, and more. |
+| [`private-chat-messages.spec.ts`](./private-chat-messages.spec.ts)       | `privateChat.messages` log; DMs appear in both `privateChat.messages` and `user.replies`.                          |
+| [`remaining-dispatch-verbs.spec.ts`](./remaining-dispatch-verbs.spec.ts) | Audio, voice, video note, animation, sticker, location, contact, venue, poll, dice dispatch verbs.                 |
+| [`reply-accessors.spec.ts`](./reply-accessors.spec.ts)                   | `reply.replyMarkup` and `reply.replyingTo` accessors.                                                              |
+| [`service-messages.spec.ts`](./service-messages.spec.ts)                 | `new_chat_members` / `left_chat_member` via `user.joinChat` / `user.leaveChat`.                                    |
+| [`sessions.spec.ts`](./sessions.spec.ts)                                 | `mockSession` / `mockChatSession` / `mockState`; cross-call mutation; combined session usage.                      |
+| [`special-message-verbs.spec.ts`](./special-message-verbs.spec.ts)       | Web App data, successful payment, inline query, chosen inline result, pre-checkout query, shipping query.          |
 
 Each file ships with a JSDoc header describing what the pattern exercises, the v0.2 API verbs used, and any v0.2.x gap notes.
 
