@@ -7,6 +7,7 @@ All affected files are in `src/high-level/` and `src/low-level/`, with supportin
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Eliminate all module-level mutable counters (test isolation)
 - Fix the `dispatchServiceMessage` double-increment bug
 - Scope Rule 4 reply routing to the originating chat
@@ -16,6 +17,7 @@ All affected files are in `src/high-level/` and `src/low-level/`, with supportin
 - Raise `getAll()` overload cap to 10
 
 **Non-Goals:**
+
 - Changing the public `@grammyjs/testing` API surface beyond the `readonly` qualifier on `requests`
 - Addressing the `low-level.ts` superset design question (deferred)
 - Upgrading `deepmerge` to v5 (comment is sufficient)
@@ -27,8 +29,9 @@ All affected files are in `src/high-level/` and `src/low-level/`, with supportin
 **Decision:** Pass `ids: IdGenerator` to `Group`, `Supergroup`, and `Channel` constructors. `Chats.registerChat()` supplies `this.ids`. Each chat class uses `this.ids.nextUpdateId()` wherever an update ID is needed, replacing ad-hoc instance counters.
 
 **Alternatives considered:**
-- *Instance counter fields per class*: Simpler diff, but creates multiple independent counters that can produce overlapping IDs when two groups exist in the same test. Using `IdGenerator` gives globally-unique IDs within a `Chats` instance.
-- *Optional `updateId` on spec + fallback counter*: Adds noise to the spec type; callers shouldn't need to think about IDs.
+
+- _Instance counter fields per class_: Simpler diff, but creates multiple independent counters that can produce overlapping IDs when two groups exist in the same test. Using `IdGenerator` gives globally-unique IDs within a `Chats` instance.
+- _Optional `updateId` on spec + fallback counter_: Adds noise to the spec type; callers shouldn't need to think about IDs.
 
 **Rationale:** `IdGenerator` is already the authoritative ID source for users, messages, and files. Extending it to update IDs keeps one source of truth per `Chats` instance.
 
@@ -47,10 +50,12 @@ All affected files are in `src/high-level/` and `src/low-level/`, with supportin
 ### D4: `outgoing.requests` → private field + readonly getter
 
 **Decision:**
+
 ```
 private _requests: Request[] = []
 get requests(): readonly Request[] { return this._requests; }
 ```
+
 `push()` appends to `this._requests`; `clear()` sets `this._requests.length = 0` (in-place truncation) so that any existing reference to the array sees the empty state. All existing test assertions (`toEqual([])`, `.toHaveLength()`, `[0]?.method`) continue to work unchanged.
 
 **Alternative:** `readonly requests: Request[] = []` (field-level readonly). Rejected: TypeScript's field `readonly` only prevents reassignment of the reference, not mutation of the array contents. It also prevents `clear()` from replacing the array, which would require callers to hold stale references.
@@ -60,6 +65,7 @@ get requests(): readonly Request[] { return this._requests; }
 ### D5: Rule 4 reply routing — add chatId to clickers
 
 **Decision:** Change the clickers map:
+
 ```
 // Before
 private readonly clickers = new Map<string, number>()
