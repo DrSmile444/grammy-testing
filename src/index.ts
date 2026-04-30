@@ -41,7 +41,7 @@ export type {
 // v0.2 high-level surface (orchestrator, actors, replies, membership).
 export type { AnyChat } from './high-level/chat';
 
-export { Channel } from './high-level/channel';
+export { Channel, type EditPostOptions } from './high-level/channel';
 
 export { Group } from './high-level/group';
 
@@ -61,6 +61,7 @@ export { Supergroup } from './high-level/supergroup';
 
 export type {
   ChatMemberStatus,
+  DispatchMemberUpdateOptions,
   Membership,
   MemberStatusTransition,
   PermissionFlags,
@@ -70,6 +71,11 @@ export type {
 
 export {
   User,
+  type AnswerPollOptions,
+  type BoostChatOptions,
+  type ReactToOptions,
+  type RemoveBoostOptions,
+  type RequestJoinOptions,
   type SendAnimationOptions,
   type SendAudioOptions,
   type SendContactOptions,
