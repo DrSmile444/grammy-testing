@@ -170,23 +170,6 @@ Full list of dependencies is available in `package.json`.
 
 ---
 
-## Not covered
-
-The following Telegram Bot API update types are intentionally **not** covered by this framework:
-
-| Update type                 | Reason                                                                                        |
-| --------------------------- | --------------------------------------------------------------------------------------------- |
-| `business_connection`       | Requires a verified Telegram Business account — not part of the standard bot API test surface |
-| `business_message`          | Same — Business API only                                                                      |
-| `edited_business_message`   | Same — Business API only                                                                      |
-| `deleted_business_messages` | Same — Business API only                                                                      |
-| `managed_bot`               | Same — Business API only                                                                      |
-| `purchased_paid_media`      | Specialized payment flow; deferred                                                            |
-| `message_reaction_count`    | Telegram-server-originated aggregate; no natural user actor                                   |
-| `poll` (state update)       | Autonomous server event; no user-driven dispatch pattern                                      |
-
-If your bot handles any of these update types, you can still test them by calling `bot.handleUpdate()` directly with a hand-crafted payload.
-
 ---
 
 ## License

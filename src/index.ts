@@ -3,7 +3,15 @@
 export { GrammyError } from 'grammy';
 
 // v0.1 low-level surface (entry points + capture + mocks).
-export type { Chats, RepliesInbox } from './high-level/chats';
+export {
+  BusinessAccount,
+  type BusinessDeleteMessagesOptions,
+  type BusinessEditMessageOptions,
+  type BusinessSendMessageOptions,
+  type ConnectOptions,
+} from './high-level/business-account';
+
+export type { Chats, RepliesInbox, DispatchPollStateOptions } from './high-level/chats';
 
 export type { GrammyErrorSpec } from './low-level/grammy-error';
 
@@ -62,6 +70,7 @@ export { Supergroup } from './high-level/supergroup';
 export type {
   ChatMemberStatus,
   DispatchMemberUpdateOptions,
+  DispatchReactionCountOptions,
   Membership,
   MemberStatusTransition,
   PermissionFlags,
@@ -73,6 +82,9 @@ export {
   User,
   type AnswerPollOptions,
   type BoostChatOptions,
+  type BotUserProfile,
+  type ManageBotOptions,
+  type PurchasePaidMediaOptions,
   type ReactToOptions,
   type RemoveBoostOptions,
   type RequestJoinOptions,
