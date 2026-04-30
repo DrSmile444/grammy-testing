@@ -1,5 +1,3 @@
- 
-
 /**
  * Monotonic id generator scoped to a single {@link Chats} instance.
  * Different ranges per kind keep test debugging readable

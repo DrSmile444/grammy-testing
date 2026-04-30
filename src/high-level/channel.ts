@@ -1,7 +1,7 @@
 import type { Bot, Context } from 'grammy';
 import type { Chat, Message, ReactionCount, Update } from 'grammy/types';
 
-import { type ChatRefHolder,setBotRef } from './chat';
+import { type ChatRefHolder, setBotRef } from './chat';
 import { makeChannelBotUser } from './dispatch';
 import type { Group } from './group';
 import type { MessagesLog } from './messages-log';
@@ -17,9 +17,7 @@ let reactionCountCounter = 1;
  * dispatches a message to a target group with `sender_chat = this`.
  * Channel-self-posting (Coverage-audit gap #6) defers to v0.2.x.
  */
-export class Channel<TContext extends Context = Context>
-  implements ChatRefHolder<TContext>
-{
+export class Channel<TContext extends Context = Context> implements ChatRefHolder<TContext> {
   readonly type = 'channel' as const;
 
   /** @internal — assigned by Chats after construction. */
@@ -79,11 +77,7 @@ export class Channel<TContext extends Context = Context>
    * @param newText
    * @param options
    */
-  async editPost(
-    messageId: number,
-    newText: string,
-    options: EditPostOptions = {},
-  ): Promise<void> {
+  async editPost(messageId: number, newText: string, options: EditPostOptions = {}): Promise<void> {
     const now = Math.floor(Date.now() / 1000);
 
     const update: Update = {
@@ -107,11 +101,7 @@ export class Channel<TContext extends Context = Context>
    * @param reactions
    * @param options
    */
-  async dispatchReactionCount(
-    messageId: number,
-    reactions: ReactionCount[],
-    options: DispatchReactionCountOptions = {},
-  ): Promise<void> {
+  async dispatchReactionCount(messageId: number, reactions: ReactionCount[], options: DispatchReactionCountOptions = {}): Promise<void> {
     await this.bot.handleUpdate({
       update_id: 1_760_000 + reactionCountCounter++,
       message_reaction_count: {

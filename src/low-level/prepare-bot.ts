@@ -38,10 +38,7 @@ export async function prepareBot<
   TContext extends Context = Context,
   TApi extends Api = Api,
   TBot extends Bot<TContext, TApi> = Bot<TContext, TApi>,
->(
-  bot: TBot,
-  options: PrepareOptions = {},
-): Promise<PrepareBotReturn<TContext>> {
+>(bot: TBot, options: PrepareOptions = {}): Promise<PrepareBotReturn<TContext>> {
   const outgoing = new OutgoingRequests();
   const idle = new IdleTracker();
   const chats = new Chats<TContext>(outgoing, idle);
@@ -51,7 +48,9 @@ export async function prepareBot<
       outgoing,
       idle,
       responses: options.responses,
-      onCapture: (request) => { chats.deriveFromCapture(request); },
+      onCapture: (request) => {
+        chats.deriveFromCapture(request);
+      },
     }),
   );
 

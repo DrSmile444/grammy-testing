@@ -135,11 +135,7 @@ export class BusinessAccount<TContext extends Context = Context> {
    * @param newText
    * @param options
    */
-  async editMessage(
-    messageId: number,
-    newText: string,
-    options: BusinessEditMessageOptions = {},
-  ): Promise<void> {
+  async editMessage(messageId: number, newText: string, options: BusinessEditMessageOptions = {}): Promise<void> {
     const now = Math.floor(Date.now() / 1000);
 
     const message: Message = {
@@ -169,10 +165,7 @@ export class BusinessAccount<TContext extends Context = Context> {
    * @param messageIds
    * @param options
    */
-  async deleteMessages(
-    messageIds: number[],
-    options: BusinessDeleteMessagesOptions = {},
-  ): Promise<void> {
+  async deleteMessages(messageIds: number[], options: BusinessDeleteMessagesOptions = {}): Promise<void> {
     await this.ctx.bot.handleUpdate({
       update_id: 1_730_000 + bizDeletedMessagesCounter++,
       deleted_business_messages: {

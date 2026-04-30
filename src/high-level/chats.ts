@@ -2,15 +2,14 @@
 /* eslint-disable prefer-const -- newUser uses let-then-assign for closure capture */
 /* eslint-disable no-param-reassign -- attachBot intentionally hands bot to each chat */
 
-
-import type { Bot, Context } from 'grammy';
+import type { Bot, Context, RawApi } from 'grammy';
 
 import type { IdleTracker } from '../low-level/idle';
 import type { OutgoingRequests, Request } from '../low-level/outgoing-requests';
 
 import { BusinessAccount } from './business-account';
 import { Channel } from './channel';
-import { type AnyChat,setBotRef } from './chat';
+import { type AnyChat, setBotRef } from './chat';
 import { Group } from './group';
 import { IdGenerator } from './id-generator';
 import { MessagesLog } from './messages-log';
@@ -27,26 +26,28 @@ export interface DispatchPollStateOptions {
   updateId?: number;
 }
 
-const MESSAGE_METHODS = new Set([
-  'sendMessage',
-  'sendPhoto',
-  'sendDocument',
-  'sendVideo',
-  'sendAudio',
-  'sendVoice',
-  'sendVideoNote',
-  'sendAnimation',
-  'sendSticker',
-  'sendLocation',
-  'sendContact',
-  'sendVenue',
-  'sendPoll',
-  'sendDice',
-  'sendMediaGroup',
-  'editMessageText',
-  'editMessageCaption',
-  'editMessageMedia',
-]);
+const MESSAGE_METHODS_GUARD = {
+  sendMessage: true,
+  sendPhoto: true,
+  sendDocument: true,
+  sendVideo: true,
+  sendAudio: true,
+  sendVoice: true,
+  sendVideoNote: true,
+  sendAnimation: true,
+  sendSticker: true,
+  sendLocation: true,
+  sendContact: true,
+  sendVenue: true,
+  sendPoll: true,
+  sendDice: true,
+  sendMediaGroup: true,
+  editMessageText: true,
+  editMessageCaption: true,
+  editMessageMedia: true,
+} satisfies Partial<Record<keyof RawApi, true>>;
+
+const MESSAGE_METHODS = new Set(Object.keys(MESSAGE_METHODS_GUARD));
 
 /**
  * Per-user inbox: filtered view of messages directed at this user.
@@ -76,9 +77,7 @@ export class RepliesInbox<TContext extends Context = Context> {
         return false;
       }
 
-      return typeof matcher === 'string'
-        ? reply.text === matcher
-        : matcher.test(reply.text);
+      return typeof matcher === 'string' ? reply.text === matcher : matcher.test(reply.text);
     });
   }
 
@@ -134,7 +133,6 @@ export class Chats<TContext extends Context = Context> {
     this.bot = bot;
 
     for (const chat of this.chats.values()) {
-       
       chat[setBotRef](bot);
     }
   }
@@ -143,7 +141,7 @@ export class Chats<TContext extends Context = Context> {
     const id = profile.id ?? this.ids.nextUserId();
     // Two-phase: declare `user` so closures capture it by reference,
     // then assign before any closure can fire.
-     
+
     let user!: User<TContext>;
 
     user = new User<TContext>(
@@ -156,8 +154,9 @@ export class Chats<TContext extends Context = Context> {
         ids: this.ids,
         defaultPrivateChat: () => this.privateChatFor(user).toTelegramChat(),
         resolveChatToTelegram: (chat) => chat.toTelegramChat(),
-        updateMembership: (chat, who, mode) =>
-          { this.applyMembershipTransition(chat, who, mode); },
+        updateMembership: (chat, who, mode) => {
+          this.applyMembershipTransition(chat, who, mode);
+        },
       },
       (chat) => this.readMembership(user, chat),
     );
@@ -167,10 +166,7 @@ export class Chats<TContext extends Context = Context> {
     return user;
   }
 
-  newAdmin(
-    profile: UserProfile = {},
-    permissions: PromotePermissions = {},
-  ): User<TContext> {
+  newAdmin(profile: UserProfile = {}, permissions: PromotePermissions = {}): User<TContext> {
     const user = this.newUser(profile);
 
     this.defaultGroup ??= this.newSupergroup('default-group');
@@ -246,12 +242,9 @@ export class Chats<TContext extends Context = Context> {
    * @param poll
    * @param options
    */
-  async dispatchPollState(
-    poll: import('grammy/types').Poll,
-    options: DispatchPollStateOptions = {},
-  ): Promise<void> {
+  async dispatchPollState(poll: import('grammy/types').Poll, options: DispatchPollStateOptions = {}): Promise<void> {
     await this.bot.handleUpdate({
-      update_id: options.updateId ?? (1_770_000 + pollStateCounter++),
+      update_id: options.updateId ?? 1_770_000 + pollStateCounter++,
       poll,
     } as import('grammy/types').Update);
   }
@@ -299,11 +292,7 @@ export class Chats<TContext extends Context = Context> {
     }
   }
 
-  private userReceivesReply(
-    entry: UserEntry<TContext>,
-    chat: AnyChat<TContext>,
-    reply: Reply<TContext>,
-  ): boolean {
+  private userReceivesReply(entry: UserEntry<TContext>, chat: AnyChat<TContext>, reply: Reply<TContext>): boolean {
     // Rule 1: chat is private with this user
     if (chat.type === 'private' && chat.id === entry.user.id) {
       return true;
@@ -318,11 +307,7 @@ export class Chats<TContext extends Context = Context> {
 
       const status = chat.members.get(entry.user.id)?.status;
 
-      if (
-        status === undefined ||
-        status === 'left' ||
-        status === 'kicked'
-      ) {
+      if (status === undefined || status === 'left' || status === 'kicked') {
         return false;
       }
     }
@@ -331,10 +316,7 @@ export class Chats<TContext extends Context = Context> {
     // (we don't track historical message authors yet — defer to v0.2.x)
 
     // Rule 3: mention of @user.username
-    if (
-      entry.user.username &&
-      reply.mentionUsernames.has(entry.user.username)
-    ) {
+    if (entry.user.username && reply.mentionUsernames.has(entry.user.username)) {
       return true;
     }
 
@@ -371,9 +353,7 @@ export class Chats<TContext extends Context = Context> {
     return chat;
   }
 
-  private registerChat(
-    chat: Channel<TContext> | Group<TContext> | Supergroup<TContext>,
-  ): void {
+  private registerChat(chat: Channel<TContext> | Group<TContext> | Supergroup<TContext>): void {
     chat.messages = new MessagesLog<TContext>();
     this.chats.set(chat.id, chat);
 
@@ -386,10 +366,7 @@ export class Chats<TContext extends Context = Context> {
     return this.chats.get(id);
   }
 
-  private readMembership(
-    user: User<TContext>,
-    chat: AnyChat<TContext>,
-  ): Membership<TContext> | undefined {
+  private readMembership(user: User<TContext>, chat: AnyChat<TContext>): Membership<TContext> | undefined {
     if (chat.type === 'private') {
       return undefined;
     }
@@ -405,11 +382,7 @@ export class Chats<TContext extends Context = Context> {
    * the service message has dispatched. `'join'` preserves higher
    * privilege; `'leave'` always sets `status: 'left'`.
    */
-  private applyMembershipTransition(
-    chat: Group<TContext> | Supergroup<TContext>,
-    user: User<TContext>,
-    mode: 'join' | 'leave',
-  ): void {
+  private applyMembershipTransition(chat: Group<TContext> | Supergroup<TContext>, user: User<TContext>, mode: 'join' | 'leave'): void {
     if (mode === 'leave') {
       chat.members.set(user.id, {
         user,
@@ -426,10 +399,7 @@ export class Chats<TContext extends Context = Context> {
 
     if (
       current &&
-      (current.status === 'creator' ||
-        current.status === 'administrator' ||
-        current.status === 'restricted' ||
-        current.status === 'member')
+      (current.status === 'creator' || current.status === 'administrator' || current.status === 'restricted' || current.status === 'member')
     ) {
       return;
     }
@@ -465,9 +435,7 @@ export class Chats<TContext extends Context = Context> {
  * is called, so the bot reference is non-null at call time.
  * @param chats
  */
-function undefinedSafeBot<TContext extends Context>(
-  chats: Chats<TContext>,
-): Bot<TContext> {
+function undefinedSafeBot<TContext extends Context>(chats: Chats<TContext>): Bot<TContext> {
   // Returning a Proxy would be more defensive but heavier. Trust the
   // bot is set before user verbs are invoked.
   return new Proxy({} as Bot<TContext>, {

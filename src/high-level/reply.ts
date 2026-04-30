@@ -1,34 +1,31 @@
- 
-
 import type { Bot, Context } from 'grammy';
-import type {
-  InlineKeyboardButton,
-  Message,
-  MessageEntity,
-  Update,
-} from 'grammy/types';
+import type { InlineKeyboardButton, Message, MessageEntity, ParseMode, Update } from 'grammy/types';
 
 import type { AnyChat } from './chat';
 import type { IdGenerator } from './id-generator';
 
-export type ParseMode = 'HTML' | 'Markdown' | 'MarkdownV2';
+export type { ParseMode } from 'grammy/types';
 
-export type MediaType =
-  | 'animation'
-  | 'audio'
-  | 'document'
-  | 'photo'
-  | 'sticker'
-  | 'video'
-  | 'video_note'
-  | 'voice';
+export type MediaType = 'animation' | 'audio' | 'document' | 'photo' | 'sticker' | 'video' | 'video_note' | 'voice';
 
 export interface ReplyMedia {
   type: MediaType;
   fileId: string;
 }
 
-const MEDIA_FIELDS: MediaType[] = ['photo', 'document', 'video', 'audio', 'voice', 'animation', 'sticker', 'video_note'];
+// Exhaustive guard: adding a new MediaType member without updating this object is a compile error.
+const MEDIA_FIELDS_GUARD: Record<MediaType, true> = {
+  animation: true,
+  audio: true,
+  document: true,
+  photo: true,
+  sticker: true,
+  video: true,
+  video_note: true,
+  voice: true,
+};
+
+const MEDIA_FIELDS = Object.keys(MEDIA_FIELDS_GUARD) as MediaType[];
 
 export interface ReplyButton {
   text: string;
@@ -46,7 +43,9 @@ interface ReplyDeps<TContext extends Context = Context> {
   resolveReply: (messageId: number) => Reply<TContext> | undefined;
 }
 
-export interface ReplyClickButtonMatcher { data: string }
+export interface ReplyClickButtonMatcher {
+  data: string;
+}
 
 /**
  * Normalized view of a captured outgoing message-shape API call.
@@ -96,9 +95,7 @@ export class Reply<TContext extends Context = Context> {
     this.text = text;
     this.parseMode = rawPayload.parse_mode as ParseMode | undefined;
 
-    this.entities = (rawPayload.entities ?? rawPayload.caption_entities) as
-      | MessageEntity[]
-      | undefined;
+    this.entities = (rawPayload.entities ?? rawPayload.caption_entities) as MessageEntity[] | undefined;
 
     this.replyToMessageId = readReplyToMessageId(rawPayload);
     this.mentionUsernames = collectMentionUsernames(text, this.entities);
@@ -106,24 +103,18 @@ export class Reply<TContext extends Context = Context> {
     this.media = deriveMedia(rawPayload);
     this.replyMarkup = rawPayload.reply_markup as Record<string, unknown> | undefined;
 
-    this.replyingTo = this.replyToMessageId === undefined
-      ? undefined
-      : deps.resolveReply(this.replyToMessageId);
+    this.replyingTo = this.replyToMessageId === undefined ? undefined : deps.resolveReply(this.replyToMessageId);
   }
 
   async clickButton(matcher: ReplyClickButtonMatcher | string): Promise<void> {
     const button = findButton(this.buttons, matcher);
 
     if (!button) {
-      throw new Error(
-        `clickButton: no button matching ${JSON.stringify(matcher)}`,
-      );
+      throw new Error(`clickButton: no button matching ${JSON.stringify(matcher)}`);
     }
 
     if (button.url !== undefined && button.callbackData === undefined) {
-      throw new Error(
-        `clickButton: button "${button.text}" has only a url; URL buttons do not produce callback_query updates`,
-      );
+      throw new Error(`clickButton: button "${button.text}" has only a url; URL buttons do not produce callback_query updates`);
     }
 
     const callbackData = button.callbackData!;
@@ -155,9 +146,7 @@ export class Reply<TContext extends Context = Context> {
     return {
       message_id: this.messageId,
       date: Math.floor(Date.now() / 1000),
-      chat: this.chat
-        ? this.chat.toTelegramChat()
-        : ({ id: 0, type: 'private' } as Message['chat']),
+      chat: this.chat ? this.chat.toTelegramChat() : ({ id: 0, type: 'private' } as Message['chat']),
       text: this.text,
       entities: this.entities,
     } as Message;
@@ -181,17 +170,12 @@ function readReplyToMessageId(payload: Record<string, unknown>): number | undefi
     return payload.reply_to_message_id;
   }
 
-  const params = payload.reply_parameters as
-    | { message_id?: number }
-    | undefined;
+  const params = payload.reply_parameters as { message_id?: number } | undefined;
 
   return params?.message_id;
 }
 
-function collectMentionUsernames(
-  text: string | undefined,
-  entities: MessageEntity[] | undefined,
-): Set<string> {
+function collectMentionUsernames(text: string | undefined, entities: MessageEntity[] | undefined): Set<string> {
   const usernames = new Set<string>();
 
   if (text === undefined || entities === undefined) {
@@ -212,9 +196,7 @@ function collectMentionUsernames(
 }
 
 function collectButtons(payload: Record<string, unknown>): ReplyButton[] {
-  const replyMarkup = payload.reply_markup as
-    | { inline_keyboard?: InlineKeyboardButton[][] }
-    | undefined;
+  const replyMarkup = payload.reply_markup as { inline_keyboard?: InlineKeyboardButton[][] } | undefined;
 
   if (!replyMarkup?.inline_keyboard) {
     return [];
@@ -236,12 +218,11 @@ function collectButtons(payload: Record<string, unknown>): ReplyButton[] {
   return buttons;
 }
 
-interface FindButtonMatcher { data: string }
+interface FindButtonMatcher {
+  data: string;
+}
 
-function findButton(
-  buttons: ReplyButton[],
-  matcher: FindButtonMatcher | string,
-): ReplyButton | undefined {
+function findButton(buttons: ReplyButton[], matcher: FindButtonMatcher | string): ReplyButton | undefined {
   if (typeof matcher === 'string') {
     return buttons.find((b) => b.text === matcher);
   }
@@ -249,16 +230,19 @@ function findButton(
   return buttons.find((b) => b.callbackData === matcher.data);
 }
 
-interface ClickerFrom { id: number; is_bot: boolean; first_name: string; username?: string }
+interface ClickerFrom {
+  id: number;
+  is_bot: boolean;
+  first_name: string;
+  username?: string;
+}
 
 interface Clicker {
   userId: number;
   from: ClickerFrom;
 }
 
-function inferClicker<TContext extends Context>(
-  chat: AnyChat<TContext> | undefined,
-): Clicker | undefined {
+function inferClicker<TContext extends Context>(chat: AnyChat<TContext> | undefined): Clicker | undefined {
   if (!chat) {
     return undefined;
   }

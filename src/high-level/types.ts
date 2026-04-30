@@ -1,9 +1,5 @@
 import type { Context } from 'grammy';
-import type {
-  ChatAdministratorRights,
-  ChatMember,
-  ChatPermissions,
-} from 'grammy/types';
+import type { ChatAdministratorRights, ChatMember, ChatPermissions } from 'grammy/types';
 
 export type ChatMemberStatus = ChatMember['status'];
 
@@ -21,9 +17,7 @@ export type ChatMemberStatus = ChatMember['status'];
  * Telegram intersection at the type level — tests pass whichever flags
  * are relevant for the role they're modeling.
  */
-export type PermissionFlags = Partial<
-  ChatAdministratorRights & ChatPermissions
-> & {
+export type PermissionFlags = Partial<ChatAdministratorRights & ChatPermissions> & {
   can_be_edited?: boolean;
   is_anonymous?: boolean;
   is_member?: boolean;

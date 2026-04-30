@@ -45,7 +45,6 @@ export default defineConfig([
       'no-use-before-define': 'off',
       'no-barrel-files/no-barrel-files': 'off',
       camelcase: 'off',
-      'prettier/prettier': 'off',
     },
   },
   // Test overrides — testing framework specs have intentional idioms

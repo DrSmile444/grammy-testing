@@ -3,8 +3,7 @@ import { Bot, type Composer, type Context } from 'grammy';
 import type { Chats } from './chats';
 import { prepareBot, type PrepareOptions } from './prepare-bot';
 
-export interface PrepareWithConstructorOptions<TContext extends Context = Context>
-  extends PrepareOptions {
+export interface PrepareWithConstructorOptions<TContext extends Context = Context> extends PrepareOptions {
   ContextConstructor?: new (...args: ConstructorParameters<typeof Context>) => TContext;
 }
 

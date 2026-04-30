@@ -1,5 +1,3 @@
- 
-
 import type { Bot, Context } from 'grammy';
 import type { Chat, Message, MessageEntity, MessageOrigin, ReactionType, ShippingAddress, Update } from 'grammy/types';
 
@@ -28,7 +26,9 @@ export interface UserProfile {
   username?: string;
 }
 
-export interface SendTextOptionsReplyParameter { message_id: number }
+export interface SendTextOptionsReplyParameter {
+  message_id: number;
+}
 
 export interface SendTextOptions<TContext extends Context = Context> {
   chat?: AnyChat<TContext>;
@@ -161,11 +161,7 @@ interface UserContext<TContext extends Context = Context> {
    * Update the membership map on join / leave. Chats owns the
    * "don't-downgrade-on-join" / "always-set-left" logic.
    */
-  updateMembership: (
-    chat: Group<TContext> | Supergroup<TContext>,
-    user: User<TContext>,
-    mode: 'join' | 'leave',
-  ) => void;
+  updateMembership: (chat: Group<TContext> | Supergroup<TContext>, user: User<TContext>, mode: 'join' | 'leave') => void;
 }
 
 export interface UserSendMediaGroupItem<TContext extends Context = Context> {
@@ -196,22 +192,15 @@ export class User<TContext extends Context = Context> {
     /** @internal */
     private readonly ctx: UserContext<TContext>,
     /** @internal — Chats fills this so `user.in(group)` works. */
-    private readonly membershipReader: (
-      chat: AnyChat<TContext>,
-    ) => Membership<TContext> | undefined,
+    private readonly membershipReader: (chat: AnyChat<TContext>) => Membership<TContext> | undefined,
   ) {}
 
   in(chat: AnyChat<TContext>): Membership<TContext> | undefined {
     return this.membershipReader(chat);
   }
 
-  async sendText(
-    text: string,
-    options: SendTextOptions<TContext> = {},
-  ): Promise<void> {
-    const targetChat: Chat = options.chat
-      ? this.ctx.resolveChatToTelegram(options.chat)
-      : this.ctx.defaultPrivateChat();
+  async sendText(text: string, options: SendTextOptions<TContext> = {}): Promise<void> {
+    const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
     await dispatchTextMessage({
       bot: this.ctx.bot,
@@ -226,20 +215,12 @@ export class User<TContext extends Context = Context> {
     });
   }
 
-  async sendMessage(
-    text: string,
-    options: SendTextOptions<TContext> = {},
-  ): Promise<void> {
+  async sendMessage(text: string, options: SendTextOptions<TContext> = {}): Promise<void> {
     return this.sendText(text, options);
   }
 
-  async sendForwarded(
-    text: string,
-    options: SendForwardedOptions<TContext>,
-  ): Promise<void> {
-    const targetChat: Chat = options.chat
-      ? this.ctx.resolveChatToTelegram(options.chat)
-      : this.ctx.defaultPrivateChat();
+  async sendForwarded(text: string, options: SendForwardedOptions<TContext>): Promise<void> {
+    const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
     await dispatchTextMessage({
       bot: this.ctx.bot,
@@ -252,14 +233,8 @@ export class User<TContext extends Context = Context> {
     });
   }
 
-  async editMessage(
-    messageId: number,
-    text: string,
-    options: { chat?: AnyChat<TContext> } = {},
-  ): Promise<void> {
-    const targetChat: Chat = options.chat
-      ? this.ctx.resolveChatToTelegram(options.chat)
-      : this.ctx.defaultPrivateChat();
+  async editMessage(messageId: number, text: string, options: { chat?: AnyChat<TContext> } = {}): Promise<void> {
+    const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
     await dispatchEditedMessage({
       bot: this.ctx.bot,
@@ -271,9 +246,7 @@ export class User<TContext extends Context = Context> {
     });
   }
 
-  async joinChat(
-    chat: Group<TContext> | Supergroup<TContext>,
-  ): Promise<void> {
+  async joinChat(chat: Group<TContext> | Supergroup<TContext>): Promise<void> {
     if (chat.type !== 'group' && chat.type !== 'supergroup') {
       throw new Error(
         `joinChat: target chat type "${(chat as { type: string }).type}" does not support new_chat_members service messages — only groups and supergroups do`,
@@ -292,9 +265,7 @@ export class User<TContext extends Context = Context> {
     this.ctx.updateMembership(chat, this, 'join');
   }
 
-  async leaveChat(
-    chat: Group<TContext> | Supergroup<TContext>,
-  ): Promise<void> {
+  async leaveChat(chat: Group<TContext> | Supergroup<TContext>): Promise<void> {
     if (chat.type !== 'group' && chat.type !== 'supergroup') {
       throw new Error(
         `leaveChat: target chat type "${(chat as { type: string }).type}" does not support left_chat_member service messages — only groups and supergroups do`,
@@ -313,30 +284,19 @@ export class User<TContext extends Context = Context> {
     this.ctx.updateMembership(chat, this, 'leave');
   }
 
-  async sendCommand(
-    command: string,
-    args?: string,
-    options: { chat?: AnyChat<TContext> } = {},
-  ): Promise<void> {
+  async sendCommand(command: string, args?: string, options: { chat?: AnyChat<TContext> } = {}): Promise<void> {
     const normalized = command.startsWith('/') ? command : `/${command}`;
     const text = args ? `${normalized} ${args}` : normalized;
 
-    const entities: MessageEntity[] = [
-      { type: 'bot_command', offset: 0, length: normalized.length },
-    ];
+    const entities: MessageEntity[] = [{ type: 'bot_command', offset: 0, length: normalized.length }];
 
     return this.sendText(text, { entities, chat: options.chat });
   }
 
-  async sendPhoto(
-    file?: string,
-    options: SendPhotoOptions<TContext> = {},
-  ): Promise<void> {
+  async sendPhoto(file?: string, options: SendPhotoOptions<TContext> = {}): Promise<void> {
     const fileId = file ?? this.ctx.ids.nextFileId();
 
-    const targetChat: Chat = options.chat
-      ? this.ctx.resolveChatToTelegram(options.chat)
-      : this.ctx.defaultPrivateChat();
+    const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
     const message: Message = {
       message_id: this.ctx.ids.nextMessageId(),
@@ -359,15 +319,10 @@ export class User<TContext extends Context = Context> {
     } as Update);
   }
 
-  async sendDocument(
-    file?: string,
-    options: SendDocumentOptions<TContext> = {},
-  ): Promise<void> {
+  async sendDocument(file?: string, options: SendDocumentOptions<TContext> = {}): Promise<void> {
     const fileId = file ?? this.ctx.ids.nextFileId();
 
-    const targetChat: Chat = options.chat
-      ? this.ctx.resolveChatToTelegram(options.chat)
-      : this.ctx.defaultPrivateChat();
+    const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
     const message: Message = {
       message_id: this.ctx.ids.nextMessageId(),
@@ -390,15 +345,10 @@ export class User<TContext extends Context = Context> {
     } as Update);
   }
 
-  async sendVideo(
-    file?: string,
-    options: SendVideoOptions<TContext> = {},
-  ): Promise<void> {
+  async sendVideo(file?: string, options: SendVideoOptions<TContext> = {}): Promise<void> {
     const fileId = file ?? this.ctx.ids.nextFileId();
 
-    const targetChat: Chat = options.chat
-      ? this.ctx.resolveChatToTelegram(options.chat)
-      : this.ctx.defaultPrivateChat();
+    const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
     const message: Message = {
       message_id: this.ctx.ids.nextMessageId(),
@@ -421,15 +371,10 @@ export class User<TContext extends Context = Context> {
     } as Update);
   }
 
-  async sendAudio(
-    file?: string,
-    options: SendAudioOptions<TContext> = {},
-  ): Promise<void> {
+  async sendAudio(file?: string, options: SendAudioOptions<TContext> = {}): Promise<void> {
     const fileId = file ?? this.ctx.ids.nextFileId();
 
-    const targetChat: Chat = options.chat
-      ? this.ctx.resolveChatToTelegram(options.chat)
-      : this.ctx.defaultPrivateChat();
+    const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
     const message: Message = {
       message_id: this.ctx.ids.nextMessageId(),
@@ -443,15 +388,10 @@ export class User<TContext extends Context = Context> {
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
   }
 
-  async sendVoice(
-    file?: string,
-    options: SendVoiceOptions<TContext> = {},
-  ): Promise<void> {
+  async sendVoice(file?: string, options: SendVoiceOptions<TContext> = {}): Promise<void> {
     const fileId = file ?? this.ctx.ids.nextFileId();
 
-    const targetChat: Chat = options.chat
-      ? this.ctx.resolveChatToTelegram(options.chat)
-      : this.ctx.defaultPrivateChat();
+    const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
     const message: Message = {
       message_id: this.ctx.ids.nextMessageId(),
@@ -465,15 +405,10 @@ export class User<TContext extends Context = Context> {
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
   }
 
-  async sendVideoNote(
-    file?: string,
-    options: SendVideoNoteOptions<TContext> = {},
-  ): Promise<void> {
+  async sendVideoNote(file?: string, options: SendVideoNoteOptions<TContext> = {}): Promise<void> {
     const fileId = file ?? this.ctx.ids.nextFileId();
 
-    const targetChat: Chat = options.chat
-      ? this.ctx.resolveChatToTelegram(options.chat)
-      : this.ctx.defaultPrivateChat();
+    const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
     const message: Message = {
       message_id: this.ctx.ids.nextMessageId(),
@@ -486,15 +421,10 @@ export class User<TContext extends Context = Context> {
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
   }
 
-  async sendAnimation(
-    file?: string,
-    options: SendAnimationOptions<TContext> = {},
-  ): Promise<void> {
+  async sendAnimation(file?: string, options: SendAnimationOptions<TContext> = {}): Promise<void> {
     const fileId = file ?? this.ctx.ids.nextFileId();
 
-    const targetChat: Chat = options.chat
-      ? this.ctx.resolveChatToTelegram(options.chat)
-      : this.ctx.defaultPrivateChat();
+    const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
     const message: Message = {
       message_id: this.ctx.ids.nextMessageId(),
@@ -508,15 +438,10 @@ export class User<TContext extends Context = Context> {
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
   }
 
-  async sendSticker(
-    file?: string,
-    options: SendStickerOptions<TContext> = {},
-  ): Promise<void> {
+  async sendSticker(file?: string, options: SendStickerOptions<TContext> = {}): Promise<void> {
     const fileId = file ?? this.ctx.ids.nextFileId();
 
-    const targetChat: Chat = options.chat
-      ? this.ctx.resolveChatToTelegram(options.chat)
-      : this.ctx.defaultPrivateChat();
+    const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
     const message: Message = {
       message_id: this.ctx.ids.nextMessageId(),
@@ -529,14 +454,8 @@ export class User<TContext extends Context = Context> {
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
   }
 
-  async sendLocation(
-    latitude: number,
-    longitude: number,
-    options: SendLocationOptions<TContext> = {},
-  ): Promise<void> {
-    const targetChat: Chat = options.chat
-      ? this.ctx.resolveChatToTelegram(options.chat)
-      : this.ctx.defaultPrivateChat();
+  async sendLocation(latitude: number, longitude: number, options: SendLocationOptions<TContext> = {}): Promise<void> {
+    const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
     const message: Message = {
       message_id: this.ctx.ids.nextMessageId(),
@@ -549,14 +468,8 @@ export class User<TContext extends Context = Context> {
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
   }
 
-  async sendContact(
-    phoneNumber: string,
-    firstName: string,
-    options: SendContactOptions<TContext> = {},
-  ): Promise<void> {
-    const targetChat: Chat = options.chat
-      ? this.ctx.resolveChatToTelegram(options.chat)
-      : this.ctx.defaultPrivateChat();
+  async sendContact(phoneNumber: string, firstName: string, options: SendContactOptions<TContext> = {}): Promise<void> {
+    const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
     const message: Message = {
       message_id: this.ctx.ids.nextMessageId(),
@@ -576,9 +489,7 @@ export class User<TContext extends Context = Context> {
     address: string,
     options: SendVenueOptions<TContext> = {},
   ): Promise<void> {
-    const targetChat: Chat = options.chat
-      ? this.ctx.resolveChatToTelegram(options.chat)
-      : this.ctx.defaultPrivateChat();
+    const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
     const message: Message = {
       message_id: this.ctx.ids.nextMessageId(),
@@ -591,14 +502,8 @@ export class User<TContext extends Context = Context> {
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
   }
 
-  async sendPoll(
-    question: string,
-    answerOptions: string[],
-    options: SendPollOptions<TContext> = {},
-  ): Promise<void> {
-    const targetChat: Chat = options.chat
-      ? this.ctx.resolveChatToTelegram(options.chat)
-      : this.ctx.defaultPrivateChat();
+  async sendPoll(question: string, answerOptions: string[], options: SendPollOptions<TContext> = {}): Promise<void> {
+    const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
     const message: Message = {
       message_id: this.ctx.ids.nextMessageId(),
@@ -621,13 +526,8 @@ export class User<TContext extends Context = Context> {
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
   }
 
-  async sendDice(
-    emoji = '🎲',
-    options: SendDiceOptions<TContext> = {},
-  ): Promise<void> {
-    const targetChat: Chat = options.chat
-      ? this.ctx.resolveChatToTelegram(options.chat)
-      : this.ctx.defaultPrivateChat();
+  async sendDice(emoji = '🎲', options: SendDiceOptions<TContext> = {}): Promise<void> {
+    const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
     const message: Message = {
       message_id: this.ctx.ids.nextMessageId(),
@@ -640,14 +540,8 @@ export class User<TContext extends Context = Context> {
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
   }
 
-  async sendWebAppData(
-    data: string,
-    buttonText: string,
-    options: SendWebAppDataOptions<TContext> = {},
-  ): Promise<void> {
-    const targetChat: Chat = options.chat
-      ? this.ctx.resolveChatToTelegram(options.chat)
-      : this.ctx.defaultPrivateChat();
+  async sendWebAppData(data: string, buttonText: string, options: SendWebAppDataOptions<TContext> = {}): Promise<void> {
+    const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
     const message: Message = {
       message_id: this.ctx.ids.nextMessageId(),
@@ -666,9 +560,7 @@ export class User<TContext extends Context = Context> {
     totalAmount: number,
     options: SendSuccessfulPaymentOptions<TContext> = {},
   ): Promise<void> {
-    const targetChat: Chat = options.chat
-      ? this.ctx.resolveChatToTelegram(options.chat)
-      : this.ctx.defaultPrivateChat();
+    const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
     const message: Message = {
       message_id: this.ctx.ids.nextMessageId(),
@@ -687,10 +579,7 @@ export class User<TContext extends Context = Context> {
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
   }
 
-  async sendInlineQuery(
-    query: string,
-    options: SendInlineQueryOptions = {},
-  ): Promise<void> {
+  async sendInlineQuery(query: string, options: SendInlineQueryOptions = {}): Promise<void> {
     const update: Update = {
       update_id: this.ctx.ids.nextMessageId() + 800_000,
       inline_query: {
@@ -705,10 +594,7 @@ export class User<TContext extends Context = Context> {
     await this.ctx.bot.handleUpdate(update);
   }
 
-  async sendChosenInlineResult(
-    resultId: string,
-    query: string,
-  ): Promise<void> {
+  async sendChosenInlineResult(resultId: string, query: string): Promise<void> {
     const update: Update = {
       update_id: this.ctx.ids.nextMessageId() + 850_000,
       chosen_inline_result: {
@@ -721,11 +607,7 @@ export class User<TContext extends Context = Context> {
     await this.ctx.bot.handleUpdate(update);
   }
 
-  async sendPreCheckoutQuery(
-    invoicePayload: string,
-    currency: string,
-    totalAmount: number,
-  ): Promise<void> {
+  async sendPreCheckoutQuery(invoicePayload: string, currency: string, totalAmount: number): Promise<void> {
     const update: Update = {
       update_id: this.ctx.ids.nextMessageId() + 900_000,
       pre_checkout_query: {
@@ -740,10 +622,7 @@ export class User<TContext extends Context = Context> {
     await this.ctx.bot.handleUpdate(update);
   }
 
-  async sendShippingQuery(
-    invoicePayload: string,
-    shippingAddress: ShippingAddress,
-  ): Promise<void> {
+  async sendShippingQuery(invoicePayload: string, shippingAddress: ShippingAddress): Promise<void> {
     const update: Update = {
       update_id: this.ctx.ids.nextMessageId() + 950_000,
       shipping_query: {
@@ -757,20 +636,13 @@ export class User<TContext extends Context = Context> {
     await this.ctx.bot.handleUpdate(update);
   }
 
-  async sendMediaGroup(
-    items: UserSendMediaGroupItem<TContext>[],
-    sharedOptions: { chat?: AnyChat<TContext> } = {},
-  ): Promise<void> {
+  async sendMediaGroup(items: UserSendMediaGroupItem<TContext>[], sharedOptions: { chat?: AnyChat<TContext> } = {}): Promise<void> {
     const mediaGroupId = this.ctx.ids.nextMediaGroupId();
 
-    const targetChat: Chat = sharedOptions.chat
-      ? this.ctx.resolveChatToTelegram(sharedOptions.chat)
-      : this.ctx.defaultPrivateChat();
+    const targetChat: Chat = sharedOptions.chat ? this.ctx.resolveChatToTelegram(sharedOptions.chat) : this.ctx.defaultPrivateChat();
 
     for (const item of items) {
-      const itemChat = item.chat
-        ? this.ctx.resolveChatToTelegram(item.chat)
-        : targetChat;
+      const itemChat = item.chat ? this.ctx.resolveChatToTelegram(item.chat) : targetChat;
 
       const message: Message = {
         message_id: this.ctx.ids.nextMessageId(),
@@ -808,19 +680,10 @@ export class User<TContext extends Context = Context> {
    * @param reaction
    * @param options
    */
-  async reactTo(
-    reply: Reply<TContext>,
-    reaction: ReactionType | string,
-    options: ReactToOptions = {},
-  ): Promise<void> {
-    const normalizedReaction: ReactionType =
-      typeof reaction === 'string'
-        ? ({ type: 'emoji', emoji: reaction } as ReactionType)
-        : reaction;
+  async reactTo(reply: Reply<TContext>, reaction: ReactionType | string, options: ReactToOptions = {}): Promise<void> {
+    const normalizedReaction: ReactionType = typeof reaction === 'string' ? ({ type: 'emoji', emoji: reaction } as ReactionType) : reaction;
 
-    const chat = reply.chat
-      ? reply.chat.toTelegramChat()
-      : this.ctx.defaultPrivateChat();
+    const chat = reply.chat ? reply.chat.toTelegramChat() : this.ctx.defaultPrivateChat();
 
     await this.ctx.bot.handleUpdate({
       update_id: this.ctx.ids.nextMessageId() + 1_000_000,
@@ -855,26 +718,16 @@ export class User<TContext extends Context = Context> {
    * @param optionIndices
    * @param options
    */
-  async answerPoll(
-    reply: Reply<TContext>,
-    optionIndices: number[],
-    options: AnswerPollOptions = {},
-  ): Promise<void> {
+  async answerPoll(reply: Reply<TContext>, optionIndices: number[], options: AnswerPollOptions = {}): Promise<void> {
     const poll = reply.raw.poll as { id?: string } | undefined;
 
     // The Telegram API assigns poll.id server-side; outgoing sendPoll
     // request payloads don't include it. Fall back to a synthetic id when
     // the reply has a `question` field (discriminator for sendPoll calls).
-    const pollId =
-      poll?.id ??
-      (reply.raw.question === undefined
-        ? undefined
-        : `poll-reply-${reply.messageId}`);
+    const pollId = poll?.id ?? (reply.raw.question === undefined ? undefined : `poll-reply-${reply.messageId}`);
 
     if (!pollId) {
-      throw new Error(
-        'answerPoll: reply does not contain a poll — reply.raw.poll.id is missing',
-      );
+      throw new Error('answerPoll: reply does not contain a poll — reply.raw.poll.id is missing');
     }
 
     const fromUser = options.voterChat
@@ -905,10 +758,7 @@ export class User<TContext extends Context = Context> {
    * @param group
    * @param options
    */
-  async requestJoin(
-    group: Group<TContext> | Supergroup<TContext>,
-    options: RequestJoinOptions = {},
-  ): Promise<void> {
+  async requestJoin(group: Group<TContext> | Supergroup<TContext>, options: RequestJoinOptions = {}): Promise<void> {
     await this.ctx.bot.handleUpdate({
       update_id: this.ctx.ids.nextMessageId() + 1_200_000,
       chat_join_request: {
@@ -934,10 +784,7 @@ export class User<TContext extends Context = Context> {
    * @param chat
    * @param options
    */
-  async boostChat(
-    chat: AnyChat<TContext>,
-    options: BoostChatOptions = {},
-  ): Promise<string> {
+  async boostChat(chat: AnyChat<TContext>, options: BoostChatOptions = {}): Promise<string> {
     const boostId = `boost-${this.ctx.ids.nextMessageId()}`;
     const now = Math.floor(Date.now() / 1000);
     const expirationDays = options.expirationDays ?? 30;
@@ -974,11 +821,7 @@ export class User<TContext extends Context = Context> {
    * @param boostId
    * @param options
    */
-  async removeBoost(
-    chat: AnyChat<TContext>,
-    boostId: string,
-    options: RemoveBoostOptions = {},
-  ): Promise<void> {
+  async removeBoost(chat: AnyChat<TContext>, boostId: string, options: RemoveBoostOptions = {}): Promise<void> {
     const now = Math.floor(Date.now() / 1000);
 
     await this.ctx.bot.handleUpdate({
@@ -1007,12 +850,9 @@ export class User<TContext extends Context = Context> {
    * @param botUser
    * @param options
    */
-  async manageBot(
-    botUser: BotUserProfile,
-    options: ManageBotOptions = {},
-  ): Promise<void> {
+  async manageBot(botUser: BotUserProfile, options: ManageBotOptions = {}): Promise<void> {
     await this.ctx.bot.handleUpdate({
-      update_id: options.updateId ?? (this.ctx.ids.nextMessageId() + 1_740_000),
+      update_id: options.updateId ?? this.ctx.ids.nextMessageId() + 1_740_000,
       managed_bot: {
         user: {
           id: this.id,
@@ -1038,12 +878,9 @@ export class User<TContext extends Context = Context> {
    * @param payload
    * @param options
    */
-  async purchasePaidMedia(
-    payload: string,
-    options: PurchasePaidMediaOptions = {},
-  ): Promise<void> {
+  async purchasePaidMedia(payload: string, options: PurchasePaidMediaOptions = {}): Promise<void> {
     await this.ctx.bot.handleUpdate({
-      update_id: options.updateId ?? (this.ctx.ids.nextMessageId() + 1_750_000),
+      update_id: options.updateId ?? this.ctx.ids.nextMessageId() + 1_750_000,
       purchased_paid_media: {
         from: {
           id: this.id,
@@ -1062,5 +899,4 @@ export class User<TContext extends Context = Context> {
  * The synthetic Channel_Bot user — re-exported here for convenience.
  */
 
-
-export {makeChannelBotUser} from './dispatch';
+export { makeChannelBotUser } from './dispatch';

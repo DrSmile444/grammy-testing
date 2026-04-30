@@ -9,15 +9,11 @@ export type Methods = keyof RawApi;
 /**
  * Payload (first argument) for a given grammY API method.
  */
-export type Payload<TMethod extends Methods> = Parameters<
-  RawApi[TMethod]
->[0] extends undefined
+export type Payload<TMethod extends Methods> = Parameters<RawApi[TMethod]>[0] extends undefined
   ? Record<string, never>
   : Parameters<RawApi[TMethod]>[0];
 
 /**
  * Awaited return type for a given grammY API method.
  */
-export type Result<TMethod extends Methods> = Awaited<
-  ReturnType<RawApi[TMethod]>
->;
+export type Result<TMethod extends Methods> = Awaited<ReturnType<RawApi[TMethod]>>;

@@ -1,18 +1,12 @@
- 
-
 import type { Bot, Context } from 'grammy';
-import type {
-  Chat,
-  ChatMember,
-  Message,
-  MessageEntity,
-  MessageOrigin,
-  Update,
-  User as TelegramUser,
-} from 'grammy/types';
+import type { Chat, ChatMember, Message, MessageEntity, MessageOrigin, Update, User as TelegramUser } from 'grammy/types';
 
 import type { ChatMemberStatus, PermissionFlags } from './types';
 import type { User } from './user';
+
+function assertNever(x: never): never {
+  throw new Error(`Unexpected value: ${String(x)}`);
+}
 
 const CHANNEL_BOT_ID = 136_817_688;
 
@@ -38,12 +32,7 @@ export function makeChannelBotUser(): TelegramUser {
  * @param permissions
  * @param untilDate
  */
-export function makeChatMember(
-  user: TelegramUser,
-  status: ChatMemberStatus,
-  permissions: PermissionFlags,
-  untilDate?: number,
-): ChatMember {
+export function makeChatMember(user: TelegramUser, status: ChatMemberStatus, permissions: PermissionFlags, untilDate?: number): ChatMember {
   switch (status) {
     case 'creator': {
       return {
@@ -94,8 +83,7 @@ export function makeChatMember(
         can_send_voice_notes: permissions.can_send_voice_notes ?? false,
         can_send_polls: permissions.can_send_polls ?? false,
         can_send_other_messages: permissions.can_send_other_messages ?? false,
-        can_add_web_page_previews:
-          permissions.can_add_web_page_previews ?? false,
+        can_add_web_page_previews: permissions.can_add_web_page_previews ?? false,
         can_change_info: permissions.can_change_info ?? false,
         can_invite_users: permissions.can_invite_users ?? false,
         can_pin_messages: permissions.can_pin_messages ?? false,
@@ -108,9 +96,12 @@ export function makeChatMember(
       return { status: 'left', user };
     }
 
-    case 'kicked':
-    default: {
+    case 'kicked': {
       return { status: 'kicked', user, until_date: untilDate ?? 0 };
+    }
+
+    default: {
+      return assertNever(status);
     }
   }
 }
@@ -144,18 +135,8 @@ export async function dispatchMyChatMember<TContext extends Context>(
       chat: spec.chat,
       from: fromUser,
       date: Math.floor(Date.now() / 1000),
-      old_chat_member: makeChatMember(
-        fromUser,
-        spec.fromStatus,
-        spec.permissions,
-        spec.untilDate,
-      ),
-      new_chat_member: makeChatMember(
-        fromUser,
-        spec.toStatus,
-        spec.permissions,
-        spec.untilDate,
-      ),
+      old_chat_member: makeChatMember(fromUser, spec.fromStatus, spec.permissions, spec.untilDate),
+      new_chat_member: makeChatMember(fromUser, spec.toStatus, spec.permissions, spec.untilDate),
     },
   };
 
@@ -173,9 +154,7 @@ interface ServiceMessageDispatch<TContext extends Context> {
 
 let serviceMessageCounter = 1;
 
-export async function dispatchServiceMessage<TContext extends Context>(
-  spec: ServiceMessageDispatch<TContext>,
-): Promise<void> {
+export async function dispatchServiceMessage<TContext extends Context>(spec: ServiceMessageDispatch<TContext>): Promise<void> {
   const fromUser: TelegramUser = {
     id: spec.user.id,
     is_bot: false,
@@ -213,9 +192,7 @@ interface EditedMessageDispatch<TContext extends Context> {
   updateId: number;
 }
 
-export async function dispatchEditedMessage<TContext extends Context>(
-  spec: EditedMessageDispatch<TContext>,
-): Promise<void> {
+export async function dispatchEditedMessage<TContext extends Context>(spec: EditedMessageDispatch<TContext>): Promise<void> {
   const fromUser: TelegramUser = {
     id: spec.user.id,
     is_bot: false,
@@ -253,9 +230,7 @@ interface ChatMemberDispatch<TContext extends Context> {
 
 let cmCounter = 1;
 
-export async function dispatchChatMember<TContext extends Context>(
-  spec: ChatMemberDispatch<TContext>,
-): Promise<void> {
+export async function dispatchChatMember<TContext extends Context>(spec: ChatMemberDispatch<TContext>): Promise<void> {
   const adminUser: TelegramUser = {
     id: spec.fromAdmin.id,
     is_bot: false,
@@ -299,9 +274,7 @@ interface PrivateMessageDispatch<TContext extends Context> {
   forwardOrigin?: MessageOrigin;
 }
 
-export async function dispatchTextMessage<TContext extends Context>(
-  spec: PrivateMessageDispatch<TContext>,
-): Promise<void> {
+export async function dispatchTextMessage<TContext extends Context>(spec: PrivateMessageDispatch<TContext>): Promise<void> {
   const fromUser: TelegramUser = {
     id: spec.user.id,
     is_bot: false,

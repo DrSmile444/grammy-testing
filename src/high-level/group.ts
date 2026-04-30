@@ -1,7 +1,7 @@
 import type { Bot, Context } from 'grammy';
 import type { Chat, ReactionCount, Update } from 'grammy/types';
 
-import { type ChatRefHolder,setBotRef } from './chat';
+import { type ChatRefHolder, setBotRef } from './chat';
 import { dispatchChatMember, dispatchMyChatMember } from './dispatch';
 import type { MessagesLog } from './messages-log';
 import type {
@@ -39,9 +39,7 @@ const FULL_ADMIN_RIGHTS = {
  * Regular (non-supergroup) chat. Membership is tracked on a per-user
  * basis via `promote` / `restrict` / `changeMemberStatus`.
  */
-export class Group<TContext extends Context = Context>
-  implements ChatRefHolder<TContext>
-{
+export class Group<TContext extends Context = Context> implements ChatRefHolder<TContext> {
   readonly type = 'group' as const;
 
   readonly members = new Map<number, Membership<TContext>>();
@@ -65,10 +63,7 @@ export class Group<TContext extends Context = Context>
     return { id: this.id, type: 'group', title: this.title };
   }
 
-  promote(
-    user: User<TContext>,
-    permissions: PromotePermissions = {},
-  ): Membership<TContext> {
+  promote(user: User<TContext>, permissions: PromotePermissions = {}): Membership<TContext> {
     const membership: Membership<TContext> = {
       user,
       chat: this,
@@ -81,11 +76,7 @@ export class Group<TContext extends Context = Context>
     return membership;
   }
 
-  restrict(
-    user: User<TContext>,
-    permissions: RestrictPermissions = {},
-    untilDate?: number,
-  ): Membership<TContext> {
+  restrict(user: User<TContext>, permissions: RestrictPermissions = {}, untilDate?: number): Membership<TContext> {
     const membership: Membership<TContext> = {
       user,
       chat: this,
@@ -99,10 +90,7 @@ export class Group<TContext extends Context = Context>
     return membership;
   }
 
-  async changeMemberStatus(
-    user: User<TContext>,
-    transition: MemberStatusTransition,
-  ): Promise<void> {
+  async changeMemberStatus(user: User<TContext>, transition: MemberStatusTransition): Promise<void> {
     const current = this.members.get(user.id);
     const fromStatus = transition.from ?? current?.status ?? 'left';
 
@@ -160,11 +148,7 @@ export class Group<TContext extends Context = Context>
    * @param reactions
    * @param options
    */
-  async dispatchReactionCount(
-    messageId: number,
-    reactions: ReactionCount[],
-    options: DispatchReactionCountOptions = {},
-  ): Promise<void> {
+  async dispatchReactionCount(messageId: number, reactions: ReactionCount[], options: DispatchReactionCountOptions = {}): Promise<void> {
     await this.bot.handleUpdate({
       update_id: 1_760_000 + reactionCountCounter++,
       message_reaction_count: {

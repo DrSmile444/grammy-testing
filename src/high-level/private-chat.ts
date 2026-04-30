@@ -1,7 +1,7 @@
 import type { Bot, Context } from 'grammy';
 import type { Chat } from 'grammy/types';
 
-import { type ChatRefHolder,setBotRef } from './chat';
+import { type ChatRefHolder, setBotRef } from './chat';
 import { MessagesLog } from './messages-log';
 import type { User } from './user';
 
@@ -9,9 +9,7 @@ import type { User } from './user';
  * Private chat between the bot and a single user. `id` matches the
  * user's id (Telegram convention).
  */
-export class PrivateChat<TContext extends Context = Context>
-  implements ChatRefHolder<TContext>
-{
+export class PrivateChat<TContext extends Context = Context> implements ChatRefHolder<TContext> {
   readonly type = 'private' as const;
 
   readonly id: number;

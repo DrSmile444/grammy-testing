@@ -53,12 +53,7 @@ async function resolveCall<TM extends Methods>(
   const resolver = responses?.[method];
 
   if (typeof resolver === 'function') {
-    const value = await (
-      resolver as (
-        payload: Payload<TM>,
-        method: TM,
-      ) => Promise<unknown> | unknown
-    )(payload, method);
+    const value = await (resolver as (payload: Payload<TM>, method: TM) => Promise<unknown> | unknown)(payload, method);
 
     return ok(value);
   }
@@ -85,18 +80,8 @@ async function resolveCall<TM extends Methods>(
  * @param options.onCapture
  * @returns A grammY transformer ready for `bot.api.config.use`.
  */
-export function createTransformer({
-  outgoing,
-  idle,
-  responses,
-  onCapture,
-}: TransformerOptions): Transformer {
-  return ((
-    _previous: unknown,
-    method: Methods,
-    payload: Payload<Methods>,
-    signal?: AbortSignal,
-  ) => {
+export function createTransformer({ outgoing, idle, responses, onCapture }: TransformerOptions): Transformer {
+  return ((_previous: unknown, method: Methods, payload: Payload<Methods>, signal?: AbortSignal) => {
     const request = { method, payload, signal };
 
     outgoing.push(request);
