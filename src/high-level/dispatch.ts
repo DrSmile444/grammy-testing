@@ -241,6 +241,51 @@ export async function dispatchEditedMessage<TContext extends Context>(
   await spec.bot.handleUpdate(update);
 }
 
+interface ChatMemberDispatch<TContext extends Context> {
+  bot: Bot<TContext>;
+  chat: Chat;
+  fromAdmin: User<TContext>;
+  targetUser: User<TContext>;
+  newStatus: ChatMemberStatus;
+  oldStatus?: ChatMemberStatus;
+  permissions?: PermissionFlags;
+}
+
+let cmCounter = 1;
+
+export async function dispatchChatMember<TContext extends Context>(
+  spec: ChatMemberDispatch<TContext>,
+): Promise<void> {
+  const adminUser: TelegramUser = {
+    id: spec.fromAdmin.id,
+    is_bot: false,
+    first_name: spec.fromAdmin.first_name,
+    last_name: spec.fromAdmin.last_name,
+    username: spec.fromAdmin.username,
+  };
+
+  const targetTelegramUser: TelegramUser = {
+    id: spec.targetUser.id,
+    is_bot: false,
+    first_name: spec.targetUser.first_name,
+    last_name: spec.targetUser.last_name,
+    username: spec.targetUser.username,
+  };
+
+  const update: Update = {
+    update_id: 1_500_000 + cmCounter++,
+    chat_member: {
+      chat: spec.chat,
+      from: adminUser,
+      date: Math.floor(Date.now() / 1000),
+      old_chat_member: makeChatMember(targetTelegramUser, spec.oldStatus ?? 'member', {}),
+      new_chat_member: makeChatMember(targetTelegramUser, spec.newStatus, spec.permissions ?? {}),
+    },
+  } as Update;
+
+  await spec.bot.handleUpdate(update);
+}
+
 interface PrivateMessageDispatch<TContext extends Context> {
   bot: Bot<TContext>;
   user: User<TContext>;

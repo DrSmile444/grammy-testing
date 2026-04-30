@@ -2,9 +2,11 @@ import type { Bot, Context } from 'grammy';
 import type { Chat } from 'grammy/types';
 
 import { type ChatRefHolder,setBotRef } from './chat';
-import { dispatchMyChatMember } from './dispatch';
+import { dispatchChatMember, dispatchMyChatMember } from './dispatch';
 import type { MessagesLog } from './messages-log';
 import type {
+  ChatMemberStatus,
+  DispatchMemberUpdateOptions,
   Membership,
   MemberStatusTransition,
   PromotePermissions,
@@ -116,6 +118,35 @@ export class Supergroup<TContext extends Context = Context>
       status: transition.to,
       permissions: transition.permissions ?? {},
       untilDate: transition.untilDate,
+    });
+  }
+
+  /**
+   * Dispatches a `chat_member` update — an admin changing another user's
+   * membership status in this supergroup. This is distinct from `my_chat_member`
+   * (which tracks the bot's own status).
+   *
+   * `old_chat_member` defaults to `{ status: 'member' }` and can be
+   * overridden via `options.oldStatus`.
+   * @param fromAdmin
+   * @param targetUser
+   * @param newStatus
+   * @param options
+   */
+  async dispatchMemberUpdate(
+    fromAdmin: User<TContext>,
+    targetUser: User<TContext>,
+    newStatus: ChatMemberStatus,
+    options: DispatchMemberUpdateOptions = {},
+  ): Promise<void> {
+    await dispatchChatMember({
+      bot: this.bot,
+      chat: this.toTelegramChat(),
+      fromAdmin,
+      targetUser,
+      newStatus,
+      oldStatus: options.oldStatus,
+      permissions: options.permissions,
     });
   }
 }

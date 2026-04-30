@@ -1,7 +1,7 @@
  
 
 import type { Bot, Context } from 'grammy';
-import type { Chat, Message, MessageEntity, MessageOrigin, ShippingAddress, Update } from 'grammy/types';
+import type { Chat, Message, MessageEntity, MessageOrigin, ReactionType, ShippingAddress, Update } from 'grammy/types';
 
 import type { AnyChat } from './chat';
 import { dispatchEditedMessage, dispatchServiceMessage, dispatchTextMessage } from './dispatch';
@@ -17,6 +17,7 @@ import {
   makeVideoStub,
   makeVoiceStub,
 } from './media-stubs';
+import type { Reply } from './reply';
 import type { Supergroup } from './supergroup';
 import type { Membership } from './types';
 
@@ -111,6 +112,26 @@ export interface SendSuccessfulPaymentOptions<TContext extends Context = Context
 
 export interface SendInlineQueryOptions {
   chatType?: 'channel' | 'group' | 'private' | 'sender' | 'supergroup';
+}
+
+export interface ReactToOptions {
+  date?: number;
+}
+
+export interface AnswerPollOptions {
+  voterChat?: Chat;
+}
+
+export interface RequestJoinOptions {
+  bio?: string;
+}
+
+export interface BoostChatOptions {
+  expirationDays?: number;
+}
+
+export interface RemoveBoostOptions {
+  removeDate?: number;
 }
 
 interface UserContext<TContext extends Context = Context> {
@@ -759,6 +780,207 @@ export class User<TContext extends Context = Context> {
       // eslint-disable-next-line no-await-in-loop -- preserve dispatch order
       await this.ctx.bot.handleUpdate(update);
     }
+  }
+
+  /**
+   * Dispatches a `message_reaction` update — the user reacting to a bot reply.
+   * `reaction` may be a `ReactionType` object or a plain emoji string
+   * (auto-wrapped as `{ type: 'emoji', emoji }`).
+   * @param reply
+   * @param reaction
+   * @param options
+   */
+  async reactTo(
+    reply: Reply<TContext>,
+    reaction: ReactionType | string,
+    options: ReactToOptions = {},
+  ): Promise<void> {
+    const normalizedReaction: ReactionType =
+      typeof reaction === 'string'
+        ? ({ type: 'emoji', emoji: reaction } as ReactionType)
+        : reaction;
+
+    const chat = reply.chat
+      ? reply.chat.toTelegramChat()
+      : this.ctx.defaultPrivateChat();
+
+    await this.ctx.bot.handleUpdate({
+      update_id: this.ctx.ids.nextMessageId() + 1_000_000,
+      message_reaction: {
+        chat,
+        message_id: reply.messageId,
+        user: {
+          id: this.id,
+          is_bot: false,
+          first_name: this.first_name,
+          last_name: this.last_name,
+          username: this.username,
+        },
+        date: options.date ?? Math.floor(Date.now() / 1000),
+        old_reaction: [],
+        new_reaction: [normalizedReaction],
+      },
+    } as Update);
+  }
+
+  /**
+   * Dispatches a `poll_answer` update — the user voting in a poll.
+   * `reply` must be a captured bot reply for a `sendPoll` / `replyWithPoll`
+   * call. Because the Telegram Bot API assigns `poll.id` server-side,
+   * the outgoing request payload does not contain it; a synthetic id
+   * (`poll-reply-<messageId>`) is generated automatically when the reply
+   * looks like a `sendPoll` call (has a `question` field). Throws if the
+   * reply cannot be identified as a poll.
+   *
+   * Pass `options.voterChat` to simulate an anonymous poll vote from a chat.
+   * @param reply
+   * @param optionIndices
+   * @param options
+   */
+  async answerPoll(
+    reply: Reply<TContext>,
+    optionIndices: number[],
+    options: AnswerPollOptions = {},
+  ): Promise<void> {
+    const poll = reply.raw.poll as { id?: string } | undefined;
+
+    // The Telegram API assigns poll.id server-side; outgoing sendPoll
+    // request payloads don't include it. Fall back to a synthetic id when
+    // the reply has a `question` field (discriminator for sendPoll calls).
+    const pollId =
+      poll?.id ??
+      (reply.raw.question === undefined
+        ? undefined
+        : `poll-reply-${reply.messageId}`);
+
+    if (!pollId) {
+      throw new Error(
+        'answerPoll: reply does not contain a poll — reply.raw.poll.id is missing',
+      );
+    }
+
+    const fromUser = options.voterChat
+      ? undefined
+      : {
+          id: this.id,
+          is_bot: false,
+          first_name: this.first_name,
+          last_name: this.last_name,
+          username: this.username,
+        };
+
+    await this.ctx.bot.handleUpdate({
+      update_id: this.ctx.ids.nextMessageId() + 1_100_000,
+      poll_answer: {
+        poll_id: pollId,
+        voter_chat: options.voterChat,
+        user: fromUser,
+        option_ids: optionIndices,
+        option_persistent_ids: [],
+      },
+    } as Update);
+  }
+
+  /**
+   * Dispatches a `chat_join_request` update — the user requesting to join a
+   * group or supergroup.
+   * @param group
+   * @param options
+   */
+  async requestJoin(
+    group: Group<TContext> | Supergroup<TContext>,
+    options: RequestJoinOptions = {},
+  ): Promise<void> {
+    await this.ctx.bot.handleUpdate({
+      update_id: this.ctx.ids.nextMessageId() + 1_200_000,
+      chat_join_request: {
+        chat: group.toTelegramChat(),
+        from: {
+          id: this.id,
+          is_bot: false,
+          first_name: this.first_name,
+          last_name: this.last_name,
+          username: this.username,
+        },
+        user_chat_id: this.id,
+        date: Math.floor(Date.now() / 1000),
+        bio: options.bio,
+      },
+    } as Update);
+  }
+
+  /**
+   * Dispatches a `chat_boost` update — the user boosting a chat.
+   * Returns the generated `boost_id` so callers can pass it to
+   * `removeBoost`.
+   * @param chat
+   * @param options
+   */
+  async boostChat(
+    chat: AnyChat<TContext>,
+    options: BoostChatOptions = {},
+  ): Promise<string> {
+    const boostId = `boost-${this.ctx.ids.nextMessageId()}`;
+    const now = Math.floor(Date.now() / 1000);
+    const expirationDays = options.expirationDays ?? 30;
+
+    await this.ctx.bot.handleUpdate({
+      update_id: this.ctx.ids.nextMessageId() + 1_300_000,
+      chat_boost: {
+        chat: chat.toTelegramChat(),
+        boost: {
+          boost_id: boostId,
+          add_date: now,
+          expiration_date: now + expirationDays * 86_400,
+          source: {
+            source: 'premium',
+            user: {
+              id: this.id,
+              is_bot: false,
+              first_name: this.first_name,
+              last_name: this.last_name,
+              username: this.username,
+            },
+          },
+        },
+      },
+    } as Update);
+
+    return boostId;
+  }
+
+  /**
+   * Dispatches a `removed_chat_boost` update — the user removing a boost from
+   * a chat. Pass the `boost_id` returned by `boostChat`.
+   * @param chat
+   * @param boostId
+   * @param options
+   */
+  async removeBoost(
+    chat: AnyChat<TContext>,
+    boostId: string,
+    options: RemoveBoostOptions = {},
+  ): Promise<void> {
+    const now = Math.floor(Date.now() / 1000);
+
+    await this.ctx.bot.handleUpdate({
+      update_id: this.ctx.ids.nextMessageId() + 1_400_000,
+      removed_chat_boost: {
+        chat: chat.toTelegramChat(),
+        boost_id: boostId,
+        remove_date: options.removeDate ?? now,
+        source: {
+          source: 'premium',
+          user: {
+            id: this.id,
+            is_bot: false,
+            first_name: this.first_name,
+            last_name: this.last_name,
+            username: this.username,
+          },
+        },
+      },
+    } as Update);
   }
 }
 

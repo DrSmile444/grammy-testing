@@ -1,5 +1,3 @@
- 
-
 import type { Bot, Context } from 'grammy';
 import type { Chat, Message, Update } from 'grammy/types';
 
@@ -11,6 +9,7 @@ import type { Supergroup } from './supergroup';
 import type { Membership } from './types';
 
 let postCounter = 1;
+let editPostCounter = 1;
 
 /**
  * Channel actor. The only verb in v0.2 is `postMessageTo` which
@@ -71,4 +70,37 @@ export class Channel<TContext extends Context = Context>
 
     await this.bot.handleUpdate(update);
   }
+
+  /**
+   * Dispatches an `edited_channel_post` update — simulating a channel post
+   * being edited. `messageId` is the `message_id` of the original channel post.
+   * @param messageId
+   * @param newText
+   * @param options
+   */
+  async editPost(
+    messageId: number,
+    newText: string,
+    options: EditPostOptions = {},
+  ): Promise<void> {
+    const now = Math.floor(Date.now() / 1000);
+
+    const update: Update = {
+      update_id: 1_600_000 + editPostCounter++,
+      edited_channel_post: {
+        message_id: messageId,
+        date: options.date ?? now,
+        edit_date: now,
+        chat: this.toTelegramChat(),
+        text: newText,
+      },
+    } as Update;
+
+    await this.bot.handleUpdate(update);
+  }
+}
+
+export interface EditPostOptions {
+  /** Override the original `date` timestamp of the channel post. */
+  date?: number;
 }

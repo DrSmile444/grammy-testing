@@ -55,3 +55,10 @@ export interface MemberStatusTransition {
   permissions?: PermissionFlags;
   untilDate?: number;
 }
+
+export interface DispatchMemberUpdateOptions {
+  /** Override the old member status (defaults to `'member'`). */
+  oldStatus?: ChatMemberStatus;
+  /** Permission flags applied to the new chat member. */
+  permissions?: PermissionFlags;
+}
