@@ -1,5 +1,5 @@
 import type { Bot, Context } from 'grammy';
-import type { Chat } from 'grammy/types';
+import type { Chat, ReactionCount, Update } from 'grammy/types';
 
 import { type ChatRefHolder,setBotRef } from './chat';
 import { dispatchChatMember, dispatchMyChatMember } from './dispatch';
@@ -7,12 +7,15 @@ import type { MessagesLog } from './messages-log';
 import type {
   ChatMemberStatus,
   DispatchMemberUpdateOptions,
+  DispatchReactionCountOptions,
   Membership,
   MemberStatusTransition,
   PromotePermissions,
   RestrictPermissions,
 } from './types';
 import type { User } from './user';
+
+let reactionCountCounter = 1;
 
 const FULL_ADMIN_RIGHTS = {
   is_anonymous: false,
@@ -148,5 +151,28 @@ export class Supergroup<TContext extends Context = Context>
       oldStatus: options.oldStatus,
       permissions: options.permissions,
     });
+  }
+
+  /**
+   * Dispatches a `message_reaction_count` update — aggregate anonymous
+   * reactions on a message in this supergroup.
+   * @param messageId
+   * @param reactions
+   * @param options
+   */
+  async dispatchReactionCount(
+    messageId: number,
+    reactions: ReactionCount[],
+    options: DispatchReactionCountOptions = {},
+  ): Promise<void> {
+    await this.bot.handleUpdate({
+      update_id: 1_760_000 + reactionCountCounter++,
+      message_reaction_count: {
+        chat: this.toTelegramChat(),
+        message_id: messageId,
+        date: options.date ?? Math.floor(Date.now() / 1000),
+        reactions,
+      },
+    } as Update);
   }
 }

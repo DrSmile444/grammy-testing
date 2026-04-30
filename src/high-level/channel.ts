@@ -1,15 +1,16 @@
 import type { Bot, Context } from 'grammy';
-import type { Chat, Message, Update } from 'grammy/types';
+import type { Chat, Message, ReactionCount, Update } from 'grammy/types';
 
 import { type ChatRefHolder,setBotRef } from './chat';
 import { makeChannelBotUser } from './dispatch';
 import type { Group } from './group';
 import type { MessagesLog } from './messages-log';
 import type { Supergroup } from './supergroup';
-import type { Membership } from './types';
+import type { DispatchReactionCountOptions, Membership } from './types';
 
 let postCounter = 1;
 let editPostCounter = 1;
+let reactionCountCounter = 1;
 
 /**
  * Channel actor. The only verb in v0.2 is `postMessageTo` which
@@ -98,9 +99,34 @@ export class Channel<TContext extends Context = Context>
 
     await this.bot.handleUpdate(update);
   }
+
+  /**
+   * Dispatches a `message_reaction_count` update — aggregate anonymous
+   * reactions on a message in this channel.
+   * @param messageId
+   * @param reactions
+   * @param options
+   */
+  async dispatchReactionCount(
+    messageId: number,
+    reactions: ReactionCount[],
+    options: DispatchReactionCountOptions = {},
+  ): Promise<void> {
+    await this.bot.handleUpdate({
+      update_id: 1_760_000 + reactionCountCounter++,
+      message_reaction_count: {
+        chat: this.toTelegramChat(),
+        message_id: messageId,
+        date: options.date ?? Math.floor(Date.now() / 1000),
+        reactions,
+      },
+    } as Update);
+  }
 }
 
 export interface EditPostOptions {
   /** Override the original `date` timestamp of the channel post. */
   date?: number;
 }
+
+// Re-export so callers can import from 'channel' directly if needed.

@@ -134,6 +134,24 @@ export interface RemoveBoostOptions {
   removeDate?: number;
 }
 
+export interface ManageBotOptions {
+  /** Override the auto-generated update_id. */
+  updateId?: number;
+}
+
+export interface PurchasePaidMediaOptions {
+  /** Override the auto-generated update_id. */
+  updateId?: number;
+}
+
+/** Minimal bot user profile for `user.manageBot`. */
+export interface BotUserProfile {
+  id: number;
+  first_name: string;
+  last_name?: string;
+  username?: string;
+}
+
 interface UserContext<TContext extends Context = Context> {
   bot: Bot<TContext>;
   ids: IdGenerator;
@@ -979,6 +997,62 @@ export class User<TContext extends Context = Context> {
             username: this.username,
           },
         },
+      },
+    } as Update);
+  }
+
+  /**
+   * Dispatches a `managed_bot` update — the user managing a bot they own.
+   * `botUser` is a plain profile object with at minimum `id` and `first_name`.
+   * @param botUser
+   * @param options
+   */
+  async manageBot(
+    botUser: BotUserProfile,
+    options: ManageBotOptions = {},
+  ): Promise<void> {
+    await this.ctx.bot.handleUpdate({
+      update_id: options.updateId ?? (this.ctx.ids.nextMessageId() + 1_740_000),
+      managed_bot: {
+        user: {
+          id: this.id,
+          is_bot: false,
+          first_name: this.first_name,
+          last_name: this.last_name,
+          username: this.username,
+        },
+        bot: {
+          id: botUser.id,
+          is_bot: true,
+          first_name: botUser.first_name,
+          last_name: botUser.last_name,
+          username: botUser.username,
+        },
+      },
+    } as Update);
+  }
+
+  /**
+   * Dispatches a `purchased_paid_media` update — the user purchasing paid
+   * media from the bot. `payload` is the bot-specified paid media payload.
+   * @param payload
+   * @param options
+   */
+  async purchasePaidMedia(
+    payload: string,
+    options: PurchasePaidMediaOptions = {},
+  ): Promise<void> {
+    await this.ctx.bot.handleUpdate({
+      update_id: options.updateId ?? (this.ctx.ids.nextMessageId() + 1_750_000),
+      purchased_paid_media: {
+        from: {
+          id: this.id,
+          is_bot: false,
+          first_name: this.first_name,
+          last_name: this.last_name,
+          username: this.username,
+        },
+        paid_media_payload: payload,
       },
     } as Update);
   }

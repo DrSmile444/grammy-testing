@@ -1,13 +1,14 @@
 /* eslint-disable max-classes-per-file -- RepliesInbox is tightly coupled to Chats */
 /* eslint-disable prefer-const -- newUser uses let-then-assign for closure capture */
 /* eslint-disable no-param-reassign -- attachBot intentionally hands bot to each chat */
- 
+
 
 import type { Bot, Context } from 'grammy';
 
 import type { IdleTracker } from '../low-level/idle';
 import type { OutgoingRequests, Request } from '../low-level/outgoing-requests';
 
+import { BusinessAccount } from './business-account';
 import { Channel } from './channel';
 import { type AnyChat,setBotRef } from './chat';
 import { Group } from './group';
@@ -18,6 +19,13 @@ import { Reply } from './reply';
 import { Supergroup } from './supergroup';
 import type { Membership, PromotePermissions } from './types';
 import { User, type UserProfile } from './user';
+
+let pollStateCounter = 1;
+
+export interface DispatchPollStateOptions {
+  /** Override the auto-generated update_id. */
+  updateId?: number;
+}
 
 const MESSAGE_METHODS = new Set([
   'sendMessage',
@@ -216,6 +224,36 @@ export class Chats<TContext extends Context = Context> {
     this.registerChat(channel);
 
     return channel;
+  }
+
+  /**
+   * Mints a `BusinessAccount` actor for the given user. The connection ID is
+   * auto-generated as `biz-<n>`.
+   * @param user
+   */
+  newBusinessAccount(user: User<TContext>): BusinessAccount<TContext> {
+    const connectionId = `biz-${this.ids.nextMessageId()}`;
+
+    return new BusinessAccount<TContext>(user, connectionId, {
+      bot: undefinedSafeBot(this),
+      ids: this.ids,
+    });
+  }
+
+  /**
+   * Dispatches a `poll` update with the supplied `Poll` object. Use this to
+   * simulate autonomous server-side poll state events.
+   * @param poll
+   * @param options
+   */
+  async dispatchPollState(
+    poll: import('grammy/types').Poll,
+    options: DispatchPollStateOptions = {},
+  ): Promise<void> {
+    await this.bot.handleUpdate({
+      update_id: options.updateId ?? (1_770_000 + pollStateCounter++),
+      poll,
+    } as import('grammy/types').Update);
   }
 
   /**

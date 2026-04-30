@@ -62,3 +62,8 @@ export interface DispatchMemberUpdateOptions {
   /** Permission flags applied to the new chat member. */
   permissions?: PermissionFlags;
 }
+
+export interface DispatchReactionCountOptions {
+  /** Override the `date` timestamp of the reaction count update. */
+  date?: number;
+}
