@@ -7,7 +7,7 @@ const symbols = [t.prepareBot, t.OutgoingRequests, t.mockSession, ll.MessagePriv
 
 for (const f of symbols) {
   if (typeof f !== 'function') {
-    throw new Error(`CJS export missing or not a function: ${String(f)}`);
+    throw new TypeError(`CJS export missing or not a function: ${String(f)}`);
   }
 }
 
