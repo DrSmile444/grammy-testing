@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
-    "ignoreDeprecations": "6.0",
+    "ignoreDeprecations": "6.0", // suppress TS6.0 deprecations: 'moduleResolution: bundler' deprecates the old 'node' resolution strategy warning
     "moduleResolution": "bundler",
     "target": "esnext",
     "module": "esnext",
