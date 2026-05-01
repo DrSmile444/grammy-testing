@@ -26,4 +26,12 @@ export default defineConfig([
       'no-barrel-files/no-barrel-files': 'off',
     },
   },
+  // This is a testing library with no application logger — prefer-logger does not apply.
+  {
+    name: 'Source — no custom logger requirement',
+    files: ['src/**/*.ts'],
+    rules: {
+      'lintlord/prefer-logger': 'off',
+    },
+  },
 ]);
