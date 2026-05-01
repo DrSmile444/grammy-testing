@@ -2,6 +2,7 @@ import type { Bot, Context } from 'grammy';
 import type { Chat, Message, MessageEntity, MessageOrigin, ReactionType, ShippingAddress, Update } from 'grammy/types';
 
 import type { AnyChat } from './chat';
+import type { RepliesInbox } from './chats';
 import { dispatchEditedMessage, dispatchServiceMessage, dispatchTextMessage } from './dispatch';
 import type { Group } from './group';
 import type { IdGenerator } from './id-generator';
@@ -162,6 +163,8 @@ interface UserContext<TContext extends Context = Context> {
    * "don't-downgrade-on-join" / "always-set-left" logic.
    */
   updateMembership: (chat: Group<TContext> | Supergroup<TContext>, user: User<TContext>, mode: 'join' | 'leave') => void;
+  /** Live inbox of replies addressed to this user. */
+  replies: RepliesInbox<TContext>;
 }
 
 export interface UserSendMediaGroupItem<TContext extends Context = Context> {
@@ -218,6 +221,15 @@ export class User<TContext extends Context = Context> {
    */
   in(chat: AnyChat<TContext>): Membership<TContext> | undefined {
     return this.membershipReader(chat);
+  }
+
+  /**
+   * Live inbox of all replies addressed to this user.
+   * Equivalent to `chats.repliesFor(this)` — same reference.
+   * @returns The `RepliesInbox` for this user.
+   */
+  get replies(): RepliesInbox<TContext> {
+    return this.ctx.replies;
   }
 
   /**

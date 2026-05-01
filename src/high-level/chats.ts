@@ -8,9 +8,11 @@ import type { Poll, Update } from 'grammy/types';
 import type { IdleTracker } from '../low-level/idle';
 import type { OutgoingRequests, Request } from '../low-level/outgoing-requests';
 
+import { ActionsLog } from './actions-log';
 import { BusinessAccount } from './business-account';
 import { Channel } from './channel';
 import { type AnyChat, setBotRef } from './chat';
+import { type Edit, EditsLog } from './edits-log';
 import { Group } from './group';
 import { IdGenerator } from './id-generator';
 import { MessagesLog } from './messages-log';
@@ -41,12 +43,23 @@ const MESSAGE_METHODS_GUARD = {
   sendPoll: true,
   sendDice: true,
   sendMediaGroup: true,
+} satisfies Partial<Record<keyof RawApi, true>>;
+
+const MESSAGE_METHODS = new Set(Object.keys(MESSAGE_METHODS_GUARD));
+
+const CHAT_ACTION_METHODS_GUARD = {
+  sendChatAction: true,
+} satisfies Partial<Record<keyof RawApi, true>>;
+
+const CHAT_ACTION_METHODS = new Set(Object.keys(CHAT_ACTION_METHODS_GUARD));
+
+const EDIT_METHODS_GUARD = {
   editMessageText: true,
   editMessageCaption: true,
   editMessageMedia: true,
 } satisfies Partial<Record<keyof RawApi, true>>;
 
-const MESSAGE_METHODS = new Set(Object.keys(MESSAGE_METHODS_GUARD));
+const EDIT_METHODS = new Set(Object.keys(EDIT_METHODS_GUARD));
 
 /**
  * Per-user inbox: filtered view of messages directed at this user.
@@ -87,6 +100,21 @@ export class RepliesInbox<TContext extends Context = Context> {
   }
 
   /**
+   * Returns the last reply or throws if the inbox is empty.
+   * @returns The last `Reply<TContext>`.
+   * @throws {Error} When the inbox is empty.
+   */
+  lastOrThrow(): Reply<TContext> {
+    const last = this.items.at(-1);
+
+    if (last === undefined) {
+      throw new Error('Expected a reply but the reply collection is empty');
+    }
+
+    return last;
+  }
+
+  /**
    * Returns the first reply whose text matches `matcher`, or `undefined` if none match.
    * @param matcher - A string for exact match or a `RegExp` for pattern match.
    * @returns The first matching reply, or `undefined`.
@@ -110,6 +138,8 @@ export class RepliesInbox<TContext extends Context = Context> {
 interface UserEntry<TContext extends Context = Context> {
   user: User<TContext>;
   replies: RepliesInbox<TContext>;
+  actions: ActionsLog;
+  edits: EditsLog;
   privateChat?: PrivateChat<TContext>;
 }
 
@@ -194,9 +224,10 @@ export class Chats<TContext extends Context = Context> {
    */
   newUser(profile: UserProfile = {}): User<TContext> {
     const id = profile.id ?? this.ids.nextUserId();
+    const inbox = new RepliesInbox<TContext>();
+
     // Two-phase: declare `user` so closures capture it by reference,
     // then assign before any closure can fire.
-
     let user!: User<TContext>;
 
     user = new User<TContext>(
@@ -212,11 +243,12 @@ export class Chats<TContext extends Context = Context> {
         updateMembership: (chat, who, mode) => {
           this.applyMembershipTransition(chat, who, mode);
         },
+        replies: inbox,
       },
       (chat: AnyChat<TContext>) => this.readMembership(user, chat),
     );
 
-    this.users.set(id, { user, replies: new RepliesInbox<TContext>() });
+    this.users.set(id, { user, replies: inbox, actions: new ActionsLog(), edits: new EditsLog() });
 
     return user;
   }
@@ -345,11 +377,24 @@ export class Chats<TContext extends Context = Context> {
    * @internal
    */
   deriveFromCapture(request: Request): void {
+    const payload = request.payload as Record<string, unknown>;
+
+    if (CHAT_ACTION_METHODS.has(request.method)) {
+      this.deriveChatAction(payload);
+
+      return;
+    }
+
+    if (EDIT_METHODS.has(request.method)) {
+      this.deriveEdit(payload);
+
+      return;
+    }
+
     if (!MESSAGE_METHODS.has(request.method)) {
       return;
     }
 
-    const payload = request.payload as Record<string, unknown>;
     const chatId = payload.chat_id as number | string | undefined;
 
     if (chatId === undefined) {
@@ -384,6 +429,60 @@ export class Chats<TContext extends Context = Context> {
     for (const entry of this.users.values()) {
       if (this.userReceivesReply(entry, chat, reply)) {
         entry.replies.push(reply);
+      }
+    }
+  }
+
+  /**
+   * Routes a captured `sendChatAction` payload to all matching user action logs.
+   * @param payload - The raw outgoing API payload.
+   */
+  private deriveChatAction(payload: Record<string, unknown>): void {
+    const chatId = payload.chat_id as number | string | undefined;
+    const action = payload.action as string | undefined;
+
+    if (chatId === undefined || action === undefined) {
+      return;
+    }
+
+    const chat = this.findChatByTelegramId(Number(chatId));
+
+    if (!chat) {
+      return;
+    }
+
+    for (const entry of this.users.values()) {
+      if (this.userIsInChat(entry, chat)) {
+        entry.actions.push(action);
+      }
+    }
+  }
+
+  /**
+   * Routes a captured `editMessage*` payload to all matching user edit logs.
+   * Looks up the original reply via `messageIdToReply`; silently skips if not found.
+   * @param payload - The raw outgoing API payload.
+   */
+  private deriveEdit(payload: Record<string, unknown>): void {
+    const messageId = payload.message_id as number | undefined;
+
+    if (messageId === undefined) {
+      return;
+    }
+
+    const originalReply = this.messageIdToReply.get(messageId);
+
+    if (!originalReply?.chat) {
+      return; // edit targets a message not captured during this test — skip silently
+    }
+
+    const { chat } = originalReply;
+    const text = (payload.text ?? payload.caption) as string | undefined;
+    const edit: Edit = { text, editedMessageId: messageId, raw: payload };
+
+    for (const entry of this.users.values()) {
+      if (this.userIsInChat(entry, chat)) {
+        entry.edits.push(edit);
       }
     }
   }
@@ -535,6 +634,27 @@ export class Chats<TContext extends Context = Context> {
   }
 
   /**
+   * Returns `true` if `entry`'s user is an active participant of `chat`.
+   * For private chats this matches by user ID; for group chats it checks active membership.
+   * @param entry - The user entry to evaluate.
+   * @param chat - The chat to check.
+   * @returns `true` if the user is an active participant.
+   */
+  private userIsInChat(entry: UserEntry<TContext>, chat: AnyChat<TContext>): boolean {
+    if (chat.type === 'private') {
+      return chat.id === entry.user.id;
+    }
+
+    if (!('members' in chat)) {
+      return false;
+    }
+
+    const status = chat.members.get(entry.user.id)?.status;
+
+    return status !== undefined && status !== 'left' && status !== 'kicked';
+  }
+
+  /**
    * Access the per-user replies inbox.
    * @param user - The user whose inbox to retrieve.
    * @returns The `RepliesInbox` for `user`.
@@ -547,5 +667,35 @@ export class Chats<TContext extends Context = Context> {
     }
 
     return entry.replies;
+  }
+
+  /**
+   * Access the per-user chat-action log.
+   * @param user - The user whose action log to retrieve.
+   * @returns The `ActionsLog` for `user`.
+   */
+  actionsFor(user: User<TContext>): ActionsLog {
+    const entry = this.users.get(user.id);
+
+    if (!entry) {
+      throw new Error(`User ${String(user.id)} was not minted by this Chats instance`);
+    }
+
+    return entry.actions;
+  }
+
+  /**
+   * Access the per-user edit log.
+   * @param user - The user whose edit log to retrieve.
+   * @returns The `EditsLog` for `user`.
+   */
+  editsFor(user: User<TContext>): EditsLog {
+    const entry = this.users.get(user.id);
+
+    if (!entry) {
+      throw new Error(`User ${String(user.id)} was not minted by this Chats instance`);
+    }
+
+    return entry.edits;
   }
 }

@@ -9,7 +9,11 @@ export {
   type ConnectOptions,
 } from './high-level/business-account';
 
+export type { ActionsLog } from './high-level/actions-log';
+
 export type { Chats, RepliesInbox, DispatchPollStateOptions } from './high-level/chats';
+
+export type { Edit, EditsLog } from './high-level/edits-log';
 
 export type { GrammyErrorSpec } from './low-level/grammy-error';
 
