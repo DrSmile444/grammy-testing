@@ -15,6 +15,13 @@ export interface PrepareOptions {
    * resolve to `{ ok: true, result: true }` by default.
    */
   responses?: Responses;
+  /**
+   * Emit a `console.warn` when the bot calls an API method targeting a chat
+   * not registered with the `Chats` orchestrator. Useful for diagnosing empty
+   * `user.replies` when the bot fans out to external chats (log channels, etc.).
+   * Defaults to `true`. Pass `false` to suppress.
+   */
+  warnOnUnregisteredChats?: boolean;
 }
 
 export interface PrepareBotReturn<TContext extends Context = Context> {
@@ -40,7 +47,7 @@ export async function prepareBot<TContext extends Context = Context, TApi extend
 ): Promise<PrepareBotReturn<TContext>> {
   const outgoing = new OutgoingRequests();
   const idle = new IdleTracker();
-  const chats = new Chats<TContext>(outgoing, idle);
+  const chats = new Chats<TContext>(outgoing, idle, options.warnOnUnregisteredChats ?? true);
 
   const responses = { ...chats.buildDefaultResponses(), ...options.responses };
 

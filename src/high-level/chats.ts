@@ -175,6 +175,9 @@ function undefinedSafeBot<TContext extends Context>(ref: BotRef<TContext>): Bot<
   });
 }
 
+/** Telegram chat ID — either a numeric ID or a `@username` string. */
+type ChatId = number | string;
+
 /**
  * The orchestrator returned from every entry point's `chats` field.
  * Mints users and chats, exposes the v0.1 capture surface
@@ -207,16 +210,48 @@ export class Chats<TContext extends Context = Context> {
 
   defaultGroup?: Supergroup<TContext>;
 
+  private readonly warnOnUnregisteredChats: boolean;
+
   /**
    * Creates a new `Chats` orchestrator.
    * @param outgoing - Captures all outgoing Telegram API calls made by the bot.
    * @param idleTracker - Resolves the `idle()` promise when the bot's middleware queue drains.
+   * @param warnOnUnregisteredChats - Emit a console.warn when an API call targets an unregistered chat (default `true`).
    */
   constructor(
     public readonly outgoing: OutgoingRequests,
     idleTracker: IdleTracker,
+    warnOnUnregisteredChats = true,
   ) {
     this.idle = () => idleTracker.idle();
+    this.warnOnUnregisteredChats = warnOnUnregisteredChats;
+  }
+
+  /**
+   * Resets all captured log state in one call. Clears outgoing requests, per-user
+   * replies/actions/edits, per-chat messages and deletions logs, and routing registries.
+   * User/chat registries and membership records are preserved.
+   */
+  clear(): void {
+    this.outgoing.clear();
+
+    for (const entry of this.users.values()) {
+      entry.replies.clear();
+      entry.actions.clear();
+      entry.edits.clear();
+    }
+
+    for (const chat of this.chats.values()) {
+      chat.messages.clear();
+    }
+
+    for (const log of this.chatDeletions.values()) {
+      log.clear();
+    }
+
+    this.messageIdToReply.clear();
+    this.clickers.clear();
+    this.lastCapturedReply = undefined;
   }
 
   /**
@@ -479,7 +514,7 @@ export class Chats<TContext extends Context = Context> {
     // Reset so the response resolver sees undefined for unregistered chats.
     this.lastCapturedReply = undefined;
 
-    const chatId = payload.chat_id as number | string | undefined;
+    const chatId = payload.chat_id as ChatId | undefined;
 
     if (chatId === undefined) {
       return;
@@ -488,7 +523,9 @@ export class Chats<TContext extends Context = Context> {
     const chat = this.findChatByTelegramId(Number(chatId));
 
     if (!chat) {
-      return; // not a known chat — skip silently
+      this.warnUnregisteredChat(request.method, chatId);
+
+      return;
     }
 
     const { bot } = this;
@@ -524,7 +561,7 @@ export class Chats<TContext extends Context = Context> {
    * @param payload - The raw outgoing API payload.
    */
   private deriveChatAction(payload: Record<string, unknown>): void {
-    const chatId = payload.chat_id as number | string | undefined;
+    const chatId = payload.chat_id as ChatId | undefined;
     const action = payload.action as string | undefined;
 
     if (chatId === undefined || action === undefined) {
@@ -534,6 +571,8 @@ export class Chats<TContext extends Context = Context> {
     const chat = this.findChatByTelegramId(Number(chatId));
 
     if (!chat) {
+      this.warnUnregisteredChat('sendChatAction', chatId);
+
       return;
     }
 
@@ -579,7 +618,7 @@ export class Chats<TContext extends Context = Context> {
    * @param payload - The raw outgoing API payload.
    */
   private deriveDelete(payload: Record<string, unknown>): void {
-    const chatId = payload.chat_id as number | string | undefined;
+    const chatId = payload.chat_id as ChatId | undefined;
     const messageId = payload.message_id as number | undefined;
 
     if (chatId === undefined || messageId === undefined) {
@@ -589,6 +628,8 @@ export class Chats<TContext extends Context = Context> {
     const log = this.chatDeletions.get(Number(chatId));
 
     if (!log) {
+      this.warnUnregisteredChat('deleteMessage', chatId);
+
       return;
     }
 
@@ -692,6 +733,21 @@ export class Chats<TContext extends Context = Context> {
    */
   private findChatByTelegramId(id: number): AnyChat<TContext> | undefined {
     return this.chats.get(id);
+  }
+
+  /**
+   * Emits a console.warn when an API call targets a chat not registered with this orchestrator.
+   * @param method - The API method name.
+   * @param chatId - The unregistered chat ID.
+   */
+  private warnUnregisteredChat(method: string, chatId: ChatId): void {
+    if (this.warnOnUnregisteredChats) {
+      // eslint-disable-next-line no-console -- intentional developer warning
+      console.warn(
+        `[grammy-testing] Bot called ${method} to unregistered chat ${String(chatId)}. ` +
+          `Register it with chats.newChannel() / newSupergroup() / newGroup(), or pass { warnOnUnregisteredChats: false } to suppress.`,
+      );
+    }
   }
 
   /**
