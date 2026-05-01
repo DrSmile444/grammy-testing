@@ -215,7 +215,7 @@ export class User<TContext extends Context = Context> {
       chat: targetChat,
       text,
       messageId: this.ctx.ids.nextMessageId(),
-      updateId: this.ctx.ids.nextMessageId() + 100_000,
+      updateId: this.ctx.ids.nextUpdateId(),
       entities: options.entities,
       replyToMessageId: options.reply_parameters?.message_id,
       replyToMessage: options.reply_to_message,
@@ -235,7 +235,7 @@ export class User<TContext extends Context = Context> {
       chat: targetChat,
       text,
       messageId: this.ctx.ids.nextMessageId(),
-      updateId: this.ctx.ids.nextMessageId() + 100_000,
+      updateId: this.ctx.ids.nextUpdateId(),
       forwardOrigin: options.forwardOrigin,
     });
   }
@@ -249,7 +249,7 @@ export class User<TContext extends Context = Context> {
       chat: targetChat,
       messageId,
       text,
-      updateId: this.ctx.ids.nextMessageId() + 500_000,
+      updateId: this.ctx.ids.nextUpdateId(),
     });
   }
 
@@ -268,7 +268,7 @@ export class User<TContext extends Context = Context> {
       user: this,
       chat: chat.toTelegramChat(),
       messageId: this.ctx.ids.nextMessageId(),
-      updateId: 600_000,
+      updateId: this.ctx.ids.nextUpdateId(),
     });
 
     this.ctx.updateMembership(chat, this, 'join');
@@ -289,7 +289,7 @@ export class User<TContext extends Context = Context> {
       user: this,
       chat: chat.toTelegramChat(),
       messageId: this.ctx.ids.nextMessageId(),
-      updateId: 700_000,
+      updateId: this.ctx.ids.nextUpdateId(),
     });
 
     this.ctx.updateMembership(chat, this, 'leave');
