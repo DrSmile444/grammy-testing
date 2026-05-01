@@ -1,8 +1,8 @@
-import { Bot, Composer } from 'grammy';
+import { Bot, Composer, type Context } from 'grammy';
 import { describe, expect, it } from 'vitest';
 
 import { prepareBot, prepareComposer, prepareMiddleware } from '../../src/index';
-import { MessagePrivateMockUpdate } from '../../src/low-level';
+import { MessagePrivateMockUpdate, type StateContext } from '../../src/low-level';
 
 const passThroughMiddleware: Parameters<typeof prepareMiddleware>[0] = (_context, next) => next();
 
@@ -52,6 +52,65 @@ describe('entry points', () => {
 
       expect(last?.method).toBe('sendMessage');
       expect((last?.payload as { text: string }).text).toBe('echo: hi');
+    });
+
+    it('sendMessage default response carries the synthetic message_id from the captured reply', async () => {
+      const bot = new Bot('test-token');
+      let sentMessageId: number | undefined;
+
+      bot.on('message:text', async (ctx) => {
+        const sent = await ctx.reply('hello');
+
+        sentMessageId = sent.message_id;
+      });
+
+      const { chats } = await prepareBot(bot);
+      const user = chats.newUser();
+
+      await user.sendText('trigger');
+
+      expect(sentMessageId).toBeDefined();
+      expect(sentMessageId).toBe(user.replies.lastOrThrow().messageId);
+    });
+
+    it('bot can read sent.message_id to drive editMessageText', async () => {
+      const bot = new Bot('test-token');
+
+      bot.on('message:text', async (ctx) => {
+        const sent = await ctx.reply('loading…');
+
+        await ctx.api.editMessageText(ctx.chat.id, sent.message_id, 'done');
+      });
+
+      const { chats } = await prepareBot(bot);
+      const user = chats.newUser();
+
+      await user.sendText('trigger');
+
+      expect(chats.editsFor(user).lastOrThrow().text).toBe('done');
+    });
+
+    it('user-supplied responses.sendMessage overrides the synthetic default', async () => {
+      const bot = new Bot('test-token');
+      let sentMessageId: number | undefined;
+
+      bot.on('message:text', async (ctx) => {
+        const sent = await ctx.reply('hello');
+
+        sentMessageId = sent.message_id;
+      });
+
+      const { chats } = await prepareBot(bot, {
+        responses: {
+          sendMessage: { message_id: 9999, date: 0, text: 'hello' },
+        },
+      });
+
+      const user = chats.newUser();
+
+      await user.sendText('trigger');
+
+      expect(sentMessageId).toBe(9999);
     });
 
     it('uses static canned responses', async () => {
@@ -107,6 +166,34 @@ describe('entry points', () => {
       expect(chats.outgoing).toBeDefined();
       expect(typeof chats.idle).toBe('function');
     });
+
+    it('state option pre-populates ctx.state before the composer runs', async () => {
+      interface MyState {
+        isRussian: boolean;
+        score: number;
+      }
+
+      type MyContext = Context & StateContext<MyState>;
+
+      let observedState: MyState | undefined;
+
+      const composer = new Composer<MyContext>();
+
+      composer.on('message:text', (ctx) => {
+        observedState = ctx.state;
+      });
+
+      const { chats } = await prepareComposer<MyContext>(composer, {
+        state: { isRussian: true, score: 42 },
+      });
+
+      const user = chats.newUser();
+
+      await user.sendText('hi');
+
+      expect(observedState?.isRussian).toBe(true);
+      expect(observedState?.score).toBe(42);
+    });
   });
 
   describe('prepareMiddleware', () => {
@@ -124,6 +211,31 @@ describe('entry points', () => {
 
       expect(chats.outgoing).toBeDefined();
       expect(typeof chats.idle).toBe('function');
+    });
+
+    it('state option pre-populates ctx.state before the middleware runs', async () => {
+      interface MyState {
+        lang: string;
+      }
+
+      type MyContext = Context & StateContext<MyState>;
+
+      let observedLang: string | undefined;
+
+      const { chats } = await prepareMiddleware<MyContext>(
+        (ctx, next) => {
+          observedLang = ctx.state.lang;
+
+          return next();
+        },
+        { state: { lang: 'uk' } },
+      );
+
+      const user = chats.newUser();
+
+      await user.sendText('test');
+
+      expect(observedLang).toBe('uk');
     });
   });
 

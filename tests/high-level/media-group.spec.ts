@@ -1,7 +1,30 @@
 import { Bot } from 'grammy';
+import type { Message } from 'grammy/types';
 import { describe, expect, it } from 'vitest';
 
 import { prepareBot } from '../../src/index';
+
+describe('bot.api.sendMediaGroup synthetic response', () => {
+  it('default response is a single-element Message[] with the captured reply messageId', async () => {
+    const bot = new Bot('test-token');
+    let sentGroup: Message[] | undefined;
+
+    bot.on('message', async (ctx) => {
+      sentGroup = await ctx.api.sendMediaGroup(ctx.chat.id, [
+        { type: 'photo', media: 'file-a' },
+        { type: 'photo', media: 'file-b' },
+      ]);
+    });
+
+    const { chats } = await prepareBot(bot);
+    const user = chats.newUser();
+
+    await user.sendText('trigger');
+
+    expect(sentGroup).toHaveLength(1);
+    expect(sentGroup?.[0]?.message_id).toBe(user.replies.lastOrThrow().messageId);
+  });
+});
 
 describe('user.sendMediaGroup', () => {
   it('three-item dispatch produces three handler invocations with shared media_group_id', async () => {
