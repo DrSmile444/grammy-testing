@@ -1,6 +1,6 @@
 {
   "name": "@grammyjs/testing",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "type": "module",
   "packageManager": "npm@11.9.0",
   "engines": {
@@ -51,8 +51,7 @@
     "bump-version": "npx tsx ./scripts/bump-version.script.ts && npm audit fix",
     "parse-llm-response": "npx tsx ./scripts/split-plain-code.wrap.ts",
     "after-parse-llm-response": "npx tsx ./scripts/create-auto-ts-paths.script.ts && npm run lint:fix && npm run format:md",
-    "format": "npx prettier . --write",
-    "postinstall": "./scripts/link-codex-skills.sh"
+    "format": "npx prettier . --write"
   },
   "keywords": [
     "grammy",
