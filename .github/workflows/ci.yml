@@ -48,3 +48,13 @@ jobs:
           bun-version: latest
       - run: bun install
       - run: bun run test:run
+
+  deno:
+    name: Check (Deno)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - run: deno check src/index.ts src/low-level.ts
