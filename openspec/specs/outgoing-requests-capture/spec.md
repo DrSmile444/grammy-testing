@@ -24,6 +24,8 @@ The system SHALL provide an `OutgoingRequests` collector, accessible as `chats.o
 
 The collector SHALL expose: `requests` (readonly getter over a private array), `length` (getter), `push(request)`, `clear()`, `getMethods()` (returns `string[]` of method names in capture order), `buildMethods<T>(methods)` (returns the input array typed as `T[]` for typed-tuple comparisons), `getFirst()`, `getLast()`, `getTwoLast()`, `getThreeLast()`, and `getAll<T1,T2,...>()` overloads up to **ten** type arguments returning a typed `Partial<[Request<T1>, ...]>`.
 
+The ten-overload cap on `getAll()` is **intentional**. Tests that need to inspect more than ten captures in a single destructure SHALL split into multiple assertion blocks (e.g., call `clear()` between phases, or use `getMethods()` for ordering checks and individual `getFirst()`/`getLast()` for payload checks). Manual overloads are preferred over variadic TypeScript generics here because they produce cleaner IDE completions and error messages at the cost of a fixed upper bound, which is acceptable for a testing library.
+
 The `requests` field SHALL be read-only externally: consumers may read `chats.outgoing.requests` and iterate it, but SHALL NOT reassign the field or hold a mutable alias that bypasses `push()`/`clear()`.
 
 `clear()` SHALL truncate the underlying array in-place (`length = 0`) so that any external reference to the array observes the empty state after the call.
