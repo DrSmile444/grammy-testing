@@ -82,6 +82,16 @@ A CI job SHALL run `deno check src/index.ts src/low-level.ts` using the latest D
 - **THEN** `deno check src/index.ts src/low-level.ts` exits with code 0
 - **AND** no TypeScript errors are reported
 
+### Requirement: Package installs cleanly in consumer projects
+
+The published `@grammyjs/testing` package SHALL NOT include a `postinstall` script in its `package.json`. Consumer projects running `npm install @grammyjs/testing` SHALL complete without errors and SHALL NOT require `--ignore-scripts`.
+
+#### Scenario: Consumer npm install succeeds without flags
+
+- **WHEN** a consumer project runs `npm install @grammyjs/testing`
+- **THEN** the installation completes with exit code 0
+- **AND** no error about a missing `link-codex-skills.sh` or any other postinstall script is reported
+
 ### Requirement: jsr.json scaffold is present
 
 A `jsr.json` file SHALL exist at the repo root with the correct package name, version, and TypeScript source entry points. It SHALL NOT require a build step. Publishing to the `@grammyjs` JSR scope is gated on grammY team approval and is NOT performed by this change.
