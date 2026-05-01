@@ -3,7 +3,7 @@
 /* eslint-disable no-param-reassign -- attachBot intentionally hands bot to each chat */
 
 import type { Bot, Context, RawApi } from 'grammy';
-import type { Message, Poll, Update } from 'grammy/types';
+import type { ChatMember, Message, Poll, Update, User as TelegramUser } from 'grammy/types';
 
 import type { IdleTracker } from '../low-level/idle';
 import type { OutgoingRequests, Request } from '../low-level/outgoing-requests';
@@ -23,6 +23,32 @@ import { Reply } from './reply';
 import { Supergroup } from './supergroup';
 import type { Membership, PromotePermissions } from './types';
 import { User, type UserProfile } from './user';
+
+/**
+ * Converts a `Membership` record to the `ChatMember` discriminated union shape expected by the Telegram API.
+ * `User<TContext>` is structurally compatible with the Telegram `User` interface (same required fields).
+ * For `'administrator'` and `'restricted'` statuses the permissions spread may not satisfy every required
+ * field of the strict Telegram shape, so those branches use an explicit cast.
+ */
+function membershipToChatMember<TContext extends Context>(membership: Membership<TContext>): ChatMember {
+  const user = membership.user as unknown as TelegramUser;
+  const { status, permissions, untilDate } = membership;
+
+  switch (status) {
+    case 'creator':
+      return { status: 'creator', user, is_anonymous: permissions.is_anonymous ?? false };
+    case 'administrator':
+      return { status: 'administrator', user, is_anonymous: false, can_be_edited: true, ...permissions } as ChatMember;
+    case 'member':
+      return { status: 'member', user };
+    case 'restricted':
+      return { status: 'restricted', user, is_member: true, until_date: untilDate ?? 0, ...permissions } as ChatMember;
+    case 'left':
+      return { status: 'left', user };
+    case 'kicked':
+      return { status: 'kicked', user, until_date: untilDate ?? 0 };
+  }
+}
 
 export interface DispatchPollStateOptions {
   /** Override the auto-generated update_id. */
@@ -321,6 +347,21 @@ export class Chats<TContext extends Context = Context> {
   }
 
   /**
+   * Creates a new user and designates them as the creator of the default supergroup.
+   * The default supergroup is lazily created on the first call, exactly as `newAdmin()` does.
+   * @param profile - Optional user profile overrides.
+   * @returns The newly created owner `User` instance.
+   */
+  newOwner(profile: UserProfile = {}): User<TContext> {
+    const user = this.newUser(profile);
+
+    this.defaultGroup ??= this.newSupergroup('default-group');
+    this.defaultGroup.own(user);
+
+    return user;
+  }
+
+  /**
    * Returns (or lazily creates) the private chat associated with `user`.
    * @param user - The user whose private chat to retrieve.
    * @returns The `PrivateChat` instance for `user`.
@@ -459,6 +500,47 @@ export class Chats<TContext extends Context = Context> {
       return { message_id: messageId };
     };
 
+    const getChatMemberResolver = (payload: { chat_id: ChatId; user_id: number }): ChatMember => {
+      const chat = this.findChatByTelegramId(Number(payload.chat_id));
+
+      if (!chat || !('members' in chat)) {
+        return true as unknown as ChatMember;
+      }
+
+      const membership = chat.members.get(payload.user_id);
+
+      if (membership) {
+        return membershipToChatMember(membership);
+      }
+
+      const userEntry = this.users.get(payload.user_id);
+      const fallbackUser = (userEntry?.user ?? { id: payload.user_id, is_bot: false, first_name: 'Unknown' }) as unknown as TelegramUser;
+
+      return { status: 'left', user: fallbackUser };
+    };
+
+    const getChatAdministratorsResolver = (payload: { chat_id: ChatId }): Array<ChatMember> => {
+      const chat = this.findChatByTelegramId(Number(payload.chat_id));
+
+      if (!chat || !('members' in chat)) {
+        return [];
+      }
+
+      return [...chat.members.values()]
+        .filter((m) => m.status === 'creator' || m.status === 'administrator')
+        .map((m) => membershipToChatMember(m));
+    };
+
+    const getChatResolver = (payload: { chat_id: ChatId }) => {
+      const chat = this.findChatByTelegramId(Number(payload.chat_id));
+
+      if (!chat) {
+        return true;
+      }
+
+      return { ...chat.toTelegramChat(), invite_link: '' };
+    };
+
     return {
       sendMessage: syntheticMessage,
       sendPhoto: syntheticMessage,
@@ -477,6 +559,9 @@ export class Chats<TContext extends Context = Context> {
       sendMediaGroup: syntheticMediaGroup as never,
       copyMessage: syntheticMessageId as never,
       forwardMessage: syntheticMessage,
+      getChatMember: getChatMemberResolver as never,
+      getChatAdministrators: getChatAdministratorsResolver as never,
+      getChat: getChatResolver as never,
     };
   }
 

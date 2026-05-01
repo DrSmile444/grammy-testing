@@ -118,6 +118,42 @@ export class Supergroup<TContext extends Context = Context> implements ChatRefHo
   }
 
   /**
+   * Designates `user` as the creator of this supergroup. Pure state write — no Telegram update is dispatched.
+   * @param user - The user to set as creator.
+   * @returns The new `Membership` record for `user`.
+   */
+  own(user: User<TContext>): Membership<TContext> {
+    const membership: Membership<TContext> = {
+      user,
+      chat: this,
+      status: 'creator',
+      permissions: { is_anonymous: false },
+    };
+
+    this.members.set(user.id, membership);
+
+    return membership;
+  }
+
+  /**
+   * Adds `user` as a plain member of this supergroup. Pure state write — no Telegram update is dispatched.
+   * @param user - The user to add as a member.
+   * @returns The new `Membership` record for `user`.
+   */
+  join(user: User<TContext>): Membership<TContext> {
+    const membership: Membership<TContext> = {
+      user,
+      chat: this,
+      status: 'member',
+      permissions: {},
+    };
+
+    this.members.set(user.id, membership);
+
+    return membership;
+  }
+
+  /**
    * Dispatches a `my_chat_member` update and updates the in-memory membership record.
    * @param user - The user whose status is changing.
    * @param transition - The status transition to apply, including from/to statuses and optional permissions.
