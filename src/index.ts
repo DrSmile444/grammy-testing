@@ -13,6 +13,8 @@ export type { ActionsLog } from './high-level/actions-log';
 
 export type { Chats, RepliesInbox, DispatchPollStateOptions } from './high-level/chats';
 
+export type { Deletion, DeletionsLog } from './high-level/deletions-log';
+
 export type { Edit, EditsLog } from './high-level/edits-log';
 
 export type { GrammyErrorSpec } from './low-level/grammy-error';

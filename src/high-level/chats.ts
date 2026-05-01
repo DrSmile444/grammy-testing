@@ -13,6 +13,7 @@ import { ActionsLog } from './actions-log';
 import { BusinessAccount } from './business-account';
 import { Channel } from './channel';
 import { type AnyChat, setBotRef } from './chat';
+import { type Deletion, DeletionsLog } from './deletions-log';
 import { type Edit, EditsLog } from './edits-log';
 import { Group } from './group';
 import { IdGenerator } from './id-generator';
@@ -44,6 +45,8 @@ const MESSAGE_METHODS_GUARD = {
   sendPoll: true,
   sendDice: true,
   sendMediaGroup: true,
+  copyMessage: true,
+  forwardMessage: true,
 } satisfies Partial<Record<keyof RawApi, true>>;
 
 const MESSAGE_METHODS = new Set(Object.keys(MESSAGE_METHODS_GUARD));
@@ -61,6 +64,12 @@ const EDIT_METHODS_GUARD = {
 } satisfies Partial<Record<keyof RawApi, true>>;
 
 const EDIT_METHODS = new Set(Object.keys(EDIT_METHODS_GUARD));
+
+const DELETE_METHODS_GUARD = {
+  deleteMessage: true,
+} satisfies Partial<Record<keyof RawApi, true>>;
+
+const DELETE_METHODS = new Set(Object.keys(DELETE_METHODS_GUARD));
 
 /**
  * Per-user inbox: filtered view of messages directed at this user.
@@ -186,6 +195,9 @@ export class Chats<TContext extends Context = Context> {
 
   /** messageId->Reply registry for reply.replyingTo resolution. */
   private readonly messageIdToReply = new Map<number, Reply<TContext>>();
+
+  /** chatId->DeletionsLog registry for deleteMessage routing. */
+  private readonly chatDeletions = new Map<number, DeletionsLog<TContext>>();
 
   /** The Reply created by the most recent message-method `onCapture` call. Read by the default response resolvers. */
   private lastCapturedReply: Reply<TContext> | undefined;
@@ -402,6 +414,16 @@ export class Chats<TContext extends Context = Context> {
       return [{ message_id: messageId, date: Math.floor(Date.now() / 1000) }];
     };
 
+    const syntheticMessageId = () => {
+      const messageId = this.lastCapturedReply?.messageId;
+
+      if (messageId === undefined) {
+        return true as unknown as { message_id: number };
+      }
+
+      return { message_id: messageId };
+    };
+
     return {
       sendMessage: syntheticMessage,
       sendPhoto: syntheticMessage,
@@ -418,6 +440,8 @@ export class Chats<TContext extends Context = Context> {
       sendPoll: syntheticMessage,
       sendDice: syntheticMessage,
       sendMediaGroup: syntheticMediaGroup as never,
+      copyMessage: syntheticMessageId as never,
+      forwardMessage: syntheticMessage,
     };
   }
 
@@ -438,6 +462,12 @@ export class Chats<TContext extends Context = Context> {
 
     if (EDIT_METHODS.has(request.method)) {
       this.deriveEdit(payload);
+
+      return;
+    }
+
+    if (DELETE_METHODS.has(request.method)) {
+      this.deriveDelete(payload);
 
       return;
     }
@@ -544,6 +574,31 @@ export class Chats<TContext extends Context = Context> {
   }
 
   /**
+   * Routes a captured `deleteMessage` payload to the matching chat deletion log.
+   * Resolves the deleted Reply via `messageIdToReply` if it was captured during this test.
+   * @param payload - The raw outgoing API payload.
+   */
+  private deriveDelete(payload: Record<string, unknown>): void {
+    const chatId = payload.chat_id as number | string | undefined;
+    const messageId = payload.message_id as number | undefined;
+
+    if (chatId === undefined || messageId === undefined) {
+      return;
+    }
+
+    const log = this.chatDeletions.get(Number(chatId));
+
+    if (!log) {
+      return;
+    }
+
+    const reply = this.messageIdToReply.get(messageId);
+    const deletion: Deletion<TContext> = { messageId, reply, raw: payload };
+
+    log.push(deletion);
+  }
+
+  /**
    * Returns `true` if `entry`'s user should receive `reply` in their inbox.
    * @param entry - The user entry to evaluate.
    * @param chat - The chat the reply was sent to.
@@ -607,6 +662,7 @@ export class Chats<TContext extends Context = Context> {
     }
 
     this.chats.set(chat.id, chat);
+    this.chatDeletions.set(chat.id, new DeletionsLog<TContext>());
 
     if (this.bot) {
       chat[setBotRef](this.bot);
@@ -622,6 +678,7 @@ export class Chats<TContext extends Context = Context> {
   private registerChat(chat: Channel<TContext> | Group<TContext> | Supergroup<TContext>): void {
     chat.messages = new MessagesLog<TContext>();
     this.chats.set(chat.id, chat);
+    this.chatDeletions.set(chat.id, new DeletionsLog<TContext>());
 
     if (this.bot) {
       chat[setBotRef](this.bot);
@@ -753,5 +810,20 @@ export class Chats<TContext extends Context = Context> {
     }
 
     return entry.edits;
+  }
+
+  /**
+   * Access the per-chat deletion log.
+   * @param chat - The chat whose deletion log to retrieve.
+   * @returns The `DeletionsLog` for `chat`.
+   */
+  deletionsFor(chat: AnyChat<TContext>): DeletionsLog<TContext> {
+    const log = this.chatDeletions.get(chat.id);
+
+    if (!log) {
+      throw new Error(`Chat ${String(chat.id)} was not registered with this Chats instance`);
+    }
+
+    return log;
   }
 }
