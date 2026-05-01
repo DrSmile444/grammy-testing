@@ -42,11 +42,13 @@ export async function prepareBot<TContext extends Context = Context, TApi extend
   const idle = new IdleTracker();
   const chats = new Chats<TContext>(outgoing, idle);
 
+  const responses = { ...chats.buildDefaultResponses(), ...options.responses };
+
   bot.api.config.use(
     createTransformer({
       outgoing,
       idle,
-      responses: options.responses,
+      responses,
       onCapture: (request) => {
         chats.deriveFromCapture(request);
       },

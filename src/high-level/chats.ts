@@ -3,10 +3,11 @@
 /* eslint-disable no-param-reassign -- attachBot intentionally hands bot to each chat */
 
 import type { Bot, Context, RawApi } from 'grammy';
-import type { Poll, Update } from 'grammy/types';
+import type { Message, Poll, Update } from 'grammy/types';
 
 import type { IdleTracker } from '../low-level/idle';
 import type { OutgoingRequests, Request } from '../low-level/outgoing-requests';
+import type { Responses } from '../low-level/responses';
 
 import { ActionsLog } from './actions-log';
 import { BusinessAccount } from './business-account';
@@ -185,6 +186,9 @@ export class Chats<TContext extends Context = Context> {
 
   /** messageId->Reply registry for reply.replyingTo resolution. */
   private readonly messageIdToReply = new Map<number, Reply<TContext>>();
+
+  /** The Reply created by the most recent message-method `onCapture` call. Read by the default response resolvers. */
+  private lastCapturedReply: Reply<TContext> | undefined;
 
   /** @internal */
   bot: Bot<TContext> | undefined;
@@ -371,6 +375,53 @@ export class Chats<TContext extends Context = Context> {
   }
 
   /**
+   * Builds default `Responses` entries for all message-sending methods. Each resolver reads
+   * `lastCapturedReply` at call time (after `onCapture` has fired) to return a `Message`-shaped
+   * result carrying the synthetic `messageId`. User-supplied `responses` entries take precedence.
+   * @returns A `Responses` map with dynamic resolvers for every message-sending method.
+   * @internal
+   */
+  buildDefaultResponses(): Responses {
+    const syntheticMessage = (): Partial<Message> => {
+      const messageId = this.lastCapturedReply?.messageId;
+
+      if (messageId === undefined) {
+        return true as unknown as Partial<Message>;
+      }
+
+      return { message_id: messageId, date: Math.floor(Date.now() / 1000) };
+    };
+
+    const syntheticMediaGroup = (): unknown[] => {
+      const messageId = this.lastCapturedReply?.messageId;
+
+      if (messageId === undefined) {
+        return [];
+      }
+
+      return [{ message_id: messageId, date: Math.floor(Date.now() / 1000) }];
+    };
+
+    return {
+      sendMessage: syntheticMessage,
+      sendPhoto: syntheticMessage,
+      sendDocument: syntheticMessage,
+      sendVideo: syntheticMessage,
+      sendAudio: syntheticMessage,
+      sendVoice: syntheticMessage,
+      sendVideoNote: syntheticMessage,
+      sendAnimation: syntheticMessage,
+      sendSticker: syntheticMessage,
+      sendLocation: syntheticMessage,
+      sendContact: syntheticMessage,
+      sendVenue: syntheticMessage,
+      sendPoll: syntheticMessage,
+      sendDice: syntheticMessage,
+      sendMediaGroup: syntheticMediaGroup as never,
+    };
+  }
+
+  /**
    * Processes a captured outgoing API call. Derives `chat.messages` and
    * `user.replies` projections.
    * @param request - The captured outgoing API request.
@@ -394,6 +445,9 @@ export class Chats<TContext extends Context = Context> {
     if (!MESSAGE_METHODS.has(request.method)) {
       return;
     }
+
+    // Reset so the response resolver sees undefined for unregistered chats.
+    this.lastCapturedReply = undefined;
 
     const chatId = payload.chat_id as number | string | undefined;
 
@@ -421,6 +475,8 @@ export class Chats<TContext extends Context = Context> {
       },
       resolveReply: (messageId) => this.messageIdToReply.get(messageId),
     });
+
+    this.lastCapturedReply = reply;
 
     this.messageIdToReply.set(reply.messageId, reply);
 
