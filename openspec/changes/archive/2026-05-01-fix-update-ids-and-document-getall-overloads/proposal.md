@@ -11,9 +11,11 @@ Module-level counters were removed and `IdGenerator.nextUpdateId()` was introduc
 ## Capabilities
 
 ### New Capabilities
+
 <!-- none -->
 
 ### Modified Capabilities
+
 - `outgoing-requests-capture`: Document the 10-overload cap on `getAll()` as an explicit, intentional constraint.
 - `user-actor`: Update requirements to reflect that all dispatched updates must use `IdGenerator.nextUpdateId()` for their `update_id`.
 

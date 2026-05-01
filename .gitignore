@@ -14,3 +14,5 @@ coverage
 .agents
 docs/project.md
 dist/
+*.tgz
+TODO.md

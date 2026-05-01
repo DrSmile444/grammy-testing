@@ -8,11 +8,13 @@
 ## Goals / Non-Goals
 
 **Goals:**
+
 - All dispatched updates in `user.ts` use `IdGenerator.nextUpdateId()` for `update_id`.
 - `outgoing-requests-capture` spec documents the 10-overload cap on `getAll()`.
 - `user-actor` spec requires update IDs to come from `IdGenerator`.
 
 **Non-Goals:**
+
 - Changing the `getAll()` implementation — the 10-overload design is correct as-is; this is documentation only.
 - Fixing update IDs in any file other than `user.ts` (the rest were already migrated).
 - Renumbering or reserving ID ranges — `nextUpdateId()` produces a monotonic sequence; callers do not choose the value.
@@ -25,6 +27,7 @@ Old pattern: `updateId: this.ctx.ids.nextMessageId() + 100_000`
 New pattern: `updateId: this.ctx.ids.nextUpdateId()`
 
 Alternatives considered:
+
 - Keep offsets but use `nextUpdateId() + offset` — rejected; the whole point of `nextUpdateId()` is to produce unique IDs without manual range management.
 - Introduce a separate counter per dispatch type — rejected; over-engineering, the shared counter is sufficient.
 

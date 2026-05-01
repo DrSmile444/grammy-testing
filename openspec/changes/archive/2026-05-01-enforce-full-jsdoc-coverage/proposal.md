@@ -21,5 +21,5 @@ _(none — this change enforces an existing spec requirement, not a new capabili
 ## Impact
 
 - **`.eslint/node/jsdoc.eslint.mjs`**: `require-jsdoc` rule gains explicit `require` sub-options.
-- **`src/**/*.ts`**: ~121 methods, constructors, and arrow functions need JSDoc added.
+- **`src/**/\*.ts`\*\*: ~121 methods, constructors, and arrow functions need JSDoc added.
 - No public API changes, no breaking changes, no dependency changes.

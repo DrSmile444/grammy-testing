@@ -5,6 +5,7 @@
 The codebase is class-heavy — `src/high-level/` is entirely class-based. As a result, 121 methods and constructors are undocumented with no lint signal.
 
 Violation distribution:
+
 ```
 29  src/high-level/user.ts
 20  src/high-level/chats.ts
@@ -24,11 +25,13 @@ Violation distribution:
 ## Goals / Non-Goals
 
 **Goals:**
+
 - `jsdoc/require-jsdoc` fires on `MethodDefinition`, `ClassDeclaration`, `ArrowFunctionExpression`, and `FunctionExpression` in addition to the existing `FunctionDeclaration`.
 - `npm run lint` exits 0 after all JSDoc is added.
 - Every `@param` has a description; every non-void method has `@returns`.
 
 **Non-Goals:**
+
 - Test files (`tests/`) — already exempt via existing config; not changing scope.
 - Changing the content quality bar beyond what `jsdoc/require-description` and `jsdoc/require-param-description` already enforce.
 - Adding `@example` blocks or `@since` tags.
@@ -45,7 +48,7 @@ The existing `jsdoc.eslint.mjs` exports a `defineConfig` with one block per file
 
 `ArrowFunctionExpression: true` catches inline callbacks in object literals (e.g. context wiring passed to constructors) in addition to class field arrows. Requiring JSDoc on `(callbackData, byUserId, byChatId) => { ... }` inside a method body adds noise with no IDE-hover value — the surrounding method already provides the context.
 
-`MethodDefinition: true` covers all class methods including constructors. `ClassDeclaration: true` covers class docs. Together these enforce documentation on every genuine API surface. Arrow function class *fields* are rare in this codebase and can be handled manually on a case-by-case basis.
+`MethodDefinition: true` covers all class methods including constructors. `ClassDeclaration: true` covers class docs. Together these enforce documentation on every genuine API surface. Arrow function class _fields_ are rare in this codebase and can be handled manually on a case-by-case basis.
 
 **Alternative considered**: keeping both flags and documenting all 121 violations. Rejected after implementation revealed that 42 of those violations were implementation-level callbacks with no user-facing value.
 
@@ -61,7 +64,7 @@ Constructors often have non-obvious parameter semantics. Keeping default means t
 
 ### D4: `exemptEmptyFunctions: false` (default) — keep it
 
-Empty or no-op methods still benefit from a one-line doc explaining *why* they're empty.
+Empty or no-op methods still benefit from a one-line doc explaining _why_ they're empty.
 
 ## Risks / Trade-offs
 
