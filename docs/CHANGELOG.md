@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.11.0 — 2026-05-01
+
+### `chats.clear()` — single-call state reset
+
+- Added `chats.clear()` method that atomically resets all captured state: `outgoing` requests, per-user `replies`, `actions`, and `edits` logs, per-chat `messages` and `deletions` logs, and internal routing registries (`messageIdToReply`, `clickers`). User/chat registries and membership state are preserved, so existing `user` and `group` references remain valid. Replaces the previous 4–5 individual `clear()` calls required in `beforeEach` blocks.
+
+### `warnOnUnregisteredChats` — developer warning for silent misses
+
+- Bot calls to `sendMessage`, `sendPhoto`, and other message-sending methods, `sendChatAction`, and `deleteMessage` targeting a chat ID not registered with the `Chats` orchestrator now emit a `console.warn` by default. The warning includes the method name, the unregistered chat ID, and guidance on how to register the chat or suppress the warning.
+- Pass `{ warnOnUnregisteredChats: false }` to `prepareBot`, `prepareComposer`, or `prepareMiddleware` to suppress the warning (useful for bots that intentionally fan out to external log channels).
+
+### Fix: `postinstall` script no longer breaks consumer installs
+
+- Removed the `postinstall` entry from `package.json`. The `./scripts/link-codex-skills.sh` hook is a local development convenience and is not present in the published package. Consumers no longer need `npm install --ignore-scripts` to work around the missing script error.
+
+---
+
 ## 0.10.0 — 2026-05-01
 
 ### Deletion tracking
