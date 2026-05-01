@@ -24,6 +24,16 @@ export default defineConfig([
     rules: {
       ...typescriptPreset.rules,
       'jsdoc/require-description': 'error',
+      'jsdoc/require-jsdoc': [
+        'error',
+        {
+          require: {
+            ClassDeclaration: true,
+            FunctionDeclaration: true,
+            MethodDefinition: true,
+          },
+        },
+      ],
     },
   },
   {
@@ -32,6 +42,16 @@ export default defineConfig([
     rules: {
       ...javascriptPreset.rules,
       'jsdoc/require-description': 'error',
+      'jsdoc/require-jsdoc': [
+        'error',
+        {
+          require: {
+            ClassDeclaration: true,
+            FunctionDeclaration: true,
+            MethodDefinition: true,
+          },
+        },
+      ],
     },
   },
 ]);
