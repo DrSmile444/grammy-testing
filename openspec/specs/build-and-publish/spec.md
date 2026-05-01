@@ -8,7 +8,7 @@ Requirements for the npm build pipeline, dual-format output, and CI verification
 
 ### Requirement: Package builds to a dual-format dist/
 
-The system SHALL produce a `dist/` directory containing ESM (`.js`), CJS (`.cjs`), and TypeScript declaration (`.d.ts`) files for both entry points (`index` and `low-level`) when `npm run build` is executed. The build SHALL be reproducible and SHALL complete without errors on Node 18, 20, and 22.
+The system SHALL produce a `dist/` directory containing ESM (`.js`), CJS (`.cjs`), and TypeScript declaration (`.d.ts`) files for both entry points (`index` and `low-level`) when `npm run build` is executed. The build SHALL be reproducible and SHALL complete without errors on Node 20 and 22.
 
 #### Scenario: Build produces all required files
 
@@ -43,14 +43,14 @@ The development test suite (`vitest run`) SHALL resolve `@grammyjs/testing` to t
 
 ### Requirement: CI validates Node 18, 20, and 22
 
-A GitHub Actions workflow SHALL run `vitest run` on Node.js versions 18, 20, and 22 on every push and pull request to `main`. All matrix jobs SHALL pass before a change is considered mergeable.
+A GitHub Actions workflow SHALL run `vitest run` on Node.js versions 20 and 22 on every push and pull request to `main`. All matrix jobs SHALL pass before a change is considered mergeable.
 
-#### Scenario: CI matrix runs on all three Node versions
+#### Scenario: CI matrix runs on both Node versions
 
 - **WHEN** a commit is pushed to main
-- **THEN** three CI jobs run in parallel: Node 18, Node 20, Node 22
+- **THEN** two CI jobs run in parallel: Node 20, Node 22
 - **AND** each job installs dependencies and runs `npm run test:run`
-- **AND** all three jobs pass
+- **AND** both jobs pass
 
 ### Requirement: CJS build is verified after every build
 
