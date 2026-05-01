@@ -10,6 +10,7 @@ import { GenericMockUpdate } from './generic-mock.update';
 export class MyChatMemberMockUpdate extends GenericMockUpdate {
   minimalUpdate: Partial<Update>;
 
+  /** Initialises the default `my_chat_member` update (member → administrator transition). */
   constructor() {
     super();
 
@@ -45,6 +46,10 @@ export class MyChatMemberMockUpdate extends GenericMockUpdate {
     };
   }
 
+  /**
+   * Returns the assembled update cast to a full `Update` object.
+   * @returns The assembled `Update`.
+   */
   build(): Update {
     return this.minimalUpdate as Update;
   }

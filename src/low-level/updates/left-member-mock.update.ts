@@ -10,6 +10,7 @@ import { GenericMockUpdate } from './generic-mock.update';
 export class LeftMemberMockUpdate extends GenericMockUpdate {
   minimalUpdate: Partial<Update>;
 
+  /** Initialises the minimal `left_chat_member` update payload using the fixture defaults. */
   constructor() {
     super();
 
@@ -25,6 +26,10 @@ export class LeftMemberMockUpdate extends GenericMockUpdate {
     };
   }
 
+  /**
+   * Returns the assembled update cast to a full `Update` object.
+   * @returns The assembled `Update`.
+   */
   build(): Update {
     return this.minimalUpdate as Update;
   }

@@ -49,20 +49,40 @@ export class Supergroup<TContext extends Context = Context> implements ChatRefHo
   /** @internal */
   bot!: Bot<TContext>;
 
+  /**
+   * Creates a `Supergroup` actor with the given ID and title.
+   * @param id - Telegram chat ID (negative integer).
+   * @param title - Display title of the supergroup.
+   * @param ids - Shared ID generator for this `Chats` instance.
+   */
   constructor(
     public readonly id: number,
     public readonly title: string,
     private readonly ids: IdGenerator,
   ) {}
 
+  /**
+   * Wires the grammY `Bot` instance so dispatch methods can call `handleUpdate`.
+   * @param bot - The `Bot` instance to attach.
+   */
   [setBotRef](bot: Bot<TContext>): void {
     this.bot = bot;
   }
 
+  /**
+   * Returns this supergroup as a Telegram `Chat.SupergroupChat` object.
+   * @returns A plain `Chat.SupergroupChat` suitable for embedding in updates.
+   */
   toTelegramChat(): Chat.SupergroupChat {
     return { id: this.id, type: 'supergroup', title: this.title };
   }
 
+  /**
+   * Grants `user` administrator rights in this supergroup, optionally customising individual permissions.
+   * @param user - The user to promote.
+   * @param permissions - Optional permission overrides; defaults to full admin rights.
+   * @returns The new `Membership` record for `user`.
+   */
   promote(user: User<TContext>, permissions: PromotePermissions = {}): Membership<TContext> {
     const membership: Membership<TContext> = {
       user,
@@ -76,6 +96,13 @@ export class Supergroup<TContext extends Context = Context> implements ChatRefHo
     return membership;
   }
 
+  /**
+   * Restricts `user` in this supergroup with the given permission set.
+   * @param user - The user to restrict.
+   * @param permissions - The restriction flags to apply.
+   * @param untilDate - Optional Unix timestamp when the restriction expires.
+   * @returns The new `Membership` record for `user`.
+   */
   restrict(user: User<TContext>, permissions: RestrictPermissions = {}, untilDate?: number): Membership<TContext> {
     const membership: Membership<TContext> = {
       user,
@@ -90,6 +117,11 @@ export class Supergroup<TContext extends Context = Context> implements ChatRefHo
     return membership;
   }
 
+  /**
+   * Dispatches a `my_chat_member` update and updates the in-memory membership record.
+   * @param user - The user whose status is changing.
+   * @param transition - The status transition to apply, including from/to statuses and optional permissions.
+   */
   async changeMemberStatus(user: User<TContext>, transition: MemberStatusTransition): Promise<void> {
     const current = this.members.get(user.id);
     const fromStatus = transition.from ?? current?.status ?? 'left';

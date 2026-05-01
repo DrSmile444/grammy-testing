@@ -188,6 +188,15 @@ export class User<TContext extends Context = Context> {
 
   readonly last_name: string | undefined;
 
+  /**
+   * Creates a `User` actor wired to the provided `Chats` context.
+   * @param id - Telegram user ID.
+   * @param firstName - User's first name.
+   * @param lastName - User's last name, if any.
+   * @param username - Telegram username without `@`, if any.
+   * @param ctx - Internal context wiring provided by `Chats`.
+   * @param membershipReader - Reads the user's membership record for a given chat.
+   */
   constructor(
     public readonly id: number,
     firstName: string,
@@ -202,10 +211,20 @@ export class User<TContext extends Context = Context> {
     this.last_name = lastName;
   }
 
+  /**
+   * Returns the user's membership record in the given chat, or `undefined` if the user is not a member.
+   * @param chat - The chat to look up membership for.
+   * @returns The user's `Membership` in the chat, or `undefined`.
+   */
   in(chat: AnyChat<TContext>): Membership<TContext> | undefined {
     return this.membershipReader(chat);
   }
 
+  /**
+   * Dispatches a text message update from this user.
+   * @param text - The message text.
+   * @param options - Optional target chat, entities, parse mode, and reply parameters.
+   */
   async sendText(text: string, options: SendTextOptions<TContext> = {}): Promise<void> {
     const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
@@ -222,10 +241,21 @@ export class User<TContext extends Context = Context> {
     });
   }
 
+  /**
+   * Alias for `sendText`. Dispatches a text message update from this user.
+   * @param text - The message text.
+   * @param options - Optional target chat and text options.
+   * @returns A promise that resolves when the update is handled.
+   */
   async sendMessage(text: string, options: SendTextOptions<TContext> = {}): Promise<void> {
     return this.sendText(text, options);
   }
 
+  /**
+   * Dispatches a forwarded text message update from this user.
+   * @param text - The original message text.
+   * @param options - Required `forwardOrigin` and optional target chat.
+   */
   async sendForwarded(text: string, options: SendForwardedOptions<TContext>): Promise<void> {
     const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
@@ -240,6 +270,13 @@ export class User<TContext extends Context = Context> {
     });
   }
 
+  /**
+   * Dispatches an `edited_message` update from this user.
+   * @param messageId - The ID of the message being edited.
+   * @param text - The new message text.
+   * @param options - Optional target chat override.
+   * @param options.chat - The target chat (defaults to the private chat with this user).
+   */
   async editMessage(messageId: number, text: string, options: { chat?: AnyChat<TContext> } = {}): Promise<void> {
     const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
@@ -253,6 +290,10 @@ export class User<TContext extends Context = Context> {
     });
   }
 
+  /**
+   * Dispatches a `new_chat_members` service message, simulating this user joining the chat.
+   * @param chat - The group or supergroup to join.
+   */
   async joinChat(chat: Group<TContext> | Supergroup<TContext>): Promise<void> {
     const chatWithType = chat as { type: string };
 
@@ -274,6 +315,10 @@ export class User<TContext extends Context = Context> {
     this.ctx.updateMembership(chat, this, 'join');
   }
 
+  /**
+   * Dispatches a `left_chat_member` service message, simulating this user leaving the chat.
+   * @param chat - The group or supergroup to leave.
+   */
   async leaveChat(chat: Group<TContext> | Supergroup<TContext>): Promise<void> {
     const chatWithType = chat as { type: string };
 
@@ -295,6 +340,14 @@ export class User<TContext extends Context = Context> {
     this.ctx.updateMembership(chat, this, 'leave');
   }
 
+  /**
+   * Dispatches a bot command message from this user. A leading `/` is added if absent.
+   * @param command - The command name (with or without a leading `/`).
+   * @param args - Optional arguments appended after the command.
+   * @param options - Optional target chat override.
+   * @param options.chat - The target chat (defaults to the private chat with this user).
+   * @returns A promise that resolves when the update is handled.
+   */
   async sendCommand(command: string, args?: string, options: { chat?: AnyChat<TContext> } = {}): Promise<void> {
     const normalized = command.startsWith('/') ? command : `/${command}`;
     const text = args ? `${normalized} ${args}` : normalized;
@@ -304,6 +357,11 @@ export class User<TContext extends Context = Context> {
     return this.sendText(text, { entities, chat: options.chat });
   }
 
+  /**
+   * Dispatches a photo message from this user.
+   * @param file - Optional file ID; a stub is generated when omitted.
+   * @param options - Optional caption and target chat.
+   */
   async sendPhoto(file?: string, options: SendPhotoOptions<TContext> = {}): Promise<void> {
     const fileId = file ?? this.ctx.ids.nextFileId();
 
@@ -330,6 +388,11 @@ export class User<TContext extends Context = Context> {
     } as Update);
   }
 
+  /**
+   * Dispatches a document message from this user.
+   * @param file - Optional file ID; a stub is generated when omitted.
+   * @param options - Optional caption and target chat.
+   */
   async sendDocument(file?: string, options: SendDocumentOptions<TContext> = {}): Promise<void> {
     const fileId = file ?? this.ctx.ids.nextFileId();
 
@@ -356,6 +419,11 @@ export class User<TContext extends Context = Context> {
     } as Update);
   }
 
+  /**
+   * Dispatches a video message from this user.
+   * @param file - Optional file ID; a stub is generated when omitted.
+   * @param options - Optional caption and target chat.
+   */
   async sendVideo(file?: string, options: SendVideoOptions<TContext> = {}): Promise<void> {
     const fileId = file ?? this.ctx.ids.nextFileId();
 
@@ -382,6 +450,11 @@ export class User<TContext extends Context = Context> {
     } as Update);
   }
 
+  /**
+   * Dispatches an audio message from this user.
+   * @param file - Optional file ID; a stub is generated when omitted.
+   * @param options - Optional caption and target chat.
+   */
   async sendAudio(file?: string, options: SendAudioOptions<TContext> = {}): Promise<void> {
     const fileId = file ?? this.ctx.ids.nextFileId();
 
@@ -399,6 +472,11 @@ export class User<TContext extends Context = Context> {
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
   }
 
+  /**
+   * Dispatches a voice message from this user.
+   * @param file - Optional file ID; a stub is generated when omitted.
+   * @param options - Optional caption and target chat.
+   */
   async sendVoice(file?: string, options: SendVoiceOptions<TContext> = {}): Promise<void> {
     const fileId = file ?? this.ctx.ids.nextFileId();
 
@@ -416,6 +494,11 @@ export class User<TContext extends Context = Context> {
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
   }
 
+  /**
+   * Dispatches a video note (round video) message from this user.
+   * @param file - Optional file ID; a stub is generated when omitted.
+   * @param options - Optional target chat.
+   */
   async sendVideoNote(file?: string, options: SendVideoNoteOptions<TContext> = {}): Promise<void> {
     const fileId = file ?? this.ctx.ids.nextFileId();
 
@@ -432,6 +515,11 @@ export class User<TContext extends Context = Context> {
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
   }
 
+  /**
+   * Dispatches an animation (GIF) message from this user.
+   * @param file - Optional file ID; a stub is generated when omitted.
+   * @param options - Optional caption and target chat.
+   */
   async sendAnimation(file?: string, options: SendAnimationOptions<TContext> = {}): Promise<void> {
     const fileId = file ?? this.ctx.ids.nextFileId();
 
@@ -449,6 +537,11 @@ export class User<TContext extends Context = Context> {
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
   }
 
+  /**
+   * Dispatches a sticker message from this user.
+   * @param file - Optional file ID; a stub is generated when omitted.
+   * @param options - Optional target chat.
+   */
   async sendSticker(file?: string, options: SendStickerOptions<TContext> = {}): Promise<void> {
     const fileId = file ?? this.ctx.ids.nextFileId();
 
@@ -465,6 +558,12 @@ export class User<TContext extends Context = Context> {
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
   }
 
+  /**
+   * Dispatches a location message from this user.
+   * @param latitude - Geographic latitude in degrees.
+   * @param longitude - Geographic longitude in degrees.
+   * @param options - Optional target chat.
+   */
   async sendLocation(latitude: number, longitude: number, options: SendLocationOptions<TContext> = {}): Promise<void> {
     const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
@@ -479,6 +578,12 @@ export class User<TContext extends Context = Context> {
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
   }
 
+  /**
+   * Dispatches a contact message from this user.
+   * @param phoneNumber - The contact's phone number.
+   * @param firstName - The contact's first name.
+   * @param options - Optional last name and target chat.
+   */
   async sendContact(phoneNumber: string, firstName: string, options: SendContactOptions<TContext> = {}): Promise<void> {
     const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
@@ -493,6 +598,14 @@ export class User<TContext extends Context = Context> {
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
   }
 
+  /**
+   * Dispatches a venue message from this user.
+   * @param latitude - Geographic latitude of the venue.
+   * @param longitude - Geographic longitude of the venue.
+   * @param title - Name of the venue.
+   * @param address - Address of the venue.
+   * @param options - Optional target chat.
+   */
   async sendVenue(
     latitude: number,
     longitude: number,
@@ -513,6 +626,12 @@ export class User<TContext extends Context = Context> {
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
   }
 
+  /**
+   * Dispatches a poll message from this user.
+   * @param question - The poll question text.
+   * @param answerOptions - Array of answer option strings.
+   * @param options - Optional target chat.
+   */
   async sendPoll(question: string, answerOptions: string[], options: SendPollOptions<TContext> = {}): Promise<void> {
     const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
@@ -537,6 +656,11 @@ export class User<TContext extends Context = Context> {
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
   }
 
+  /**
+   * Dispatches a dice message from this user.
+   * @param emoji - The dice emoji to use (default `🎲`).
+   * @param options - Optional target chat.
+   */
   async sendDice(emoji = '🎲', options: SendDiceOptions<TContext> = {}): Promise<void> {
     const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
@@ -551,6 +675,12 @@ export class User<TContext extends Context = Context> {
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
   }
 
+  /**
+   * Dispatches a `web_app_data` message from this user.
+   * @param webAppData - The data string submitted by the Web App.
+   * @param buttonText - The text of the keyboard button that opened the Web App.
+   * @param options - Optional target chat.
+   */
   async sendWebAppData(webAppData: string, buttonText: string, options: SendWebAppDataOptions<TContext> = {}): Promise<void> {
     const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
@@ -565,6 +695,13 @@ export class User<TContext extends Context = Context> {
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
   }
 
+  /**
+   * Dispatches a `successful_payment` message from this user.
+   * @param invoicePayload - The bot-specified invoice payload.
+   * @param currency - Three-letter ISO 4217 currency code.
+   * @param totalAmount - Total price in the smallest currency unit.
+   * @param options - Optional target chat.
+   */
   async sendSuccessfulPayment(
     invoicePayload: string,
     currency: string,
@@ -590,6 +727,11 @@ export class User<TContext extends Context = Context> {
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
   }
 
+  /**
+   * Dispatches an `inline_query` update from this user.
+   * @param query - The inline query string.
+   * @param options - Optional chat type hint.
+   */
   async sendInlineQuery(query: string, options: SendInlineQueryOptions = {}): Promise<void> {
     const update: Update = {
       update_id: this.ctx.ids.nextMessageId() + 800_000,
@@ -605,6 +747,11 @@ export class User<TContext extends Context = Context> {
     await this.ctx.bot.handleUpdate(update);
   }
 
+  /**
+   * Dispatches a `chosen_inline_result` update from this user.
+   * @param resultId - The result ID that was chosen.
+   * @param query - The inline query string that produced this result.
+   */
   async sendChosenInlineResult(resultId: string, query: string): Promise<void> {
     const update: Update = {
       update_id: this.ctx.ids.nextMessageId() + 850_000,
@@ -618,6 +765,12 @@ export class User<TContext extends Context = Context> {
     await this.ctx.bot.handleUpdate(update);
   }
 
+  /**
+   * Dispatches a `pre_checkout_query` update from this user.
+   * @param invoicePayload - The bot-specified invoice payload.
+   * @param currency - Three-letter ISO 4217 currency code.
+   * @param totalAmount - Total price in the smallest currency unit.
+   */
   async sendPreCheckoutQuery(invoicePayload: string, currency: string, totalAmount: number): Promise<void> {
     const update: Update = {
       update_id: this.ctx.ids.nextMessageId() + 900_000,
@@ -633,6 +786,11 @@ export class User<TContext extends Context = Context> {
     await this.ctx.bot.handleUpdate(update);
   }
 
+  /**
+   * Dispatches a `shipping_query` update from this user.
+   * @param invoicePayload - The bot-specified invoice payload.
+   * @param shippingAddress - The shipping address provided by the user.
+   */
   async sendShippingQuery(invoicePayload: string, shippingAddress: ShippingAddress): Promise<void> {
     const update: Update = {
       update_id: this.ctx.ids.nextMessageId() + 950_000,
@@ -647,6 +805,12 @@ export class User<TContext extends Context = Context> {
     await this.ctx.bot.handleUpdate(update);
   }
 
+  /**
+   * Dispatches a series of media group updates from this user, one per item.
+   * @param items - Array of media items (photo, video, or document) to send as a group.
+   * @param sharedOptions - Optional default target chat applied to items that omit their own.
+   * @param sharedOptions.chat - The default target chat (defaults to the private chat with this user).
+   */
   async sendMediaGroup(items: UserSendMediaGroupItem<TContext>[], sharedOptions: { chat?: AnyChat<TContext> } = {}): Promise<void> {
     const mediaGroupId = this.ctx.ids.nextMediaGroupId();
 

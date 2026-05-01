@@ -54,22 +54,43 @@ const MESSAGE_METHODS = new Set(Object.keys(MESSAGE_METHODS_GUARD));
 export class RepliesInbox<TContext extends Context = Context> {
   private readonly items: Reply<TContext>[] = [];
 
+  /**
+   * Appends a reply to the inbox.
+   * @param reply - The reply to append.
+   */
   push(reply: Reply<TContext>): void {
     this.items.push(reply);
   }
 
+  /**
+   * Number of replies in the inbox.
+   * @returns The count of captured replies.
+   */
   get length(): number {
     return this.items.length;
   }
 
+  /**
+   * The most recently pushed reply, or `undefined` if the inbox is empty.
+   * @returns The last reply, or `undefined`.
+   */
   get last(): Reply<TContext> | undefined {
     return this.items.at(-1);
   }
 
+  /**
+   * Read-only view of all replies in the inbox in dispatch order.
+   * @returns A read-only array of all captured replies.
+   */
   get all(): readonly Reply<TContext>[] {
     return this.items;
   }
 
+  /**
+   * Returns the first reply whose text matches `matcher`, or `undefined` if none match.
+   * @param matcher - A string for exact match or a `RegExp` for pattern match.
+   * @returns The first matching reply, or `undefined`.
+   */
   byText(matcher: RegExp | string): Reply<TContext> | undefined {
     return this.items.find((reply) => {
       if (reply.text === undefined) {
@@ -80,6 +101,7 @@ export class RepliesInbox<TContext extends Context = Context> {
     });
   }
 
+  /** Removes all replies from the inbox. */
   clear(): void {
     this.items.length = 0;
   }
@@ -139,6 +161,11 @@ export class Chats<TContext extends Context = Context> {
 
   defaultGroup?: Supergroup<TContext>;
 
+  /**
+   * Creates a new `Chats` orchestrator.
+   * @param outgoing - Captures all outgoing Telegram API calls made by the bot.
+   * @param idleTracker - Resolves the `idle()` promise when the bot's middleware queue drains.
+   */
   constructor(
     public readonly outgoing: OutgoingRequests,
     idleTracker: IdleTracker,
@@ -160,6 +187,11 @@ export class Chats<TContext extends Context = Context> {
     }
   }
 
+  /**
+   * Mints a new synthetic user with an auto-generated ID.
+   * @param profile - Optional profile overrides (id, first_name, last_name, username).
+   * @returns The new `User` instance.
+   */
   newUser(profile: UserProfile = {}): User<TContext> {
     const id = profile.id ?? this.ids.nextUserId();
     // Two-phase: declare `user` so closures capture it by reference,
@@ -356,6 +388,13 @@ export class Chats<TContext extends Context = Context> {
     }
   }
 
+  /**
+   * Returns `true` if `entry`'s user should receive `reply` in their inbox.
+   * @param entry - The user entry to evaluate.
+   * @param chat - The chat the reply was sent to.
+   * @param reply - The reply to evaluate.
+   * @returns `true` if the user should receive the reply.
+   */
   private userReceivesReply(entry: UserEntry<TContext>, chat: AnyChat<TContext>, reply: Reply<TContext>): boolean {
     // Rule 1: chat is private with this user
     if (chat.type === 'private' && chat.id === entry.user.id) {
@@ -394,6 +433,11 @@ export class Chats<TContext extends Context = Context> {
     return false;
   }
 
+  /**
+   * Returns the existing private chat for `user`, or creates and registers a new one.
+   * @param user - The user whose private chat to retrieve or create.
+   * @returns The `PrivateChat` instance for `user`.
+   */
   private privateChatFor(user: User<TContext>): PrivateChat<TContext> {
     const entry = this.users.get(user.id);
 
@@ -416,6 +460,10 @@ export class Chats<TContext extends Context = Context> {
     return chat;
   }
 
+  /**
+   * Registers a newly created chat, initialises its messages log, and wires the bot if attached.
+   * @param chat - The channel, group, or supergroup to register.
+   */
   private registerChat(chat: Channel<TContext> | Group<TContext> | Supergroup<TContext>): void {
     chat.messages = new MessagesLog<TContext>();
     this.chats.set(chat.id, chat);
@@ -425,10 +473,21 @@ export class Chats<TContext extends Context = Context> {
     }
   }
 
+  /**
+   * Looks up a registered chat by its Telegram integer ID.
+   * @param id - The Telegram chat ID to look up.
+   * @returns The matching chat, or `undefined` if not registered.
+   */
   private findChatByTelegramId(id: number): AnyChat<TContext> | undefined {
     return this.chats.get(id);
   }
 
+  /**
+   * Reads the membership record for `user` in `chat`, or `undefined` for private chats.
+   * @param user - The user whose membership to read.
+   * @param chat - The chat to read membership from.
+   * @returns The `Membership` record, or `undefined` for private chats.
+   */
   private readMembership(user: User<TContext>, chat: AnyChat<TContext>): Membership<TContext> | undefined {
     if (chat.type === 'private') {
       return undefined;

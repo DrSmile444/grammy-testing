@@ -30,20 +30,41 @@ export class Channel<TContext extends Context = Context> implements ChatRefHolde
   /** @internal */
   bot!: Bot<TContext>;
 
+  /**
+   * Creates a `Channel` actor with the given ID and title.
+   * @param id - Telegram chat ID (negative integer).
+   * @param title - Display title of the channel.
+   * @param ids - Shared ID generator for this `Chats` instance.
+   */
   constructor(
     public readonly id: number,
     public readonly title: string,
     private readonly ids: IdGenerator,
   ) {}
 
+  /**
+   * Wires the grammY `Bot` instance so dispatch methods can call `handleUpdate`.
+   * @param bot - The `Bot` instance to attach.
+   */
   [setBotRef](bot: Bot<TContext>): void {
     this.bot = bot;
   }
 
+  /**
+   * Returns this channel as a Telegram `Chat.ChannelChat` object.
+   * @returns A plain `Chat.ChannelChat` suitable for embedding in updates.
+   */
   toTelegramChat(): Chat.ChannelChat {
     return { id: this.id, type: 'channel', title: this.title };
   }
 
+  /**
+   * Posts a text message from this channel into `target`, simulating a linked-channel post.
+   * @param target - The group or supergroup to post the message into.
+   * @param text - The message text.
+   * @param options - Optional overrides.
+   * @param options.messageId - Optional message ID to assign instead of auto-generating one.
+   */
   async postMessageTo<TC extends Context = TContext>(
     target: Group<TC> | Supergroup<TC>,
     text: string,

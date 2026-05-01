@@ -25,6 +25,10 @@ export class PrivateChat<TContext extends Context = Context> implements ChatRefH
   /** @internal */
   bot!: Bot<TContext>;
 
+  /**
+   * Creates a `PrivateChat` with ID and name mirrored from `user`.
+   * @param user - The user that owns this private chat.
+   */
   constructor(public readonly user: User<TContext>) {
     this.id = user.id;
     this.first_name = user.first_name;
@@ -33,10 +37,18 @@ export class PrivateChat<TContext extends Context = Context> implements ChatRefH
     this.messages = new MessagesLog<TContext>();
   }
 
+  /**
+   * Wires the grammY `Bot` instance so dispatch methods can call `handleUpdate`.
+   * @param bot - The `Bot` instance to attach.
+   */
   [setBotRef](bot: Bot<TContext>): void {
     this.bot = bot;
   }
 
+  /**
+   * Returns this private chat as a Telegram `Chat.PrivateChat` object.
+   * @returns A plain `Chat.PrivateChat` suitable for embedding in updates.
+   */
   toTelegramChat(): Chat.PrivateChat {
     return {
       id: this.id,

@@ -39,6 +39,12 @@ export class BusinessAccount<TContext extends Context = Context> {
   /** Unique business connection identifier, generated as `biz-<n>`. */
   readonly connectionId: string;
 
+  /**
+   * Creates a `BusinessAccount` actor wired to `user` with the given connection ID.
+   * @param user - The `User` actor that owns this business account.
+   * @param connectionId - The auto-generated business connection identifier.
+   * @param ctx - Internal dependencies (bot, ids) provided by `Chats`.
+   */
   constructor(
     /** The `User` actor that owns this business account. */
     public readonly user: User<TContext>,

@@ -50,6 +50,10 @@ export class OutgoingRequests<TMethod extends RealApiMethodKeys = RealApiMethodK
    */
   readonly stickyFails = new Map<RealApiMethodKeys, GrammyError | GrammyErrorSpec>();
 
+  /**
+   * Number of captured requests in the store.
+   * @returns The count of captured requests.
+   */
   get length(): number {
     return this.requestsStore.length;
   }
@@ -73,18 +77,31 @@ export class OutgoingRequests<TMethod extends RealApiMethodKeys = RealApiMethodK
     return this.requestsStore.map((request) => request.method as TMethod);
   }
 
+  /**
+   * Appends one or more captured requests to the store.
+   * @param requests - One or more `Request` objects to append.
+   * @returns `this` for chaining.
+   */
   push(...requests: Request<TMethod>[]): this {
     this.requestsStore.push(...requests);
 
     return this;
   }
 
+  /**
+   * Removes all captured requests from the store.
+   * @returns `this` for chaining.
+   */
   clear(): this {
     this.requestsStore.length = 0;
 
     return this;
   }
 
+  /**
+   * Returns the first captured request, or `null` if none have been captured.
+   * @returns The first `Request`, or `null`.
+   */
   getFirst<TApi extends TMethod>(): Request<TApi> | null {
     if (this.requestsStore.length === 0) {
       return null;
@@ -93,6 +110,10 @@ export class OutgoingRequests<TMethod extends RealApiMethodKeys = RealApiMethodK
     return this.requestsStore[0] as Request<TApi>;
   }
 
+  /**
+   * Returns the last captured request, or `null` if none have been captured.
+   * @returns The last `Request`, or `null`.
+   */
   getLast<TApi extends TMethod>(): Request<TApi> | null {
     if (this.requestsStore.length === 0) {
       return null;
@@ -101,10 +122,18 @@ export class OutgoingRequests<TMethod extends RealApiMethodKeys = RealApiMethodK
     return this.requestsStore.at(-1) as Request<TApi>;
   }
 
+  /**
+   * Returns the last two captured requests as a tuple, oldest first.
+   * @returns A two-element tuple of the last two requests (either may be `undefined`).
+   */
   getTwoLast<TApi extends TMethod, TBot extends TMethod>(): [Request<TApi>?, Request<TBot>?] {
     return this.requestsStore.slice(-2) as [Request<TApi>?, Request<TBot>?];
   }
 
+  /**
+   * Returns the last three captured requests as a tuple, oldest first.
+   * @returns A three-element tuple of the last three requests (any may be `undefined`).
+   */
   getThreeLast<TApi extends TMethod, TBot extends TMethod, TContext extends TMethod>(): [
     Request<TApi>?,
     Request<TBot>?,
@@ -113,12 +142,20 @@ export class OutgoingRequests<TMethod extends RealApiMethodKeys = RealApiMethodK
     return this.requestsStore.slice(-3) as [Request<TApi>?, Request<TBot>?, Request<TContext>?];
   }
 
+  /**
+   * Returns up to N captured requests as a typed tuple, oldest first.
+   * Overloads cover 1–10 arguments; each slot may be `undefined` if fewer requests were captured.
+   * @returns A tuple of up to N requests corresponding to the type arguments supplied.
+   */
   getAll<TApi extends TMethod>(): [Request<TApi>?];
 
+  /** 2-arg overload of `getAll`. */
   getAll<TApi extends TMethod, TBot extends TMethod>(): [Request<TApi>?, Request<TBot>?];
 
+  /** 3-arg overload of `getAll`. */
   getAll<TApi extends TMethod, TBot extends TMethod, TContext extends TMethod>(): [Request<TApi>?, Request<TBot>?, Request<TContext>?];
 
+  /** 4-arg overload of `getAll`. */
   getAll<TApi extends TMethod, TBot extends TMethod, TContext extends TMethod, TData extends TMethod>(): [
     Request<TApi>?,
     Request<TBot>?,
@@ -126,6 +163,7 @@ export class OutgoingRequests<TMethod extends RealApiMethodKeys = RealApiMethodK
     Request<TData>?,
   ];
 
+  /** 5-arg overload of `getAll`. */
   getAll<TApi extends TMethod, TBot extends TMethod, TContext extends TMethod, TData extends TMethod, TExtra extends TMethod>(): [
     Request<TApi>?,
     Request<TBot>?,
@@ -134,6 +172,7 @@ export class OutgoingRequests<TMethod extends RealApiMethodKeys = RealApiMethodK
     Request<TExtra>?,
   ];
 
+  /** 6-arg overload of `getAll`. */
   getAll<
     TApi extends TMethod,
     TBot extends TMethod,
@@ -143,6 +182,7 @@ export class OutgoingRequests<TMethod extends RealApiMethodKeys = RealApiMethodK
     TFilter extends TMethod,
   >(): [Request<TApi>?, Request<TBot>?, Request<TContext>?, Request<TData>?, Request<TExtra>?, Request<TFilter>?];
 
+  /** 7-arg overload of `getAll`. */
   getAll<
     TApi extends TMethod,
     TBot extends TMethod,
@@ -153,6 +193,7 @@ export class OutgoingRequests<TMethod extends RealApiMethodKeys = RealApiMethodK
     T7 extends TMethod,
   >(): [Request<TApi>?, Request<TBot>?, Request<TContext>?, Request<TData>?, Request<TExtra>?, Request<TFilter>?, Request<T7>?];
 
+  /** 8-arg overload of `getAll`. */
   getAll<
     TApi extends TMethod,
     TBot extends TMethod,
@@ -173,6 +214,7 @@ export class OutgoingRequests<TMethod extends RealApiMethodKeys = RealApiMethodK
     Request<T8>?,
   ];
 
+  /** 9-arg overload of `getAll`. */
   getAll<
     TApi extends TMethod,
     TBot extends TMethod,
@@ -195,6 +237,7 @@ export class OutgoingRequests<TMethod extends RealApiMethodKeys = RealApiMethodK
     Request<T9>?,
   ];
 
+  /** 10-arg overload of `getAll`. */
   getAll<
     TApi extends TMethod,
     TBot extends TMethod,
@@ -219,6 +262,10 @@ export class OutgoingRequests<TMethod extends RealApiMethodKeys = RealApiMethodK
     Request<T10>?,
   ];
 
+  /**
+   * Implementation of `getAll`; returns the full request store cast to the overload type.
+   * @returns The full request store cast to the overload tuple type.
+   */
   getAll() {
     return this.requestsStore as unknown as never;
   }
@@ -294,6 +341,11 @@ export class OutgoingRequests<TMethod extends RealApiMethodKeys = RealApiMethodK
     return next;
   }
 
+  /**
+   * Pushes `override` onto the FIFO queue for `method`, creating the queue if necessary.
+   * @param method - The API method name to queue the override for.
+   * @param override - The one-shot override to enqueue.
+   */
   private enqueueOneShot(method: RealApiMethodKeys, override: OneShotOverride): void {
     const existing = this.oneShot.get(method);
 

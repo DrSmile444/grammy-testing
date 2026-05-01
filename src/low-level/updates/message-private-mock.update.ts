@@ -9,6 +9,10 @@ import { GenericMockUpdate } from './generic-mock.update';
 export class MessagePrivateMockUpdate extends GenericMockUpdate {
   minimalUpdate: Partial<Update>;
 
+  /**
+   * Creates a private-chat message update with the given text.
+   * @param text - The message text to embed in the update.
+   */
   constructor(text: string) {
     super();
 
@@ -24,6 +28,10 @@ export class MessagePrivateMockUpdate extends GenericMockUpdate {
     };
   }
 
+  /**
+   * Returns the assembled update cast to a full `Update` object.
+   * @returns The assembled `Update`.
+   */
   build(): Update {
     return this.minimalUpdate as Update;
   }

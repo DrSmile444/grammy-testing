@@ -223,6 +223,12 @@ export class Reply<TContext extends Context = Context> {
   /** Recorded for `user.replies` filter rule. */
   readonly mentionUsernames: ReadonlySet<string>;
 
+  /**
+   * Constructs a `Reply` from a captured outgoing API payload, deriving text, buttons, media, and mention metadata.
+   * @param rawPayload - The raw captured outgoing API payload.
+   * @param chat - The chat associated with this reply, or `undefined` if not resolved.
+   * @param deps - Internal dependencies (bot, ids, recordClick, resolveReply).
+   */
   constructor(
     rawPayload: Record<string, unknown>,
     chat: AnyChat<TContext> | undefined,
@@ -248,6 +254,10 @@ export class Reply<TContext extends Context = Context> {
     this.replyingTo = this.replyToMessageId === undefined ? undefined : deps.resolveReply(this.replyToMessageId);
   }
 
+  /**
+   * Simulates a user clicking an inline keyboard button on this reply.
+   * @param matcher - A button text string or a `{ callbackData }` matcher to identify the button.
+   */
   async clickButton(matcher: ReplyClickButtonMatcher | string): Promise<void> {
     const button = findButton(this.buttons, matcher);
 
@@ -288,6 +298,10 @@ export class Reply<TContext extends Context = Context> {
     await this.deps.bot.handleUpdate(update);
   }
 
+  /**
+   * Constructs a minimal `Message` object from this reply's captured data for use in `callback_query` updates.
+   * @returns A synthesised `Message` suitable for embedding in a `callback_query`.
+   */
   private toCapturedMessage(): Message {
     return {
       message_id: this.messageId,

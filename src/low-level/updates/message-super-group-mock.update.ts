@@ -10,6 +10,10 @@ import { GenericMockUpdate } from './generic-mock.update';
 export class MessageMockUpdate extends GenericMockUpdate {
   minimalUpdate: Partial<Update>;
 
+  /**
+   * Creates a supergroup message update with the given text.
+   * @param text - The message text to embed in the update.
+   */
   constructor(text: string) {
     super();
 
@@ -25,6 +29,10 @@ export class MessageMockUpdate extends GenericMockUpdate {
     };
   }
 
+  /**
+   * Returns the assembled update cast to a full `Update` object.
+   * @returns The assembled `Update`.
+   */
   build(): Update {
     return this.minimalUpdate as Update;
   }
