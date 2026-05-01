@@ -42,7 +42,7 @@ describe('copyMessage default response', () => {
     await user.sendText('trigger');
 
     expect(copyResult).toBeDefined();
-    expect((copyResult as Record<string, unknown>)['date']).toBeUndefined();
+    expect((copyResult as Record<string, unknown>).date).toBeUndefined();
   });
 
   it('user-supplied responses.copyMessage overrides the synthetic default', async () => {
