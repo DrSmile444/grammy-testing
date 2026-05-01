@@ -72,6 +72,16 @@ A CI step SHALL install the latest Bun release and run `bun run test:run`. All t
 - **THEN** `bun run test:run` exits with code 0
 - **AND** all 136+ tests pass
 
+### Requirement: Deno type-check passes on source entry points
+
+A CI job SHALL run `deno check src/index.ts src/low-level.ts` using the latest Deno v2.x release. The check SHALL use `deno.json` at the repo root to resolve bare specifiers (`grammy`, `deepmerge`, `type-fest`) to their `npm:` equivalents. Runtime test execution under Deno is out of scope until JSR publishing is approved by the grammY team.
+
+#### Scenario: Deno check passes
+
+- **WHEN** the `deno` CI job runs
+- **THEN** `deno check src/index.ts src/low-level.ts` exits with code 0
+- **AND** no TypeScript errors are reported
+
 ### Requirement: jsr.json scaffold is present
 
 A `jsr.json` file SHALL exist at the repo root with the correct package name, version, and TypeScript source entry points. It SHALL NOT require a build step. Publishing to the `@grammyjs` JSR scope is gated on grammY team approval and is NOT performed by this change.
