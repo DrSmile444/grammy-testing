@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.12.0 — 2026-05-01
+
+### `group.own()` and `group.join()` — pure-state membership setters
+
+- Added `group.own(user)` and `supergroup.own(user)` — sets `status: 'creator'` in the members map with no Telegram update dispatched. Mirrors the existing `promote()` / `restrict()` pattern.
+- Added `group.join(user)` and `supergroup.join(user)` — sets `status: 'member'` in the members map with no Telegram update dispatched.
+- Added `chats.newOwner(profile?)` — convenience factory that creates a new user and calls `defaultGroup.own(user)`, mirroring `chats.newAdmin()`.
+
+### Auto-derived `getChatMember`, `getChatAdministrators`, `getChat`
+
+- `getChatMember` now resolves from the registered chat's members map via a `Membership → ChatMember` converter. Returns the appropriate discriminated union shape (`'creator'`, `'administrator'`, `'member'`, `'restricted'`, `'left'`, `'kicked'`). Falls back to `{ status: 'left', user }` for users not in the map, and to `true` for unregistered chats.
+- `getChatAdministrators` now resolves by filtering `chat.members` for `'creator'` and `'administrator'` entries. Returns `[]` for unregistered chats.
+- `getChat` now resolves from `chat.toTelegramChat()` enriched with `invite_link: ''`. Returns `true` for unregistered chats.
+- All three are populated automatically in `buildDefaultResponses()`. User-supplied `responses` entries always take precedence — existing overrides are unaffected.
+
+---
+
 ## 0.11.0 — 2026-05-01
 
 ### `chats.clear()` — single-call state reset
