@@ -82,7 +82,7 @@ describe('Membership roles', () => {
       expect(captured.nu).toBe('restricted');
     });
 
-    it('updates membership map after dispatch', async () => {
+    it('updates bot membership map after dispatch', async () => {
       const bot = new Bot('test-token');
 
       bot.on('my_chat_member', () => {});
@@ -93,7 +93,8 @@ describe('Membership roles', () => {
 
       await group.changeMemberStatus(user, { to: 'administrator' });
 
-      expect(user.in(group)?.status).toBe('administrator');
+      expect(group.members.get(bot.botInfo.id)?.status).toBe('administrator');
+      expect(user.in(group)).toBeUndefined();
     });
   });
 

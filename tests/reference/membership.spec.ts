@@ -74,7 +74,7 @@ describe('reference: membership', () => {
     expect(newStatus).toBe('restricted');
   });
 
-  it('membership map reflects the latest transition', async () => {
+  it('bot membership map reflects the latest transition', async () => {
     const bot = new Bot('test-token');
 
     bot.on('my_chat_member', () => {});
@@ -89,6 +89,8 @@ describe('reference: membership', () => {
 
     await group.changeMemberStatus(user, { to: 'member' });
 
-    expect(user.in(group)?.status).toBe('member');
+    // changeMemberStatus tracks the BOT's status, not the trigger actor's
+    expect(group.members.get(bot.botInfo.id)?.status).toBe('member');
+    expect(user.in(group)?.status).toBe('administrator'); // promote() unaffected
   });
 });
