@@ -1,5 +1,5 @@
 import type { Bot, Context } from 'grammy';
-import type { Chat, ReactionCount, Update } from 'grammy/types';
+import type { Chat, ReactionCount, Update, User as TelegramUser } from 'grammy/types';
 
 import { type ChatRefHolder, setBotRef } from './chat';
 import { dispatchChatMember, dispatchMyChatMember } from './dispatch';
@@ -154,17 +154,19 @@ export class Supergroup<TContext extends Context = Context> implements ChatRefHo
   }
 
   /**
-   * Dispatches a `my_chat_member` update and updates the in-memory membership record.
-   * @param user - The user whose status is changing.
-   * @param transition - The status transition to apply, including from/to statuses and optional permissions.
+   * Dispatches a `my_chat_member` update and updates the in-memory bot membership record.
+   * @param user - The actor who triggered the membership change (populates `from`).
+   * @param transition - The status transition to apply to the bot.
    */
   async changeMemberStatus(user: User<TContext>, transition: MemberStatusTransition): Promise<void> {
-    const current = this.members.get(user.id);
+    const botUser = this.bot.botInfo as TelegramUser;
+    const current = this.members.get(botUser.id);
     const fromStatus = transition.from ?? current?.status ?? 'left';
 
     await dispatchMyChatMember(this.bot, {
       chat: this.toTelegramChat(),
       user,
+      botUser,
       fromStatus,
       toStatus: transition.to,
       permissions: transition.permissions ?? {},
@@ -172,8 +174,8 @@ export class Supergroup<TContext extends Context = Context> implements ChatRefHo
       updateId: this.ids.nextUpdateId(),
     });
 
-    this.members.set(user.id, {
-      user,
+    this.members.set(botUser.id, {
+      user: botUser as unknown as User<TContext>,
       chat: this,
       status: transition.to,
       permissions: transition.permissions ?? {},

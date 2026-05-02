@@ -66,6 +66,8 @@ export function makeChatMember(user: TelegramUser, status: ChatMemberStatus, per
         can_edit_stories: permissions.can_edit_stories ?? false,
         can_delete_stories: permissions.can_delete_stories ?? false,
         can_manage_topics: permissions.can_manage_topics ?? false,
+        // Optional channel-only field — omit when not supplied so group admins aren't affected.
+        ...(permissions.can_post_messages !== undefined && { can_post_messages: permissions.can_post_messages }),
       };
     }
 
@@ -114,7 +116,10 @@ export function makeChatMember(user: TelegramUser, status: ChatMemberStatus, per
 
 interface MyChatMemberDispatch<TContext extends Context> {
   chat: Chat.ChannelChat | Chat.GroupChat | Chat.SupergroupChat;
+  /** Trigger actor — populates `my_chat_member.from`. */
   user: User<TContext>;
+  /** The bot's own identity — populates `old/new_chat_member.user`. */
+  botUser: TelegramUser;
   fromStatus: ChatMemberStatus;
   toStatus: ChatMemberStatus;
   permissions: PermissionFlags;
@@ -145,8 +150,8 @@ export async function dispatchMyChatMember<TContext extends Context>(
       chat: spec.chat,
       from: fromUser,
       date: Math.floor(Date.now() / 1000),
-      old_chat_member: makeChatMember(fromUser, spec.fromStatus, spec.permissions, spec.untilDate),
-      new_chat_member: makeChatMember(fromUser, spec.toStatus, spec.permissions, spec.untilDate),
+      old_chat_member: makeChatMember(spec.botUser, spec.fromStatus, spec.permissions, spec.untilDate),
+      new_chat_member: makeChatMember(spec.botUser, spec.toStatus, spec.permissions, spec.untilDate),
     },
   };
 

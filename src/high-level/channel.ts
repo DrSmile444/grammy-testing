@@ -1,13 +1,31 @@
 import type { Bot, Context } from 'grammy';
-import type { Chat, Message, ReactionCount, Update } from 'grammy/types';
+import type { Chat, Message, ReactionCount, Update, User as TelegramUser } from 'grammy/types';
 
 import { type ChatRefHolder, setBotRef } from './chat';
-import { makeChannelBotUser } from './dispatch';
+import { dispatchMyChatMember, makeChannelBotUser } from './dispatch';
 import type { Group } from './group';
 import type { IdGenerator } from './id-generator';
 import type { MessagesLog } from './messages-log';
 import type { Supergroup } from './supergroup';
-import type { DispatchReactionCountOptions, Membership } from './types';
+import type { DispatchReactionCountOptions, Membership, MemberStatusTransition } from './types';
+import type { User } from './user';
+
+const CHANNEL_ADMIN_RIGHTS = {
+  is_anonymous: false,
+  can_be_edited: false,
+  can_manage_chat: true,
+  can_post_messages: true,
+  can_edit_messages: true,
+  can_delete_messages: true,
+  can_invite_users: true,
+  can_restrict_members: true,
+  can_promote_members: false,
+  can_change_info: false,
+  can_pin_messages: true,
+  can_post_stories: false,
+  can_edit_stories: false,
+  can_delete_stories: false,
+} as const;
 
 /**
  * Channel actor. The only verb in v0.2 is `postMessageTo` which
@@ -87,6 +105,37 @@ export class Channel<TContext extends Context = Context> implements ChatRefHolde
     } as Update;
 
     await this.bot.handleUpdate(update);
+  }
+
+  /**
+   * Dispatches a `my_chat_member` update and updates the in-memory bot membership record.
+   * @param user - The actor who triggered the membership change (populates `from`).
+   * @param transition - The status transition to apply to the bot. Permissions default to `CHANNEL_ADMIN_RIGHTS`.
+   */
+  async changeMemberStatus(user: User<TContext>, transition: MemberStatusTransition): Promise<void> {
+    const botUser = this.bot.botInfo as TelegramUser;
+    const current = this.members.get(botUser.id);
+    const fromStatus = transition.from ?? current?.status ?? 'left';
+    const permissions = { ...CHANNEL_ADMIN_RIGHTS, ...(transition.permissions ?? {}) };
+
+    await dispatchMyChatMember(this.bot, {
+      chat: this.toTelegramChat(),
+      user,
+      botUser,
+      fromStatus,
+      toStatus: transition.to,
+      permissions,
+      untilDate: transition.untilDate,
+      updateId: this.ids.nextUpdateId(),
+    });
+
+    this.members.set(botUser.id, {
+      user: botUser as unknown as User<TContext>,
+      chat: this,
+      status: transition.to,
+      permissions,
+      untilDate: transition.untilDate,
+    });
   }
 
   /**
