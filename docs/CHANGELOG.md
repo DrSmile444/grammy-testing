@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.13.0 — 2026-05-02
+
+### `Channel.changeMemberStatus` — dispatch `my_chat_member` for channels
+
+- Added `channel.changeMemberStatus(fromUser, transition)` to `Channel`. Dispatches a `my_chat_member` update with `chat.type === 'channel'`, updates the bot's membership in `channel.members`, and enables `getChatAdministrators` auto-derivation for channels. This closes the last remaining raw `handleUpdate` gap — all `my_chat_member` scenarios across `Group`, `Supergroup`, and `Channel` now use the same actor-verb API.
+- Added `CHANNEL_ADMIN_RIGHTS` constant providing channel-appropriate defaults (`can_post_messages: true`; excludes `can_manage_video_chats` and `can_manage_topics`). Permissions supplied in the transition override the defaults.
+
+### Fix: `changeMemberStatus` now correctly tracks the bot's membership
+
+**Breaking (minor):** `group.changeMemberStatus(user, transition)` and `supergroup.changeMemberStatus(user, transition)` previously stored the trigger actor (`user`) in the chat's members map and used that same user for `old/new_chat_member.user` in the dispatched update. Both were wrong — `my_chat_member` always describes the **bot's** status change, and `from` is the actor who triggered it.
+
+After this fix:
+- `old/new_chat_member.user` in the dispatched update is `bot.botInfo` (the bot), not the trigger user.
+- The bot's membership is stored in the members map, keyed by `bot.botInfo.id`.
+- `getChatAdministrators` auto-derivation now returns the bot after a promotion transition, not the trigger actor.
+- The trigger user's own membership entry is not affected by `changeMemberStatus`.
+
+Tests that called `user.in(group)` after `changeMemberStatus` to verify the new status should switch to `group.members.get(bot.botInfo.id)?.status`.
+
+---
+
 ## 0.12.0 — 2026-05-01
 
 ### `group.own()` and `group.join()` — pure-state membership setters
