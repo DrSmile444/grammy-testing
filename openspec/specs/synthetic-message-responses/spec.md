@@ -9,6 +9,7 @@ Defines behavior for auto-generated `Message`-shaped default responses returned 
 ### Requirement: Message-sending methods return a synthetic `Message` by default
 
 When the bot calls a Telegram message-sending method (`sendMessage`, `sendPhoto`, `sendDocument`, `sendVideo`, `sendAudio`, `sendVoice`, `sendVideoNote`, `sendAnimation`, `sendSticker`, `sendLocation`, `sendContact`, `sendVenue`, `sendPoll`, `sendDice`) and no user-supplied `responses` entry is present for that method, the transformer SHALL resolve the call with a `Message`-shaped object that includes at minimum:
+
 - `message_id`: the same synthetic integer assigned to the captured `Reply` object for that call.
 - `date`: the Unix timestamp (seconds) at which the default response was generated.
 
@@ -80,6 +81,7 @@ When the bot calls `copyMessage` and no user-supplied `responses.copyMessage` en
 ### Requirement: `forwardMessage` returns a synthetic `Message` by default
 
 When the bot calls `forwardMessage` and no user-supplied `responses.forwardMessage` entry is present, the transformer SHALL resolve the call with a `Message`-shaped object that includes at minimum:
+
 - `message_id`: the same synthetic integer assigned to the captured `Reply` object for that call.
 - `date`: the Unix timestamp (seconds) at which the default response was generated.
 

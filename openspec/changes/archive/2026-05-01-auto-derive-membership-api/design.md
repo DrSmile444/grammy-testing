@@ -15,12 +15,14 @@ The `members` map on `Group` and `Supergroup` is the library's single source of 
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Add `own(user)` and `join(user)` as pure state setters on `Group` and `Supergroup`, following the existing `promote()` / `restrict()` pattern exactly
 - Add `chats.newOwner(profile?)` mirroring `chats.newAdmin()`
 - Auto-derive `getChatMember`, `getChatAdministrators`, `getChat` in `buildDefaultResponses()` from the `members` map and `toTelegramChat()`
 - Preserve full override capability — user-supplied `responses` entries take precedence unconditionally
 
 **Non-Goals:**
+
 - Auto-deriving any other Telegram API methods
 - Changing the transformer or response resolution pipeline
 - Modifying how `changeMemberStatus()` works (it remains the only dispatch path)

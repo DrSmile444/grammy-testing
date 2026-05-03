@@ -11,11 +11,13 @@ All three fixes touch `Chats` (the orchestrator) and the entry-point options typ
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Remove `postinstall` from `package.json` so consumer `npm install` works.
 - Add `chats.clear()` that resets all captured logs and routing state atomically.
 - Emit a `console.warn` (suppressible) when API calls target unregistered chat IDs.
 
 **Non-Goals:**
+
 - Clearing user/chat registries or membership state in `chats.clear()` — references must stay valid.
 - Resetting the ID generator in `chats.clear()` — incrementing IDs across tests is fine.
 - A structured `chats.unregistered` log — the warning covers the DX need without new API surface.
@@ -36,6 +38,7 @@ All three fixes touch `Chats` (the orchestrator) and the entry-point options typ
 **Decision:** Add a `warnOnUnregisteredChats: boolean` field to `PrepareOptions` (default `true`). The `Chats` instance stores the flag. Each `deriveFromCapture`, `deriveChatAction`, and `deriveDelete` emits a `console.warn` when `findChatByTelegramId` returns `undefined`.
 
 Warning message format:
+
 ```
 [grammy-testing] Bot called <method> to unregistered chat <chatId>.
 Register it with chats.newChannel() / newSupergroup() / newGroup(), or pass

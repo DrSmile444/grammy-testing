@@ -9,6 +9,7 @@ Requirements for the `chats.clear()` method that atomically resets all captured 
 ### Requirement: `chats.clear()` atomically resets all captured state
 
 The `Chats` class SHALL expose a `clear()` method that atomically resets all captured log state in a single call. The reset SHALL include:
+
 - `chats.outgoing` — all raw captured API call records
 - Every registered user's `replies` inbox, `actions` log, and `edits` log
 - Every registered chat's `messages` log
@@ -18,6 +19,7 @@ The `Chats` class SHALL expose a `clear()` method that atomically resets all cap
 - The `lastCapturedReply` transient field
 
 The reset SHALL NOT clear:
+
 - The `users` map (user references stay valid)
 - The `chats` map (chat references stay valid)
 - Membership records on any chat

@@ -34,6 +34,7 @@ _Alternative considered_: Route to all users who are members of the chat, mirror
 Storage follows the `users` Map pattern (`Map<number, UserEntry>` holding `EditsLog`, `ActionsLog`, etc.) rather than placing `deletions` as a property directly on chat objects (the pattern used by `chat.messages`).
 
 Rationale:
+
 - `chat.messages` is a `MessagesLog` set by `registerChat()` as a mutable property on the chat class. Adding `deletions` there would require modifying all chat class interfaces and the `AnyChat` union.
 - The `Map`-in-`Chats` approach requires no changes to chat class hierarchies.
 - `chats.deletionsFor(chat)` is parallel to `chats.editsFor(user)` — consistent verb, consistent failure mode (throws for unregistered chats).

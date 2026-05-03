@@ -12,11 +12,13 @@ State middleware (`ctx.state`) must run before bot handlers. In `prepareComposer
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Message-sending methods return a real `Message` (or `Message[]`) shape by default, using the captured Reply's `messageId`. Resolves silent breakage in any bot that reads `sent.message_id`.
 - `prepareComposer` / `prepareMiddleware` accept a `state` option that pre-populates `ctx.state` for every update dispatched in the test.
 - TODO items #7 and #10 are formally closed in the doc.
 
 **Non-Goals:**
+
 - State injection for `prepareBot` (bot handlers are registered before `prepareBot` is called; middleware cannot be prepended).
 - Full synthetic `Message` shape (only `message_id` and `date` are guaranteed; `chat`, `from`, `text` etc. are omitted — bots that need them can supply a custom `responses` entry).
 - Changing how the transformer resolves non-message methods.
@@ -28,9 +30,11 @@ State middleware (`ctx.state`) must run before bot handlers. In `prepareComposer
 The transformer knows nothing about Replies or synthetic IDs. Putting the default-response logic in `Chats.buildDefaultResponses()` keeps that knowledge co-located with `deriveFromCapture` and `messageIdToReply`.
 
 `Chats` exposes a new internal method:
+
 ```
 buildDefaultResponses(): Responses
 ```
+
 This returns dynamic resolver functions for every method in `MESSAGE_METHODS`. Each resolver reads `this.lastCapturedReply?.messageId` at call time (not at construction time), which is safe because `onCapture` fires before `resolveCall`.
 
 `Chats` also gains a private `lastCapturedReply: Reply<TContext> | undefined` field that is set at the end of `deriveFromCapture` whenever a message-method Reply is created.

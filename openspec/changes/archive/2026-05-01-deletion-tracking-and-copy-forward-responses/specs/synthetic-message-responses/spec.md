@@ -27,6 +27,7 @@ When the bot calls `copyMessage` and no user-supplied `responses.copyMessage` en
 ### Requirement: `forwardMessage` returns a synthetic `Message` by default
 
 When the bot calls `forwardMessage` and no user-supplied `responses.forwardMessage` entry is present, the transformer SHALL resolve the call with a `Message`-shaped object that includes at minimum:
+
 - `message_id`: the same synthetic integer assigned to the captured `Reply` object for that call.
 - `date`: the Unix timestamp (seconds) at which the default response was generated.
 

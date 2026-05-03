@@ -3,6 +3,7 @@
 ### Requirement: Warn when a message method targets an unregistered chat
 
 When the `Chats` orchestrator processes a captured API call whose `chat_id` does not correspond to any registered chat, it SHALL emit a `console.warn` message describing the situation. The warning SHALL be emitted for the following method families:
+
 - Message-sending methods (`sendMessage`, `sendPhoto`, etc.)
 - Chat action methods (`sendChatAction`)
 - Delete methods (`deleteMessage`)

@@ -7,11 +7,13 @@ The version-to-feature mapping was fully reconstructed from git log version bump
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Single `docs/CHANGELOG.md` covering all 14 versions, newest first
 - Each version section: `## [vX.Y.Z] — YYYY-MM-DD` heading, one or more named subsections, bullet points per meaningful user-visible change
 - Process guard: `openspec/config.yaml` tasks rule that auto-includes a changelog update task in every future change
 
 **Non-Goals:**
+
 - Linking to PRs, commits, or issues (none are public yet)
 - Automated changelog generation tooling (keep-a-changelog, semantic-release, etc.)
 - Changelog for OpenSpec-internal or docs-only commits (only user-facing changes)

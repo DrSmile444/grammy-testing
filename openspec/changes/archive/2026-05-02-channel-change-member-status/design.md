@@ -9,6 +9,7 @@ The change fixes this across all three types and adds `Channel.changeMemberStatu
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Add `Channel.changeMemberStatus(fromUser, transition)` with correct `from`/subject semantics
 - Fix `Group.changeMemberStatus` and `Supergroup.changeMemberStatus` to key `members` by `bot.botInfo.id`
 - Make `getChatAdministrators` auto-derivation return the bot after a promotion transition
@@ -16,6 +17,7 @@ The change fixes this across all three types and adds `Channel.changeMemberStatu
 - Eliminate the last raw `handleUpdate` call in ua-anti-spam-bot's test suite
 
 **Non-Goals:**
+
 - `Channel.own()` or `Channel.join()` — channel subscriber semantics don't map to bot test states
 - Fixing `dispatchMyChatMember` usage in low-level tests (those construct raw updates, not affected)
 - Any change to `promote()`, `restrict()`, `own()`, `join()` — those set user state, not bot state
@@ -29,8 +31,8 @@ The change fixes this across all three types and adds `Channel.changeMemberStatu
 ```ts
 interface MyChatMemberDispatch<TContext extends Context> {
   chat: Chat.ChannelChat | Chat.GroupChat | Chat.SupergroupChat;
-  user: User<TContext>;       // from — who triggered the change
-  botUser: TelegramUser;     // subject — old/new_chat_member.user (always the bot)
+  user: User<TContext>; // from — who triggered the change
+  botUser: TelegramUser; // subject — old/new_chat_member.user (always the bot)
   fromStatus: ChatMemberStatus;
   toStatus: ChatMemberStatus;
   permissions: PermissionFlags;
@@ -40,6 +42,7 @@ interface MyChatMemberDispatch<TContext extends Context> {
 ```
 
 **Alternatives considered:**
+
 - Inlining the fix at each call site — more repetition, easier to regress.
 - Deriving `botUser` inside `dispatchMyChatMember` via a `Bot` reference — would require passing the whole bot, coupling the dispatch layer to the bot lifecycle. The call site already has `bot.botInfo`, so passing `botUser` directly is cleaner.
 
@@ -59,6 +62,7 @@ this.members.set(botUser.id, { user: botUser as unknown as User<TContext>, chat:
 `bot.botInfo` is guaranteed non-null after `[setBotRef]` is called, which happens during `prepareBot`/`prepareComposer`/`prepareMiddleware` startup — before any test runs.
 
 **Alternatives considered:**
+
 - Introducing a `BotUser` type to avoid the cast — unnecessary complexity; `botInfo` is a `UserFromGetMe` which is compatible with `Membership.user`.
 
 ### Decision 3: `CHANNEL_ADMIN_RIGHTS` separate from `FULL_ADMIN_RIGHTS`
