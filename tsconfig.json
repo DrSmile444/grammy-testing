@@ -11,5 +11,5 @@
     "resolveJsonModule": true,
     "esModuleInterop": true
   },
-  "include": [".eslint", "src", "tests", "scripts", "vitest.config.ts", "tsup.config.ts"]
+  "include": [".eslint", "src", "tests", "scripts", "examples", "vitest.config.ts", "tsup.config.ts"]
 }
