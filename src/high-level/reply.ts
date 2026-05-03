@@ -309,6 +309,7 @@ export class Reply<TContext extends Context = Context> {
       chat: this.chat ? this.chat.toTelegramChat() : ({ id: 0, type: 'private' } as Message['chat']),
       text: this.text,
       entities: this.entities,
+      ...(this.replyMarkup !== undefined && { reply_markup: this.replyMarkup }),
     } as Message;
   }
 }

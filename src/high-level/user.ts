@@ -171,6 +171,24 @@ export interface PurchasePaidMediaOptions {
   updateId?: number;
 }
 
+export interface SendCallbackQueryOptionsMessage {
+  message_id?: number;
+}
+
+export interface SendCallbackQueryOptions<TContext extends Context = Context> {
+  /**
+   * Optional message context embedded in `callback_query.message`. When absent, a minimal
+   * private-chat stub is synthesized so grammY filters like `chatType('private')` evaluate
+   * correctly without any test boilerplate.
+   */
+  message?: Partial<Message> & SendCallbackQueryOptionsMessage;
+  /**
+   * Convenience override for `callback_query.message.chat`. Ignored when
+   * `options.message.chat` is explicitly set.
+   */
+  chat?: AnyChat<TContext>;
+}
+
 /** Minimal bot user profile for `user.manageBot`. */
 export interface BotUserProfile {
   id: number;
@@ -831,6 +849,42 @@ export class User<TContext extends Context = Context> {
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextUpdateId(), message } as Update);
 
     return message;
+  }
+
+  /**
+   * Dispatches a `callback_query` update from this user without requiring a prior captured reply.
+   * @param callbackData - The callback payload string (`callback_query.data`).
+   * @param options - Optional message context and chat override.
+   */
+  async sendCallbackQuery(callbackData: string, options: SendCallbackQueryOptions<TContext> = {}): Promise<void> {
+    const defaultChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
+    const messageId = options.message?.message_id ?? this.ctx.ids.nextMessageId();
+
+    const message: Message = {
+      date: Math.floor(Date.now() / 1000),
+      chat: defaultChat,
+      ...options.message,
+      message_id: messageId,
+    } as Message;
+
+    const update: Update = {
+      update_id: this.ctx.ids.nextUpdateId(),
+      callback_query: {
+        id: `cbq-${String(this.ctx.ids.nextMessageId())}`,
+        from: {
+          id: this.id,
+          is_bot: false,
+          first_name: this.first_name,
+          last_name: this.last_name,
+          username: this.username,
+        },
+        chat_instance: `inst-${String(this.ctx.ids.nextMessageId())}`,
+        message,
+        data: callbackData,
+      },
+    } as Update;
+
+    await this.ctx.bot.handleUpdate(update);
   }
 
   /**

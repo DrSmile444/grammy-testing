@@ -88,6 +88,7 @@ export {
   type SendDiceOptions,
   type SendDocumentOptions,
   type SendForwardedOptions,
+  type SendCallbackQueryOptions,
   type SendInlineQueryOptions,
   type SendLocationOptions,
   type SendPhotoOptions,
