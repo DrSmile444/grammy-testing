@@ -558,14 +558,23 @@ export class Chats<TContext extends Context = Context> {
       return { message_id: messageId, date: Math.floor(Date.now() / 1000) };
     };
 
-    const syntheticMediaGroup = (): unknown[] => {
-      const messageId = this.lastCapturedReply?.messageId;
+    const syntheticMediaGroup = (payload: Record<string, unknown>): unknown[] => {
+      const firstMessageId = this.lastCapturedReply?.messageId;
 
-      if (messageId === undefined) {
+      if (firstMessageId === undefined) {
         return [];
       }
 
-      return [{ message_id: messageId, date: Math.floor(Date.now() / 1000) }];
+      const now = Math.floor(Date.now() / 1000);
+      const media = payload.media as unknown[] | undefined;
+      const count = media?.length ?? 1;
+      const messages: { message_id: number; date: number }[] = [{ message_id: firstMessageId, date: now }];
+
+      for (let index = 1; index < count; index += 1) {
+        messages.push({ message_id: this.ids.nextMessageId(), date: now });
+      }
+
+      return messages;
     };
 
     const syntheticMessageId = () => {

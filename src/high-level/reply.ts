@@ -281,7 +281,7 @@ export class Reply<TContext extends Context = Context> {
     }
 
     const update: Update = {
-      update_id: 500_000 + this.deps.ids.nextMessageId(),
+      update_id: this.deps.ids.nextUpdateId(),
       callback_query: {
         id: `cbq-${String(this.deps.ids.nextMessageId())}`,
         from: clicker?.from ?? {

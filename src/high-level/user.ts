@@ -36,6 +36,8 @@ export interface UserProfile {
  */
 export const GROUP_ANONYMOUS_BOT = {
   id: 1_087_968_824,
+  // Intentional: Telegram sends is_bot: false for this identity, matching real update payloads.
+  // Same as Channel_Bot (id: 136_817_688) — both are pseudo-users, not actual bots.
   is_bot: false,
   first_name: 'Group',
   username: 'GroupAnonymousBot',
@@ -443,7 +445,7 @@ export class User<TContext extends Context = Context> {
     } as Message;
 
     await this.ctx.bot.handleUpdate({
-      update_id: this.ctx.ids.nextMessageId() + 200_000,
+      update_id: this.ctx.ids.nextUpdateId(),
       message,
     } as Update);
 
@@ -477,7 +479,7 @@ export class User<TContext extends Context = Context> {
     } as Message;
 
     await this.ctx.bot.handleUpdate({
-      update_id: this.ctx.ids.nextMessageId() + 200_000,
+      update_id: this.ctx.ids.nextUpdateId(),
       message,
     } as Update);
 
@@ -511,7 +513,7 @@ export class User<TContext extends Context = Context> {
     } as Message;
 
     await this.ctx.bot.handleUpdate({
-      update_id: this.ctx.ids.nextMessageId() + 200_000,
+      update_id: this.ctx.ids.nextUpdateId(),
       message,
     } as Update);
 
@@ -538,7 +540,7 @@ export class User<TContext extends Context = Context> {
       caption: options.caption,
     } as Message;
 
-    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextUpdateId(), message } as Update);
 
     return message;
   }
@@ -563,7 +565,7 @@ export class User<TContext extends Context = Context> {
       caption: options.caption,
     } as Message;
 
-    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextUpdateId(), message } as Update);
 
     return message;
   }
@@ -587,7 +589,7 @@ export class User<TContext extends Context = Context> {
       video_note: makeVideoNoteStub(fileId),
     } as Message;
 
-    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextUpdateId(), message } as Update);
 
     return message;
   }
@@ -612,7 +614,7 @@ export class User<TContext extends Context = Context> {
       caption: options.caption,
     } as Message;
 
-    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextUpdateId(), message } as Update);
 
     return message;
   }
@@ -636,7 +638,7 @@ export class User<TContext extends Context = Context> {
       sticker: makeStickerStub(fileId),
     } as Message;
 
-    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextUpdateId(), message } as Update);
 
     return message;
   }
@@ -659,7 +661,7 @@ export class User<TContext extends Context = Context> {
       location: { latitude, longitude },
     } as Message;
 
-    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextUpdateId(), message } as Update);
 
     return message;
   }
@@ -682,7 +684,7 @@ export class User<TContext extends Context = Context> {
       contact: { phone_number: phoneNumber, first_name: firstName, last_name: options.lastName },
     } as Message;
 
-    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextUpdateId(), message } as Update);
 
     return message;
   }
@@ -713,7 +715,7 @@ export class User<TContext extends Context = Context> {
       venue: { location: { latitude, longitude }, title, address },
     } as Message;
 
-    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextUpdateId(), message } as Update);
 
     return message;
   }
@@ -746,7 +748,7 @@ export class User<TContext extends Context = Context> {
       },
     } as Message;
 
-    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextUpdateId(), message } as Update);
 
     return message;
   }
@@ -768,7 +770,7 @@ export class User<TContext extends Context = Context> {
       dice: { emoji, value: 1 },
     } as Message;
 
-    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextUpdateId(), message } as Update);
 
     return message;
   }
@@ -791,7 +793,7 @@ export class User<TContext extends Context = Context> {
       web_app_data: { data: webAppData, button_text: buttonText },
     } as Message;
 
-    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextUpdateId(), message } as Update);
 
     return message;
   }
@@ -826,7 +828,7 @@ export class User<TContext extends Context = Context> {
       },
     } as Message;
 
-    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+    await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextUpdateId(), message } as Update);
 
     return message;
   }
@@ -838,7 +840,7 @@ export class User<TContext extends Context = Context> {
    */
   async sendInlineQuery(query: string, options: SendInlineQueryOptions = {}): Promise<void> {
     const update: Update = {
-      update_id: this.ctx.ids.nextMessageId() + 800_000,
+      update_id: this.ctx.ids.nextUpdateId(),
       inline_query: {
         id: `iq-${String(this.ctx.ids.nextMessageId())}`,
         from: { id: this.id, is_bot: false, first_name: this.first_name, last_name: this.last_name, username: this.username },
@@ -858,7 +860,7 @@ export class User<TContext extends Context = Context> {
    */
   async sendChosenInlineResult(resultId: string, query: string): Promise<void> {
     const update: Update = {
-      update_id: this.ctx.ids.nextMessageId() + 850_000,
+      update_id: this.ctx.ids.nextUpdateId(),
       chosen_inline_result: {
         result_id: resultId,
         from: { id: this.id, is_bot: false, first_name: this.first_name, last_name: this.last_name, username: this.username },
@@ -877,7 +879,7 @@ export class User<TContext extends Context = Context> {
    */
   async sendPreCheckoutQuery(invoicePayload: string, currency: string, totalAmount: number): Promise<void> {
     const update: Update = {
-      update_id: this.ctx.ids.nextMessageId() + 900_000,
+      update_id: this.ctx.ids.nextUpdateId(),
       pre_checkout_query: {
         id: `pcq-${String(this.ctx.ids.nextMessageId())}`,
         from: { id: this.id, is_bot: false, first_name: this.first_name, last_name: this.last_name, username: this.username },
@@ -897,7 +899,7 @@ export class User<TContext extends Context = Context> {
    */
   async sendShippingQuery(invoicePayload: string, shippingAddress: ShippingAddress): Promise<void> {
     const update: Update = {
-      update_id: this.ctx.ids.nextMessageId() + 950_000,
+      update_id: this.ctx.ids.nextUpdateId(),
       shipping_query: {
         id: `shq-${String(this.ctx.ids.nextMessageId())}`,
         from: { id: this.id, is_bot: false, first_name: this.first_name, last_name: this.last_name, username: this.username },
@@ -945,7 +947,7 @@ export class User<TContext extends Context = Context> {
       } as Message;
 
       const update: Update = {
-        update_id: 400_000 + this.ctx.ids.nextMessageId(),
+        update_id: this.ctx.ids.nextUpdateId(),
         message,
       } as Update;
 
@@ -971,7 +973,7 @@ export class User<TContext extends Context = Context> {
     const chat = reply.chat ? reply.chat.toTelegramChat() : this.ctx.defaultPrivateChat();
 
     await this.ctx.bot.handleUpdate({
-      update_id: this.ctx.ids.nextMessageId() + 1_000_000,
+      update_id: this.ctx.ids.nextUpdateId(),
       message_reaction: {
         chat,
         message_id: reply.messageId,
@@ -1026,7 +1028,7 @@ export class User<TContext extends Context = Context> {
         };
 
     await this.ctx.bot.handleUpdate({
-      update_id: this.ctx.ids.nextMessageId() + 1_100_000,
+      update_id: this.ctx.ids.nextUpdateId(),
       poll_answer: {
         poll_id: pollId,
         voter_chat: options.voterChat,
@@ -1045,7 +1047,7 @@ export class User<TContext extends Context = Context> {
    */
   async requestJoin(group: Group<TContext> | Supergroup<TContext>, options: RequestJoinOptions = {}): Promise<void> {
     await this.ctx.bot.handleUpdate({
-      update_id: this.ctx.ids.nextMessageId() + 1_200_000,
+      update_id: this.ctx.ids.nextUpdateId(),
       chat_join_request: {
         chat: group.toTelegramChat(),
         from: {
@@ -1076,7 +1078,7 @@ export class User<TContext extends Context = Context> {
     const expirationDays = options.expirationDays ?? 30;
 
     await this.ctx.bot.handleUpdate({
-      update_id: this.ctx.ids.nextMessageId() + 1_300_000,
+      update_id: this.ctx.ids.nextUpdateId(),
       chat_boost: {
         chat: chat.toTelegramChat(),
         boost: {
@@ -1111,7 +1113,7 @@ export class User<TContext extends Context = Context> {
     const now = Math.floor(Date.now() / 1000);
 
     await this.ctx.bot.handleUpdate({
-      update_id: this.ctx.ids.nextMessageId() + 1_400_000,
+      update_id: this.ctx.ids.nextUpdateId(),
       removed_chat_boost: {
         chat: chat.toTelegramChat(),
         boost_id: boostId,
@@ -1138,7 +1140,7 @@ export class User<TContext extends Context = Context> {
    */
   async manageBot(botUser: BotUserProfile, options: ManageBotOptions = {}): Promise<void> {
     await this.ctx.bot.handleUpdate({
-      update_id: options.updateId ?? this.ctx.ids.nextMessageId() + 1_740_000,
+      update_id: options.updateId ?? this.ctx.ids.nextUpdateId(),
       managed_bot: {
         user: {
           id: this.id,
@@ -1166,7 +1168,7 @@ export class User<TContext extends Context = Context> {
    */
   async purchasePaidMedia(payload: string, options: PurchasePaidMediaOptions = {}): Promise<void> {
     await this.ctx.bot.handleUpdate({
-      update_id: options.updateId ?? this.ctx.ids.nextMessageId() + 1_750_000,
+      update_id: options.updateId ?? this.ctx.ids.nextUpdateId(),
       purchased_paid_media: {
         from: {
           id: this.id,
