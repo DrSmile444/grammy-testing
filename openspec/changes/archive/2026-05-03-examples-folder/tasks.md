@@ -75,14 +75,14 @@
 
 ## 12. Quality Gate
 
-- [ ] 12.1 Run `npm run lint:fix` and fix all errors
-- [ ] 12.2 Run `npm run format:md` and fix all formatting
-- [ ] 12.3 Run `npm run typecheck` and fix all type errors
-- [ ] 12.4 Run `npm run lint` and confirm zero errors
-- [ ] 12.5 Run `npm run test:run` and confirm all tests pass (including examples)
-- [ ] 12.6 Run `npm run test:coverage` and confirm all thresholds pass
+- [x] 12.1 Run `npm run lint:fix` and fix all errors
+- [x] 12.2 Run `npm run format:md` and fix all formatting
+- [x] 12.3 Run `npm run typecheck` and fix all type errors
+- [x] 12.4 Run `npm run lint` and confirm zero errors
+- [x] 12.5 Run `npm run test:run` and confirm all tests pass (including examples)
+- [x] 12.6 Run `npm run test:coverage` and confirm all thresholds pass
 
 ## 13. Changelog & Version Bump
 
-- [ ] 13.1 Add entry to `docs/CHANGELOG.md` under a new version heading describing the examples folder
-- [ ] 13.2 Bump version in both `package.json` and `jsr.json` to the same new version string
+- [x] 13.1 Add entry to `docs/CHANGELOG.md` under a new version heading describing the examples folder
+- [x] 13.2 Bump version in both `package.json` and `jsr.json` to the same new version string

@@ -33,7 +33,7 @@ The built `dist/` SHALL be importable from both ESM (`import`) and CommonJS (`re
 
 ### Requirement: Internal tests run without a prior build step
 
-The development test suite (`vitest run`) SHALL resolve `@grammyjs/testing` to the TypeScript source (`src/index.ts`) rather than the built `dist/`, so that tests can be run without running `npm run build` first.
+The development test suite (`vitest run`) SHALL resolve `@grammyjs/testing` to the TypeScript source (`src/index.ts`) rather than the built `dist/`, so that tests can be run without running `npm run build` first. This resolution SHALL also apply to all files under `examples/` so example specs execute against live source.
 
 #### Scenario: Tests pass with no dist/ present
 
