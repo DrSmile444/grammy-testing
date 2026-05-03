@@ -1,5 +1,58 @@
 # Changelog
 
+## 0.14.0 — 2026-05-03
+
+### `ChatProfile` — chat factory methods accept a caller-supplied ID
+
+`chats.newGroup`, `chats.newSupergroup`, and `chats.newChannel` now accept an optional object
+profile `{ id?, title? }` in addition to the existing string/undefined forms, mirroring the
+`UserProfile` pattern used by `chats.newUser`. Any integer ID is accepted without validation —
+use this to register chats whose IDs are fixed at configuration time (log channels, training
+chats, etc.):
+
+```ts
+const logsGroup = chats.newSupergroup({ id: 1_234_567, title: 'Logs' });
+// title defaults to 'Supergroup1234567' when omitted
+const alerts = chats.newChannel({ id: -500, title: 'Alerts' });
+```
+
+`getChat` and `getChatAdministrators` auto-derivation work normally for specific-ID chats,
+eliminating the need for `respondNext('getChat', ...)` workarounds.
+
+### `anonymous` option — `sendText` / `sendCommand` dispatch as GroupAnonymousBot
+
+`SendTextOptions` gains `anonymous?: boolean`. When `true`, the dispatched message's `from`
+is replaced with the GroupAnonymousBot identity and `sender_chat` is set to the target group,
+matching Telegram's wire format for the "Send as Group" admin feature:
+
+```ts
+await user.sendText('/role user', { chat: group, anonymous: true });
+await user.sendCommand('/role', 'user', { chat: group, anonymous: true });
+```
+
+Requires `options.chat` to be a `Group` or `Supergroup`; throws a descriptive error otherwise.
+
+### `GROUP_ANONYMOUS_BOT` — exported constant for assertions
+
+```ts
+import { GROUP_ANONYMOUS_BOT } from 'grammy-testing';
+// { id: 1_087_968_824, username: 'GroupAnonymousBot', is_bot: false, first_name: 'Group' }
+expect(ctx.message.from).toMatchObject(GROUP_ANONYMOUS_BOT);
+```
+
+### `sendSystemMessage` — dispatch a from-absent message update
+
+`Group`, `Supergroup`, and `Channel` each gain `sendSystemMessage(text, options?)` which
+dispatches a `message` update with the `from` field intentionally absent. Tests the common
+`if (!ctx.from) return next()` guard path without raw `handleUpdate` calls:
+
+```ts
+await group.sendSystemMessage('no sender text');
+await channel.sendSystemMessage('notice', { messageId: 42 });
+```
+
+---
+
 ## 0.13.0 — 2026-05-02
 
 ### `Channel.changeMemberStatus` — dispatch `my_chat_member` for channels
@@ -12,6 +65,7 @@
 **Breaking (minor):** `group.changeMemberStatus(user, transition)` and `supergroup.changeMemberStatus(user, transition)` previously stored the trigger actor (`user`) in the chat's members map and used that same user for `old/new_chat_member.user` in the dispatched update. Both were wrong — `my_chat_member` always describes the **bot's** status change, and `from` is the actor who triggered it.
 
 After this fix:
+
 - `old/new_chat_member.user` in the dispatched update is `bot.botInfo` (the bot), not the trigger user.
 - The bot's membership is stored in the members map, keyed by `bot.botInfo.id`.
 - `getChatAdministrators` auto-derivation now returns the bot after a promotion transition, not the trigger actor.
