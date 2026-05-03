@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { prepareBot } from '../../src/index';
 
 describe('bot.api.sendMediaGroup synthetic response', () => {
-  it('default response is a single-element Message[] with the captured reply messageId', async () => {
+  it('default response length matches the number of media items sent', async () => {
     const bot = new Bot('test-token');
     let sentGroup: Message[] | undefined;
 
@@ -21,8 +21,9 @@ describe('bot.api.sendMediaGroup synthetic response', () => {
 
     await user.sendText('trigger');
 
-    expect(sentGroup).toHaveLength(1);
+    expect(sentGroup).toHaveLength(2);
     expect(sentGroup?.[0]?.message_id).toBe(user.replies.lastOrThrow().messageId);
+    expect(sentGroup?.[1]?.message_id).toBeTypeOf('number');
   });
 });
 
