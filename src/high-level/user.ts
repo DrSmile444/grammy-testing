@@ -45,12 +45,16 @@ export interface SendTextOptionsReplyParameter {
   message_id: number;
 }
 
+export interface SendTextOptionsReplyToMessage {
+  message_id: number;
+}
+
 export interface SendTextOptions<TContext extends Context = Context> {
   chat?: AnyChat<TContext>;
   entities?: MessageEntity[];
   parse_mode?: 'HTML' | 'Markdown' | 'MarkdownV2';
   reply_parameters?: SendTextOptionsReplyParameter;
-  reply_to_message?: Message;
+  reply_to_message?: Partial<Message> & SendTextOptionsReplyToMessage;
   /**
    * When `true`, replaces `message.from` with the GroupAnonymousBot identity and sets
    * `message.sender_chat` to the target group. Requires `options.chat` to be a `Group` or
@@ -257,8 +261,9 @@ export class User<TContext extends Context = Context> {
    * @param text - The message text.
    * @param options - Optional target chat, entities, parse mode, reply parameters, and
    *   anonymous mode (GroupAnonymousBot identity).
+   * @returns The dispatched synthetic `Message`.
    */
-  async sendText(text: string, options: SendTextOptions<TContext> = {}): Promise<void> {
+  async sendText(text: string, options: SendTextOptions<TContext> = {}): Promise<Message> {
     const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
     if (options.anonymous) {
@@ -272,7 +277,11 @@ export class User<TContext extends Context = Context> {
       }
     }
 
-    await dispatchTextMessage({
+    const replyToMessage = options.reply_to_message
+      ? ({ date: Math.floor(Date.now() / 1000), chat: targetChat, ...options.reply_to_message } as Message)
+      : undefined;
+
+    return dispatchTextMessage({
       bot: this.ctx.bot,
       user: this,
       chat: targetChat,
@@ -281,7 +290,7 @@ export class User<TContext extends Context = Context> {
       updateId: this.ctx.ids.nextUpdateId(),
       entities: options.entities,
       replyToMessageId: options.reply_parameters?.message_id,
-      replyToMessage: options.reply_to_message,
+      replyToMessage,
       ...(options.anonymous && {
         fromOverride: GROUP_ANONYMOUS_BOT,
         senderChat: targetChat,
@@ -295,7 +304,7 @@ export class User<TContext extends Context = Context> {
    * @param options - Optional target chat and text options.
    * @returns A promise that resolves when the update is handled.
    */
-  async sendMessage(text: string, options: SendTextOptions<TContext> = {}): Promise<void> {
+  async sendMessage(text: string, options: SendTextOptions<TContext> = {}): Promise<Message> {
     return this.sendText(text, options);
   }
 
@@ -303,11 +312,12 @@ export class User<TContext extends Context = Context> {
    * Dispatches a forwarded text message update from this user.
    * @param text - The original message text.
    * @param options - Required `forwardOrigin` and optional target chat.
+   * @returns The dispatched synthetic `Message`.
    */
-  async sendForwarded(text: string, options: SendForwardedOptions<TContext>): Promise<void> {
+  async sendForwarded(text: string, options: SendForwardedOptions<TContext>): Promise<Message> {
     const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
-    await dispatchTextMessage({
+    return dispatchTextMessage({
       bot: this.ctx.bot,
       user: this,
       chat: targetChat,
@@ -397,7 +407,7 @@ export class User<TContext extends Context = Context> {
    * @param options.anonymous - When `true`, dispatches as GroupAnonymousBot (see `sendText`).
    * @returns A promise that resolves when the update is handled.
    */
-  async sendCommand(command: string, args?: string, options: { chat?: AnyChat<TContext>; anonymous?: boolean } = {}): Promise<void> {
+  async sendCommand(command: string, args?: string, options: { chat?: AnyChat<TContext>; anonymous?: boolean } = {}): Promise<Message> {
     const normalized = command.startsWith('/') ? command : `/${command}`;
     const text = args ? `${normalized} ${args}` : normalized;
 
@@ -410,8 +420,9 @@ export class User<TContext extends Context = Context> {
    * Dispatches a photo message from this user.
    * @param file - Optional file ID; a stub is generated when omitted.
    * @param options - Optional caption and target chat.
+   * @returns The dispatched synthetic `Message`.
    */
-  async sendPhoto(file?: string, options: SendPhotoOptions<TContext> = {}): Promise<void> {
+  async sendPhoto(file?: string, options: SendPhotoOptions<TContext> = {}): Promise<Message> {
     const fileId = file ?? this.ctx.ids.nextFileId();
 
     const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
@@ -435,14 +446,17 @@ export class User<TContext extends Context = Context> {
       update_id: this.ctx.ids.nextMessageId() + 200_000,
       message,
     } as Update);
+
+    return message;
   }
 
   /**
    * Dispatches a document message from this user.
    * @param file - Optional file ID; a stub is generated when omitted.
    * @param options - Optional caption and target chat.
+   * @returns The dispatched synthetic `Message`.
    */
-  async sendDocument(file?: string, options: SendDocumentOptions<TContext> = {}): Promise<void> {
+  async sendDocument(file?: string, options: SendDocumentOptions<TContext> = {}): Promise<Message> {
     const fileId = file ?? this.ctx.ids.nextFileId();
 
     const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
@@ -466,14 +480,17 @@ export class User<TContext extends Context = Context> {
       update_id: this.ctx.ids.nextMessageId() + 200_000,
       message,
     } as Update);
+
+    return message;
   }
 
   /**
    * Dispatches a video message from this user.
    * @param file - Optional file ID; a stub is generated when omitted.
    * @param options - Optional caption and target chat.
+   * @returns The dispatched synthetic `Message`.
    */
-  async sendVideo(file?: string, options: SendVideoOptions<TContext> = {}): Promise<void> {
+  async sendVideo(file?: string, options: SendVideoOptions<TContext> = {}): Promise<Message> {
     const fileId = file ?? this.ctx.ids.nextFileId();
 
     const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
@@ -497,14 +514,17 @@ export class User<TContext extends Context = Context> {
       update_id: this.ctx.ids.nextMessageId() + 200_000,
       message,
     } as Update);
+
+    return message;
   }
 
   /**
    * Dispatches an audio message from this user.
    * @param file - Optional file ID; a stub is generated when omitted.
    * @param options - Optional caption and target chat.
+   * @returns The dispatched synthetic `Message`.
    */
-  async sendAudio(file?: string, options: SendAudioOptions<TContext> = {}): Promise<void> {
+  async sendAudio(file?: string, options: SendAudioOptions<TContext> = {}): Promise<Message> {
     const fileId = file ?? this.ctx.ids.nextFileId();
 
     const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
@@ -519,14 +539,17 @@ export class User<TContext extends Context = Context> {
     } as Message;
 
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+
+    return message;
   }
 
   /**
    * Dispatches a voice message from this user.
    * @param file - Optional file ID; a stub is generated when omitted.
    * @param options - Optional caption and target chat.
+   * @returns The dispatched synthetic `Message`.
    */
-  async sendVoice(file?: string, options: SendVoiceOptions<TContext> = {}): Promise<void> {
+  async sendVoice(file?: string, options: SendVoiceOptions<TContext> = {}): Promise<Message> {
     const fileId = file ?? this.ctx.ids.nextFileId();
 
     const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
@@ -541,14 +564,17 @@ export class User<TContext extends Context = Context> {
     } as Message;
 
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+
+    return message;
   }
 
   /**
    * Dispatches a video note (round video) message from this user.
    * @param file - Optional file ID; a stub is generated when omitted.
    * @param options - Optional target chat.
+   * @returns The dispatched synthetic `Message`.
    */
-  async sendVideoNote(file?: string, options: SendVideoNoteOptions<TContext> = {}): Promise<void> {
+  async sendVideoNote(file?: string, options: SendVideoNoteOptions<TContext> = {}): Promise<Message> {
     const fileId = file ?? this.ctx.ids.nextFileId();
 
     const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
@@ -562,14 +588,17 @@ export class User<TContext extends Context = Context> {
     } as Message;
 
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+
+    return message;
   }
 
   /**
    * Dispatches an animation (GIF) message from this user.
    * @param file - Optional file ID; a stub is generated when omitted.
    * @param options - Optional caption and target chat.
+   * @returns The dispatched synthetic `Message`.
    */
-  async sendAnimation(file?: string, options: SendAnimationOptions<TContext> = {}): Promise<void> {
+  async sendAnimation(file?: string, options: SendAnimationOptions<TContext> = {}): Promise<Message> {
     const fileId = file ?? this.ctx.ids.nextFileId();
 
     const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
@@ -584,14 +613,17 @@ export class User<TContext extends Context = Context> {
     } as Message;
 
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+
+    return message;
   }
 
   /**
    * Dispatches a sticker message from this user.
    * @param file - Optional file ID; a stub is generated when omitted.
    * @param options - Optional target chat.
+   * @returns The dispatched synthetic `Message`.
    */
-  async sendSticker(file?: string, options: SendStickerOptions<TContext> = {}): Promise<void> {
+  async sendSticker(file?: string, options: SendStickerOptions<TContext> = {}): Promise<Message> {
     const fileId = file ?? this.ctx.ids.nextFileId();
 
     const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
@@ -605,6 +637,8 @@ export class User<TContext extends Context = Context> {
     } as Message;
 
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+
+    return message;
   }
 
   /**
@@ -612,8 +646,9 @@ export class User<TContext extends Context = Context> {
    * @param latitude - Geographic latitude in degrees.
    * @param longitude - Geographic longitude in degrees.
    * @param options - Optional target chat.
+   * @returns The dispatched synthetic `Message`.
    */
-  async sendLocation(latitude: number, longitude: number, options: SendLocationOptions<TContext> = {}): Promise<void> {
+  async sendLocation(latitude: number, longitude: number, options: SendLocationOptions<TContext> = {}): Promise<Message> {
     const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
     const message: Message = {
@@ -625,6 +660,8 @@ export class User<TContext extends Context = Context> {
     } as Message;
 
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+
+    return message;
   }
 
   /**
@@ -632,8 +669,9 @@ export class User<TContext extends Context = Context> {
    * @param phoneNumber - The contact's phone number.
    * @param firstName - The contact's first name.
    * @param options - Optional last name and target chat.
+   * @returns The dispatched synthetic `Message`.
    */
-  async sendContact(phoneNumber: string, firstName: string, options: SendContactOptions<TContext> = {}): Promise<void> {
+  async sendContact(phoneNumber: string, firstName: string, options: SendContactOptions<TContext> = {}): Promise<Message> {
     const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
     const message: Message = {
@@ -645,6 +683,8 @@ export class User<TContext extends Context = Context> {
     } as Message;
 
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+
+    return message;
   }
 
   /**
@@ -654,6 +694,7 @@ export class User<TContext extends Context = Context> {
    * @param title - Name of the venue.
    * @param address - Address of the venue.
    * @param options - Optional target chat.
+   * @returns The dispatched synthetic `Message`.
    */
   async sendVenue(
     latitude: number,
@@ -661,7 +702,7 @@ export class User<TContext extends Context = Context> {
     title: string,
     address: string,
     options: SendVenueOptions<TContext> = {},
-  ): Promise<void> {
+  ): Promise<Message> {
     const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
     const message: Message = {
@@ -673,6 +714,8 @@ export class User<TContext extends Context = Context> {
     } as Message;
 
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+
+    return message;
   }
 
   /**
@@ -680,8 +723,9 @@ export class User<TContext extends Context = Context> {
    * @param question - The poll question text.
    * @param answerOptions - Array of answer option strings.
    * @param options - Optional target chat.
+   * @returns The dispatched synthetic `Message`.
    */
-  async sendPoll(question: string, answerOptions: string[], options: SendPollOptions<TContext> = {}): Promise<void> {
+  async sendPoll(question: string, answerOptions: string[], options: SendPollOptions<TContext> = {}): Promise<Message> {
     const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
     const message: Message = {
@@ -703,14 +747,17 @@ export class User<TContext extends Context = Context> {
     } as Message;
 
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+
+    return message;
   }
 
   /**
    * Dispatches a dice message from this user.
    * @param emoji - The dice emoji to use (default `🎲`).
    * @param options - Optional target chat.
+   * @returns The dispatched synthetic `Message`.
    */
-  async sendDice(emoji = '🎲', options: SendDiceOptions<TContext> = {}): Promise<void> {
+  async sendDice(emoji = '🎲', options: SendDiceOptions<TContext> = {}): Promise<Message> {
     const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
     const message: Message = {
@@ -722,6 +769,8 @@ export class User<TContext extends Context = Context> {
     } as Message;
 
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+
+    return message;
   }
 
   /**
@@ -729,8 +778,9 @@ export class User<TContext extends Context = Context> {
    * @param webAppData - The data string submitted by the Web App.
    * @param buttonText - The text of the keyboard button that opened the Web App.
    * @param options - Optional target chat.
+   * @returns The dispatched synthetic `Message`.
    */
-  async sendWebAppData(webAppData: string, buttonText: string, options: SendWebAppDataOptions<TContext> = {}): Promise<void> {
+  async sendWebAppData(webAppData: string, buttonText: string, options: SendWebAppDataOptions<TContext> = {}): Promise<Message> {
     const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
     const message: Message = {
@@ -742,6 +792,8 @@ export class User<TContext extends Context = Context> {
     } as Message;
 
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+
+    return message;
   }
 
   /**
@@ -750,13 +802,14 @@ export class User<TContext extends Context = Context> {
    * @param currency - Three-letter ISO 4217 currency code.
    * @param totalAmount - Total price in the smallest currency unit.
    * @param options - Optional target chat.
+   * @returns The dispatched synthetic `Message`.
    */
   async sendSuccessfulPayment(
     invoicePayload: string,
     currency: string,
     totalAmount: number,
     options: SendSuccessfulPaymentOptions<TContext> = {},
-  ): Promise<void> {
+  ): Promise<Message> {
     const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
 
     const message: Message = {
@@ -774,6 +827,8 @@ export class User<TContext extends Context = Context> {
     } as Message;
 
     await this.ctx.bot.handleUpdate({ update_id: this.ctx.ids.nextMessageId() + 200_000, message } as Update);
+
+    return message;
   }
 
   /**
@@ -859,11 +914,14 @@ export class User<TContext extends Context = Context> {
    * @param items - Array of media items (photo, video, or document) to send as a group.
    * @param sharedOptions - Optional default target chat applied to items that omit their own.
    * @param sharedOptions.chat - The default target chat (defaults to the private chat with this user).
+   * @returns The dispatched synthetic `Message` objects, one per item in dispatch order.
    */
-  async sendMediaGroup(items: UserSendMediaGroupItem<TContext>[], sharedOptions: { chat?: AnyChat<TContext> } = {}): Promise<void> {
+  async sendMediaGroup(items: UserSendMediaGroupItem<TContext>[], sharedOptions: { chat?: AnyChat<TContext> } = {}): Promise<Message[]> {
     const mediaGroupId = this.ctx.ids.nextMediaGroupId();
 
     const targetChat: Chat = sharedOptions.chat ? this.ctx.resolveChatToTelegram(sharedOptions.chat) : this.ctx.defaultPrivateChat();
+
+    const messages: Message[] = [];
 
     for (const item of items) {
       const itemChat = item.chat ? this.ctx.resolveChatToTelegram(item.chat) : targetChat;
@@ -893,7 +951,10 @@ export class User<TContext extends Context = Context> {
 
       // eslint-disable-next-line no-await-in-loop -- preserve dispatch order
       await this.ctx.bot.handleUpdate(update);
+      messages.push(message);
     }
+
+    return messages;
   }
 
   /**

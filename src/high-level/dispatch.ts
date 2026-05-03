@@ -13,6 +13,7 @@ function assertNever(x: never): never {
 }
 
 const CHANNEL_BOT_ID = 136_817_688;
+const RELAY_ID = 777_000;
 
 /**
  * Pure helper: build the synthetic `Channel_Bot` user that real
@@ -27,6 +28,30 @@ export function makeChannelBotUser(): TelegramUser {
     username: 'Channel_Bot',
   };
 }
+
+/**
+ * Pure helper: build the Telegram relay identity (`id: 777_000`) that Telegram
+ * inserts as `from` when a channel post is forwarded into a linked group.
+ * @returns A `TelegramUser` representing the Telegram relay service account.
+ */
+export function makeRelayUser(): TelegramUser {
+  return {
+    id: RELAY_ID,
+    is_bot: true,
+    first_name: 'Telegram',
+    username: 'telegram',
+  };
+}
+
+/**
+ * The Telegram relay identity (`id: 777_000`). Import this constant to assert on
+ * the `from` field of relay messages without hard-coding the magic number.
+ * @example
+ * ```ts
+ * expect(ctx.message.from).toMatchObject(TELEGRAM_RELAY);
+ * ```
+ */
+export const TELEGRAM_RELAY = makeRelayUser();
 
 /**
  * Pure helper: build a `ChatMember` value matching Telegram's
@@ -306,8 +331,9 @@ interface PrivateMessageDispatch<TContext extends Context> {
 /**
  * Dispatches a text `message` update from a user in a given chat.
  * @param spec - Parameters describing the outgoing text message.
+ * @returns The synthetic `Message` that was dispatched.
  */
-export async function dispatchTextMessage<TContext extends Context>(spec: PrivateMessageDispatch<TContext>): Promise<void> {
+export async function dispatchTextMessage<TContext extends Context>(spec: PrivateMessageDispatch<TContext>): Promise<Message> {
   const fromUser: TelegramUser = spec.fromOverride ?? {
     id: spec.user.id,
     is_bot: false,
@@ -334,4 +360,6 @@ export async function dispatchTextMessage<TContext extends Context>(spec: Privat
   } as Update;
 
   await spec.bot.handleUpdate(update);
+
+  return message;
 }
