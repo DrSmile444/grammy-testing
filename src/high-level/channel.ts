@@ -82,13 +82,21 @@ export class Channel<TContext extends Context = Context> implements ChatRefHolde
    * @param text - The message text.
    * @param options - Optional overrides.
    * @param options.messageId - Optional message ID to assign instead of auto-generating one.
+   * @param options.reply_to_message - Optional message this post replies to. Accepts a full
+   *   `Message` or a partial shape `{ message_id: number, ...rest }`. `date` and `chat` are
+   *   auto-filled from context when absent.
+   * @returns The synthetic `Message` that was dispatched.
    */
   async postMessageTo<TC extends Context = TContext>(
     target: Group<TC> | Supergroup<TC>,
     text: string,
-    options: { messageId?: number } = {},
-  ): Promise<void> {
+    options: { messageId?: number; reply_to_message?: Partial<Message> & { message_id: number } } = {},
+  ): Promise<Message> {
     const messageId = options.messageId ?? this.ids.nextMessageId();
+
+    const replyToMessage = options.reply_to_message
+      ? ({ date: Math.floor(Date.now() / 1000), chat: target.toTelegramChat(), ...options.reply_to_message } as Message)
+      : undefined;
 
     const message: Message = {
       message_id: messageId,
@@ -97,6 +105,7 @@ export class Channel<TContext extends Context = Context> implements ChatRefHolde
       from: makeChannelBotUser(),
       sender_chat: this.toTelegramChat(),
       text,
+      ...(replyToMessage !== undefined && { reply_to_message: replyToMessage }),
     } as Message;
 
     const update: Update = {
@@ -105,6 +114,8 @@ export class Channel<TContext extends Context = Context> implements ChatRefHolde
     } as Update;
 
     await this.bot.handleUpdate(update);
+
+    return message;
   }
 
   /**
