@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.18.0 — 2026-05-03
+
+### Internal fixes: `update_id` counter independence, `sendMediaGroup` response shape, `GROUP_ANONYMOUS_BOT` documentation
+
+**`update_id` counter is now independent from message IDs.** All `User` dispatch methods (`sendPhoto`, `sendDocument`, `sendVideo`, `sendAudio`, `sendVoice`, `sendVideoNote`, `sendAnimation`, `sendSticker`, `sendLocation`, `sendContact`, `sendVenue`, `sendPoll`, `sendDice`, `sendWebAppData`, `sendSuccessfulPayment`, `sendInlineQuery`, `sendChosenInlineResult`, `sendPreCheckoutQuery`, `sendShippingQuery`, `reactTo`, `answerPoll`, `requestJoin`, `boostChat`, `removeBoost`, `manageBot`, `purchasePaidMedia`, `sendMediaGroup`) and `Reply.clickButton` now draw `update_id` from `IdGenerator.nextUpdateId()` rather than `nextMessageId() + offset`. Message IDs and update IDs no longer share a counter.
+
+**`sendMediaGroup` auto-response returns N messages.** The default `buildDefaultResponses` resolver for `sendMediaGroup` now returns an array whose length matches the number of items in the bot's `media` payload. Previously it always returned a single-element array regardless of how many media items were sent.
+
+**`GROUP_ANONYMOUS_BOT.is_bot: false` is intentional.** An inline comment documents that Telegram sends `is_bot: false` for this identity in real update payloads, consistent with `Channel_Bot` (id: 136 817 688).
+
 ## 0.17.0 — 2026-05-03
 
 ### `channel.postMessageTo` returns `Message` and accepts `reply_to_message`
