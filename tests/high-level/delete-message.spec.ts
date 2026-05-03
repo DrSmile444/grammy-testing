@@ -9,7 +9,8 @@ describe('chats.deletionsFor(chat)', () => {
 
     bot.on('message:text', async (ctx) => {
       await ctx.reply('hello');
-      const messageId = (await ctx.api.sendMessage(ctx.chat.id, 'to delete')).message_id;
+      const sent = await ctx.api.sendMessage(ctx.chat.id, 'to delete');
+      const messageId = sent.message_id;
 
       await ctx.api.deleteMessage(ctx.chat.id, messageId);
     });
@@ -30,8 +31,10 @@ describe('chats.deletionsFor(chat)', () => {
     const bot = new Bot('test-token');
 
     bot.on('message:text', async (ctx) => {
-      const id1 = (await ctx.api.sendMessage(ctx.chat.id, 'first')).message_id;
-      const id2 = (await ctx.api.sendMessage(ctx.chat.id, 'second')).message_id;
+      const first = await ctx.api.sendMessage(ctx.chat.id, 'first');
+      const second = await ctx.api.sendMessage(ctx.chat.id, 'second');
+      const id1 = first.message_id;
+      const id2 = second.message_id;
 
       await ctx.api.deleteMessage(ctx.chat.id, id1);
       await ctx.api.deleteMessage(ctx.chat.id, id2);
@@ -48,7 +51,7 @@ describe('chats.deletionsFor(chat)', () => {
     expect(chats.deletionsFor(group).all).toHaveLength(2);
     const [first, second] = chats.deletionsFor(group).all;
 
-    expect(first?.messageId).not.toBe(second?.messageId);
+    expect(first.messageId).not.toBe(second.messageId);
   });
 
   it('reply is populated when the deleted message was captured during the test', async () => {
@@ -111,7 +114,6 @@ describe('chats.deletionsFor(chat)', () => {
   it('lastOrThrow throws when the deletion log is empty', async () => {
     const bot = new Bot('test-token');
     const { chats } = await prepareBot(bot);
-    const user = chats.newUser();
     const group = chats.newSupergroup();
 
     expect(() => chats.deletionsFor(group).lastOrThrow()).toThrow('Expected a deletion but the deletion log is empty');

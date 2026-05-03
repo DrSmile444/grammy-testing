@@ -23,7 +23,7 @@ describe('copyMessage default response', () => {
     expect(copiedMessageId).toBeDefined();
     expect(copiedMessageId).toBe(dm.messages.last?.messageId);
 
-    const outgoing = chats.outgoing.requests.find((r) => r.method === 'copyMessage');
+    const outgoing = chats.outgoing.requests.find((request) => request.method === 'copyMessage');
 
     expect(outgoing).toBeDefined();
   });

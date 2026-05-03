@@ -26,11 +26,11 @@ describe('group.own', () => {
     const user = chats.newUser();
     const group = chats.newSupergroup();
 
-    const m = group.own(user);
+    const membership = group.own(user);
 
-    expect(m.status).toBe('creator');
-    expect(m.user).toBe(user);
-    expect(m.chat).toBe(group);
+    expect(membership.status).toBe('creator');
+    expect(membership.user).toBe(user);
+    expect(membership.chat).toBe(group);
   });
 
   it('overwrites a prior status', async () => {
@@ -91,10 +91,10 @@ describe('group.join', () => {
     const user = chats.newUser();
     const group = chats.newSupergroup();
 
-    const m = group.join(user);
+    const membership = group.join(user);
 
-    expect(m.status).toBe('member');
-    expect(m.user).toBe(user);
+    expect(membership.status).toBe('member');
+    expect(membership.user).toBe(user);
   });
 
   it('does not dispatch any update', async () => {
@@ -172,31 +172,12 @@ describe('chats.newOwner', () => {
 // ─── getChatMember auto-derive ────────────────────────────────────────────────
 
 describe('getChatMember auto-derive', () => {
-  async function callGetChatMember(chatId: number, userId: number) {
-    const bot = new Bot('test-token');
-    let result: ChatMember | undefined;
-
-    bot.on('message', async (ctx) => {
-      result = await ctx.api.getChatMember(chatId, userId);
-    });
-
-    const { chats } = await prepareBot(bot);
-    const sender = chats.newUser();
-    const group = chats.newSupergroup();
-
-    group.join(sender);
-    await sender.sendText('ping', { chat: group });
-    await chats.idle();
-
-    return { result: result!, chats, group };
-  }
-
   it('returns creator shape for own() user', async () => {
     const bot = new Bot('test-token');
     let result: ChatMember | undefined;
 
     bot.on('message', async (ctx) => {
-      result = await ctx.api.getChatMember(ctx.chat.id, ctx.from!.id);
+      result = await ctx.api.getChatMember(ctx.chat.id, ctx.from.id);
     });
 
     const { chats } = await prepareBot(bot);
@@ -218,7 +199,7 @@ describe('getChatMember auto-derive', () => {
     let result: ChatMember | undefined;
 
     bot.on('message', async (ctx) => {
-      result = await ctx.api.getChatMember(ctx.chat.id, ctx.from!.id);
+      result = await ctx.api.getChatMember(ctx.chat.id, ctx.from.id);
     });
 
     const { chats } = await prepareBot(bot);
@@ -240,7 +221,7 @@ describe('getChatMember auto-derive', () => {
     let result: ChatMember | undefined;
 
     bot.on('message', async (ctx) => {
-      result = await ctx.api.getChatMember(ctx.chat.id, ctx.from!.id);
+      result = await ctx.api.getChatMember(ctx.chat.id, ctx.from.id);
     });
 
     const { chats } = await prepareBot(bot);
@@ -258,12 +239,6 @@ describe('getChatMember auto-derive', () => {
 
   it('returns restricted shape for restrict() user', async () => {
     const bot = new Bot('test-token');
-    let result: ChatMember | undefined;
-
-    bot.on('message', async (ctx) => {
-      result = await ctx.api.getChatMember(ctx.chat.id, ctx.from!.id);
-    });
-
     const { chats } = await prepareBot(bot);
     const sender = chats.newUser();
     const restrictedUser = chats.newUser();
@@ -272,27 +247,16 @@ describe('getChatMember auto-derive', () => {
     group.join(sender);
     group.restrict(restrictedUser, { can_send_messages: false }, 1_700_000_000);
 
-    await sender.sendText('ping', { chat: group });
+    let result: ChatMember | undefined;
 
-    // Query the restricted user from within the handler
-    const bot2 = new Bot('test-token');
-    let result2: ChatMember | undefined;
-
-    bot2.on('message', async (ctx) => {
-      result2 = await ctx.api.getChatMember(group.id, restrictedUser.id);
+    bot.on('message', async (ctx) => {
+      result = await ctx.api.getChatMember(ctx.chat.id, restrictedUser.id);
     });
 
-    const { chats: chats2 } = await prepareBot(bot2);
-    const sender2 = chats2.newUser();
-    const group2 = chats2.newSupergroup();
+    await sender.sendText('ping', { chat: group });
+    await chats.idle();
 
-    group2.join(sender2);
-    group2.restrict(restrictedUser, { can_send_messages: false }, 1_700_000_000);
-
-    await sender2.sendText('ping', { chat: group2 });
-    await chats2.idle();
-
-    expect(result2?.status).toBe('restricted');
+    expect(result?.status).toBe('restricted');
   });
 
   it('returns left for a user not in the members map', async () => {
@@ -300,7 +264,7 @@ describe('getChatMember auto-derive', () => {
     let result: ChatMember | undefined;
 
     bot.on('message', async (ctx) => {
-      result = await ctx.api.getChatMember(ctx.chat.id, 99999);
+      result = await ctx.api.getChatMember(ctx.chat.id, 99_999);
     });
 
     const { chats } = await prepareBot(bot);
@@ -313,22 +277,21 @@ describe('getChatMember auto-derive', () => {
 
     expect(result?.status).toBe('left');
     assert.ok(result?.status === 'left');
-    expect(result.user.id).toBe(99999);
+    expect(result.user.id).toBe(99_999);
   });
 
   it('returns left with the User actor when the user is registered but not in the chat', async () => {
     const bot = new Bot('test-token');
+    const { chats } = await prepareBot(bot);
+    const sender = chats.newUser();
+    const outsider = chats.newUser({ first_name: 'Outsider' });
+    const group = chats.newSupergroup();
     let result: ChatMember | undefined;
 
     bot.on('message', async (ctx) => {
       // query another user who is not a member
       result = await ctx.api.getChatMember(ctx.chat.id, outsider.id);
     });
-
-    const { chats } = await prepareBot(bot);
-    const sender = chats.newUser();
-    const outsider = chats.newUser({ first_name: 'Outsider' });
-    const group = chats.newSupergroup();
 
     group.join(sender);
     await sender.sendText('ping', { chat: group });
@@ -387,7 +350,7 @@ describe('getChatAdministrators auto-derive', () => {
     assert.ok(result);
     expect(result).toHaveLength(2);
 
-    const statuses = result.map((m) => m.status).sort();
+    const statuses = result.map((chatMember) => chatMember.status).toSorted((statusA, statusB) => statusA.localeCompare(statusB));
 
     expect(statuses).toEqual(['administrator', 'creator']);
   });
@@ -440,7 +403,7 @@ describe('getChat auto-derive', () => {
     let result: { id: number; type: string; invite_link?: string } | undefined;
 
     bot.on('message', async (ctx) => {
-      result = await ctx.api.getChat(ctx.chat.id) as typeof result;
+      result = (await ctx.api.getChat(ctx.chat.id)) as typeof result;
     });
 
     const { chats } = await prepareBot(bot);
@@ -463,7 +426,7 @@ describe('getChat auto-derive', () => {
     let result: { id: number; type: string; invite_link?: string } | undefined;
 
     bot.on('message', async (ctx) => {
-      result = await ctx.api.getChat(ctx.chat.id) as typeof result;
+      result = (await ctx.api.getChat(ctx.chat.id)) as typeof result;
     });
 
     const { chats } = await prepareBot(bot, { warnOnUnregisteredChats: false });
@@ -508,7 +471,7 @@ describe('responses override precedence', () => {
     let result: ChatMember | undefined;
 
     bot.on('message', async (ctx) => {
-      result = await ctx.api.getChatMember(ctx.chat.id, ctx.from!.id);
+      result = await ctx.api.getChatMember(ctx.chat.id, ctx.from.id);
     });
 
     const { chats } = await prepareBot(bot, {

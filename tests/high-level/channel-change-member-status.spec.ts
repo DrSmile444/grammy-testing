@@ -1,3 +1,5 @@
+import assert from 'node:assert';
+
 import { Bot } from 'grammy';
 import type { ChatMemberUpdated } from 'grammy/types';
 import { describe, expect, it } from 'vitest';
@@ -19,9 +21,9 @@ describe('channel.changeMemberStatus', () => {
 
     await channel.changeMemberStatus(user, { from: 'left', to: 'administrator' });
 
-    expect(observed).toBeDefined();
-    expect(observed!.chat.type).toBe('channel');
-    expect(observed!.chat.id).toBe(channel.id);
+    assert.ok(observed);
+    expect(observed.chat.type).toBe('channel');
+    expect(observed.chat.id).toBe(channel.id);
   });
 
   it('from field carries the trigger user', async () => {
@@ -38,7 +40,8 @@ describe('channel.changeMemberStatus', () => {
 
     await channel.changeMemberStatus(user, { from: 'member', to: 'administrator' });
 
-    expect(observed!.from.id).toBe(user.id);
+    assert.ok(observed);
+    expect(observed.from.id).toBe(user.id);
   });
 
   it('old and new chat_member user is the bot', async () => {
@@ -55,8 +58,9 @@ describe('channel.changeMemberStatus', () => {
 
     await channel.changeMemberStatus(user, { from: 'member', to: 'administrator' });
 
-    expect(observed!.old_chat_member.user.id).toBe(bot.botInfo.id);
-    expect(observed!.new_chat_member.user.id).toBe(bot.botInfo.id);
+    assert.ok(observed);
+    expect(observed.old_chat_member.user.id).toBe(bot.botInfo.id);
+    expect(observed.new_chat_member.user.id).toBe(bot.botInfo.id);
   });
 
   it('getChatAdministrators reflects the bot after promotion', async () => {
@@ -72,7 +76,7 @@ describe('channel.changeMemberStatus', () => {
 
     const admins = await bot.api.getChatAdministrators(channel.id);
 
-    expect(admins.some((m) => m.user.id === bot.botInfo.id && m.status === 'administrator')).toBe(true);
+    expect(admins.some((admin) => admin.user.id === bot.botInfo.id && admin.status === 'administrator')).toBe(true);
   });
 
   it('trigger actor membership is not affected', async () => {
@@ -117,7 +121,8 @@ describe('channel.changeMemberStatus', () => {
 
     await channel.changeMemberStatus(user, { to: 'administrator' });
 
-    expect((observed!.new_chat_member as { can_post_messages?: boolean }).can_post_messages).toBe(true);
+    assert.ok(observed);
+    expect((observed.new_chat_member as { can_post_messages?: boolean }).can_post_messages).toBe(true);
   });
 
   it('supplied permissions override defaults', async () => {
@@ -134,6 +139,7 @@ describe('channel.changeMemberStatus', () => {
 
     await channel.changeMemberStatus(user, { to: 'administrator', permissions: { can_post_messages: false } });
 
-    expect((observed!.new_chat_member as { can_post_messages?: boolean }).can_post_messages).toBe(false);
+    assert.ok(observed);
+    expect((observed.new_chat_member as { can_post_messages?: boolean }).can_post_messages).toBe(false);
   });
 });
