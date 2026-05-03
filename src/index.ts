@@ -45,7 +45,7 @@ export type { AnyChat } from './high-level/chat';
 
 export { Channel, type EditPostOptions } from './high-level/channel';
 
-export { Group } from './high-level/group';
+export { Group, type PostRelayMessageOptions } from './high-level/group';
 
 export { MessagesLog } from './high-level/messages-log';
 
@@ -69,7 +69,7 @@ export type {
   SendSystemMessageOptions,
 } from './high-level/types';
 
-export { makeChannelBotUser } from './high-level/dispatch';
+export { makeChannelBotUser, TELEGRAM_RELAY } from './high-level/dispatch';
 
 export {
   GROUP_ANONYMOUS_BOT,

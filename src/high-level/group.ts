@@ -1,8 +1,9 @@
 import type { Bot, Context } from 'grammy';
-import type { Chat, ReactionCount, Update, User as TelegramUser } from 'grammy/types';
+import type { Chat, Message, ReactionCount, Update, User as TelegramUser } from 'grammy/types';
 
+import type { Channel } from './channel';
 import { type ChatRefHolder, setBotRef } from './chat';
-import { dispatchChatMember, dispatchMyChatMember } from './dispatch';
+import { dispatchChatMember, dispatchMyChatMember, makeRelayUser } from './dispatch';
 import type { IdGenerator } from './id-generator';
 import type { MessagesLog } from './messages-log';
 import type {
@@ -34,6 +35,13 @@ const FULL_ADMIN_RIGHTS = {
   can_pin_messages: true,
   can_manage_topics: true,
 } as const;
+
+export interface PostRelayMessageOptions<TContext extends Context = Context> {
+  /** Override the auto-generated message ID. */
+  messageId?: number;
+  /** When present, sets `message.forward_origin` to simulate a relayed channel post. */
+  channel?: Channel<TContext>;
+}
 
 /**
  * Regular (non-supergroup) chat. Membership is tracked on a per-user
@@ -251,5 +259,42 @@ export class Group<TContext extends Context = Context> implements ChatRefHolder<
         text,
       },
     } as Update);
+  }
+
+  /**
+   * Dispatches a Telegram relay message into this group — the synthetic `message` update
+   * that Telegram produces when a channel post is forwarded into a linked group
+   * (`from.id === 777_000`). Returns the dispatched `Message` so it can be passed directly
+   * to `user.sendText` as `reply_to_message`.
+   * @param text - The relay message text.
+   * @param options - Optional `messageId` override and `channel` for `forward_origin`.
+   * @returns The dispatched synthetic `Message`.
+   */
+  async postRelayMessage(text: string, options: PostRelayMessageOptions<TContext> = {}): Promise<Message> {
+    const messageId = options.messageId ?? this.ids.nextMessageId();
+    const now = Math.floor(Date.now() / 1000);
+
+    const message: Message = {
+      message_id: messageId,
+      date: now,
+      chat: this.toTelegramChat(),
+      from: makeRelayUser(),
+      text,
+      ...(options.channel !== undefined && {
+        forward_origin: {
+          type: 'channel' as const,
+          chat: options.channel.toTelegramChat(),
+          date: now,
+          message_id: messageId,
+        },
+      }),
+    } as Message;
+
+    await this.bot.handleUpdate({
+      update_id: this.ids.nextUpdateId(),
+      message,
+    } as Update);
+
+    return message;
   }
 }
