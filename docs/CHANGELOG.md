@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.17.0 — 2026-05-03
+
+### `channel.postMessageTo` returns `Message` and accepts `reply_to_message`
+
+`channel.postMessageTo(target, text, options?)` now returns `Promise<Message>` (previously
+`Promise<void>`), consistent with all other send verbs since v0.15.0. The returned value can be
+used immediately as `reply_to_message` in a follow-up `user.sendText`:
+
+```ts
+const post = await channel.postMessageTo(group, 'announcement');
+await user.sendText('nice post', { chat: group, reply_to_message: post });
+```
+
+A new `reply_to_message` option is also accepted. It follows the same partial-shape semantics
+as `user.sendText`: `date` and `chat` are auto-filled when absent, and all explicitly supplied
+fields are preserved:
+
+```ts
+await channel.postMessageTo(group, 'reply', {
+  reply_to_message: { message_id: 10 },
+  // date and chat are auto-filled from context
+});
+```
+
 ## 0.16.0 — 2026-05-03
 
 ### Relay message support (`group.postRelayMessage`, `TELEGRAM_RELAY`)
