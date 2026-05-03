@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.19.0 — 2026-05-03
+
+### `user.sendCallbackQuery` and `clickButton` reply_markup fix
+
+**`user.sendCallbackQuery(data, options?)` is now available.** Dispatches a `callback_query` update from the user without requiring a prior captured reply. Useful for cross-feature tests where the keyboard lives in a different composer.
+
+```ts
+await user.sendCallbackQuery('button-data');
+
+// With explicit message context (for chatType filters or handlers that read keyboard state):
+const msg = await user.sendCommand('/menu');
+await user.sendCallbackQuery('language:en', { message: msg });
+```
+
+When `options.message` is omitted, a minimal private-chat stub is synthesized automatically so grammY filters like `chatType('private')` evaluate correctly without boilerplate.
+
+**`clickButton` now populates `callback_query.message.reply_markup`.** `Reply.toCapturedMessage()` previously omitted `reply_markup`, leaving `ctx.callbackQuery.message.reply_markup` as `undefined` in the handler. Handlers that read keyboard state (e.g. `ctx.callbackQuery.message.reply_markup.inline_keyboard`) now receive the full keyboard.
+
 ## 0.18.0 — 2026-05-03
 
 ### Internal fixes: `update_id` counter independence, `sendMediaGroup` response shape, `GROUP_ANONYMOUS_BOT` documentation
