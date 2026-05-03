@@ -1,5 +1,80 @@
 # Changelog
 
+## 0.16.0 — 2026-05-03
+
+### Relay message support (`group.postRelayMessage`, `TELEGRAM_RELAY`)
+
+Groups and supergroups now have a dedicated `postRelayMessage` verb that dispatches the
+synthetic `message` update Telegram produces when a channel post is forwarded into a linked
+group (`from.id === 777_000`). The returned `Message` can be passed directly as
+`reply_to_message` in a follow-up `user.sendText`:
+
+```ts
+const relay = await group.postRelayMessage('channel post');
+await user.sendText('my comment', { chat: group, reply_to_message: relay });
+```
+
+To simulate a relayed post with channel attribution, pass `options.channel`:
+
+```ts
+const channel = chats.newChannel('My Channel');
+const relay = await group.postRelayMessage('post text', { channel });
+// ctx.message.forward_origin.type === 'channel'
+```
+
+A `TELEGRAM_RELAY` constant is exported for assertions:
+
+```ts
+import { TELEGRAM_RELAY } from '@grammyjs/testing';
+expect(ctx.message.from).toMatchObject(TELEGRAM_RELAY);
+```
+
+### Partial `reply_to_message` in `SendTextOptions`
+
+`SendTextOptions.reply_to_message` now accepts `Partial<Message> & { message_id: number }` —
+only `message_id` is required. `date` and `chat` are auto-filled when absent:
+
+```ts
+// No more `as any` casts or manual date/chat construction
+await user.sendText('reply', { chat: group, reply_to_message: { message_id: 42 } });
+```
+
+Callers that already pass a full `Message` are unaffected.
+
+## 0.15.0 — 2026-05-03
+
+### Actor send verbs return the dispatched `Message`
+
+All `User` send verbs that produce a `message` update now return `Promise<Message>` instead of
+`Promise<void>`. The returned object is the exact synthetic `Message` dispatched to
+`bot.handleUpdate`, giving tests direct access to `message_id`, `chat`, `from`, and content
+fields without magic numbers or private state access:
+
+```ts
+const msg = await user.sendText('not a card');
+await user.editMessage(msg.message_id, '4111 1111 1111 1111');
+// or chain with reply_to_message:
+await user.sendText('reply', { chat: group, reply_to_message: msg });
+```
+
+`user.sendMediaGroup(items)` returns `Promise<Message[]>` — one `Message` per dispatched item
+in order, all sharing the same `media_group_id`:
+
+```ts
+const [first, second] = await user.sendMediaGroup([{ photo: 'a' }, { photo: 'b' }]);
+expect(first.media_group_id).toBe(second.media_group_id);
+```
+
+Existing callers that ignore the return value are unaffected — the change is fully
+backward-compatible.
+
+**Affected verbs:** `sendText`, `sendMessage`, `sendCommand`, `sendForwarded`, `sendPhoto`,
+`sendDocument`, `sendVideo`, `sendAudio`, `sendVoice`, `sendVideoNote`, `sendAnimation`,
+`sendSticker`, `sendLocation`, `sendContact`, `sendVenue`, `sendPoll`, `sendDice`,
+`sendWebAppData`, `sendSuccessfulPayment`, `sendMediaGroup`.
+
+---
+
 ## 0.14.0 — 2026-05-03
 
 ### `ChatProfile` — chat factory methods accept a caller-supplied ID

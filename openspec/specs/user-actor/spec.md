@@ -315,3 +315,76 @@ The system SHALL expose a `replies` getter on `User<TContext>` that returns the 
 
 - **WHEN** a test calls `await user.sendCommand('/cmd', undefined, { chat: group, anonymous: true })`
 - **THEN** TypeScript compiles without error (the field is part of the type)
+
+### Requirement: `user.sendText` resolves with the dispatched `Message`
+
+The return value of `user.sendText(text, options?)` SHALL be the full synthetic `Message` object
+that was dispatched. `message.message_id` SHALL equal the ID that the bot receives in
+`ctx.message.message_id`. All other fields on the returned `Message` SHALL match what was
+constructed and dispatched.
+
+#### Scenario: sendText resolves with message_id equal to what the bot sees
+
+- **WHEN** the test calls `const msg = await user.sendText('hello')`
+- **AND** the bot handler captures `ctx.message.message_id`
+- **THEN** `msg.message_id` equals the captured value
+
+### Requirement: `user.sendCommand` resolves with the dispatched `Message`
+
+`user.sendCommand` delegates to `sendText` and SHALL return the same `Message` that `sendText`
+returns, with `message.text` equal to the full command string and `message.entities` containing
+the `bot_command` entity.
+
+#### Scenario: sendCommand resolves with correct text and message_id
+
+- **WHEN** the test calls `const msg = await user.sendCommand('/start')`
+- **THEN** `msg.message_id` is a positive integer
+- **AND** `msg.text` equals `'/start'`
+
+### Requirement: `user.sendMediaGroup` resolves with `Message[]`
+
+`user.sendMediaGroup(items, options?)` SHALL resolve with an array of `Message` objects, one per
+item, in dispatch order. See `actor-send-return-message` spec for full requirements.
+
+#### Scenario: sendMediaGroup resolves with a Message per item
+
+- **WHEN** the test calls `const msgs = await user.sendMediaGroup([{ photo: 'a' }, { photo: 'b' }])`
+- **THEN** `msgs` is an array of length `2`
+- **AND** each element has a distinct `message_id`
+
+### Requirement: `SendTextOptions.reply_to_message` accepts a partial Message shape
+
+`SendTextOptions.reply_to_message` SHALL accept `Partial<Message> & { message_id: number }` —
+only `message_id` is required. When `date` is absent, the library SHALL auto-fill it with the
+current Unix timestamp (`Math.floor(Date.now() / 1000)`). When `chat` is absent, the library
+SHALL auto-fill it with the resolved target chat (the same chat the message is being sent to).
+All other fields from the supplied partial SHALL be spread into the constructed
+`reply_to_message` as-is.
+
+This change eliminates the need for `as any` casts when constructing `reply_to_message` shapes.
+Callers that already supply a complete `Message` object SHALL be unaffected.
+
+#### Scenario: Partial shape with only message_id is accepted without as any
+
+- **WHEN** the test calls `await user.sendText('reply', { chat: group, reply_to_message: { message_id: 42 } })`
+- **THEN** TypeScript compiles without error and without an `as any` cast
+- **AND** the bot receives `ctx.message.reply_to_message.message_id === 42`
+- **AND** `ctx.message.reply_to_message.chat.id` equals `group.id`
+
+#### Scenario: date is auto-filled when absent
+
+- **WHEN** the test calls `await user.sendText('reply', { reply_to_message: { message_id: 5 } })`
+- **AND** the bot reads `ctx.message.reply_to_message.date`
+- **THEN** the value is a positive Unix timestamp (approximately current time)
+
+#### Scenario: Explicit fields in the partial are preserved
+
+- **WHEN** the test calls:
+  `await user.sendText('comment', { chat: group, reply_to_message: { message_id: 100, from: TELEGRAM_RELAY, text: 'original post' } })`
+- **THEN** `ctx.message.reply_to_message.from.id` equals `777_000`
+- **AND** `ctx.message.reply_to_message.text` equals `'original post'`
+
+#### Scenario: Full Message object still accepted unchanged
+
+- **WHEN** a test passes a complete `Message` object to `reply_to_message` (no `as any`)
+- **THEN** it compiles and the bot receives the full shape without modification
