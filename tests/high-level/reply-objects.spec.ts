@@ -138,6 +138,37 @@ describe('Reply objects', () => {
 
       await expect(reply.clickButton('Open')).rejects.toThrow(/URL buttons/);
     });
+
+    it('callback_query.message includes reply_markup', async () => {
+      const bot = new Bot('test-token');
+      let observedMarkup: unknown;
+
+      bot.on('message:text', async (ctx) => {
+        const kb = new InlineKeyboard().text('Go', 'go-data');
+
+        await ctx.reply('choose', { reply_markup: kb });
+      });
+
+      bot.on('callback_query:data', (ctx) => {
+        if (ctx.callbackQuery.data === 'go-data') {
+          observedMarkup = ctx.callbackQuery.message?.reply_markup;
+        }
+      });
+
+      const { chats } = await prepareBot(bot);
+      const user = chats.newUser();
+
+      await user.sendText('hi');
+
+      const reply = chats.repliesFor(user).last;
+
+      assert.ok(reply);
+
+      await reply.clickButton('Go');
+
+      expect(observedMarkup).toBeDefined();
+      expect(observedMarkup).toEqual(reply.replyMarkup);
+    });
   });
 
   describe('replies.last and replies.byText', () => {

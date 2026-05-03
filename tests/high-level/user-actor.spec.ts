@@ -179,4 +179,93 @@ describe('User actor', () => {
       expect(chats.outgoing.getMethods().filter((method) => method === 'sendMessage')).toHaveLength(2);
     });
   });
+
+  describe('sendCallbackQuery', () => {
+    it('bare dispatch fires handler with correct data and from', async () => {
+      const bot = new Bot('test-token');
+      let cbData: string | undefined;
+      let fromId: number | undefined;
+
+      bot.on('callback_query:data', (ctx) => {
+        cbData = ctx.callbackQuery.data;
+        fromId = ctx.callbackQuery.from.id;
+      });
+
+      const { chats } = await prepareBot(bot);
+      const user = chats.newUser();
+
+      await user.sendCallbackQuery('some-data');
+
+      expect(cbData).toBe('some-data');
+      expect(fromId).toBe(user.id);
+    });
+
+    it('auto-synthesized message passes chatType private filter', async () => {
+      const bot = new Bot('test-token');
+      let isReached = false;
+
+      bot.chatType('private').on('callback_query', () => {
+        isReached = true;
+      });
+
+      const { chats } = await prepareBot(bot);
+      const user = chats.newUser();
+
+      await user.sendCallbackQuery('data');
+
+      expect(isReached).toBe(true);
+    });
+
+    it('explicit message option shapes callback_query.message', async () => {
+      const bot = new Bot('test-token');
+      let messageText: string | undefined;
+      let messageMarkup: unknown;
+
+      bot.on('callback_query', (ctx) => {
+        messageText = ctx.callbackQuery.message?.text;
+        messageMarkup = ctx.callbackQuery.message?.reply_markup;
+      });
+
+      const { chats } = await prepareBot(bot);
+      const user = chats.newUser();
+      const keyboard = { inline_keyboard: [[{ text: 'OK', callback_data: 'ok' }]] };
+
+      await user.sendCallbackQuery('data', {
+        message: { text: 'prior text', reply_markup: keyboard },
+      });
+
+      expect(messageText).toBe('prior text');
+      expect(messageMarkup).toEqual(keyboard);
+    });
+
+    it('auto-fills message_id when partial message has none', async () => {
+      const bot = new Bot('test-token');
+      let messageId: number | undefined;
+
+      bot.on('callback_query', (ctx) => {
+        messageId = ctx.callbackQuery.message?.message_id;
+      });
+
+      const { chats } = await prepareBot(bot);
+      const user = chats.newUser();
+
+      await user.sendCallbackQuery('data', { message: { text: 'hi' } });
+
+      expect(messageId).toBeGreaterThan(0);
+    });
+
+    it('returns void', async () => {
+      const bot = new Bot('test-token');
+
+      bot.on('callback_query', () => {});
+
+      const { chats } = await prepareBot(bot);
+      const user = chats.newUser();
+
+      // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
+      const result = await user.sendCallbackQuery('data');
+
+      expect(result).toBeUndefined();
+    });
+  });
 });
