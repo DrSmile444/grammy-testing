@@ -297,6 +297,10 @@ interface PrivateMessageDispatch<TContext extends Context> {
   replyToMessageId?: number;
   replyToMessage?: Message;
   forwardOrigin?: MessageOrigin;
+  /** When set, replaces the `from` field derived from `user`. */
+  fromOverride?: TelegramUser;
+  /** When set, adds `sender_chat` to the dispatched message. */
+  senderChat?: Chat;
 }
 
 /**
@@ -304,7 +308,7 @@ interface PrivateMessageDispatch<TContext extends Context> {
  * @param spec - Parameters describing the outgoing text message.
  */
 export async function dispatchTextMessage<TContext extends Context>(spec: PrivateMessageDispatch<TContext>): Promise<void> {
-  const fromUser: TelegramUser = {
+  const fromUser: TelegramUser = spec.fromOverride ?? {
     id: spec.user.id,
     is_bot: false,
     first_name: spec.user.first_name,
@@ -321,6 +325,7 @@ export async function dispatchTextMessage<TContext extends Context>(spec: Privat
     entities: spec.entities,
     reply_to_message: spec.replyToMessage,
     forward_origin: spec.forwardOrigin,
+    ...(spec.senderChat !== undefined && { sender_chat: spec.senderChat }),
   } as Message;
 
   const update: Update = {

@@ -7,7 +7,7 @@ import type { Group } from './group';
 import type { IdGenerator } from './id-generator';
 import type { MessagesLog } from './messages-log';
 import type { Supergroup } from './supergroup';
-import type { DispatchReactionCountOptions, Membership, MemberStatusTransition } from './types';
+import type { DispatchReactionCountOptions, Membership, MemberStatusTransition, SendSystemMessageOptions } from './types';
 import type { User } from './user';
 
 const CHANNEL_ADMIN_RIGHTS = {
@@ -116,7 +116,7 @@ export class Channel<TContext extends Context = Context> implements ChatRefHolde
     const botUser = this.bot.botInfo as TelegramUser;
     const current = this.members.get(botUser.id);
     const fromStatus = transition.from ?? current?.status ?? 'left';
-    const permissions = { ...CHANNEL_ADMIN_RIGHTS, ...(transition.permissions ?? {}) };
+    const permissions = { ...CHANNEL_ADMIN_RIGHTS, ...transition.permissions };
 
     await dispatchMyChatMember(this.bot, {
       chat: this.toTelegramChat(),
@@ -177,6 +177,24 @@ export class Channel<TContext extends Context = Context> implements ChatRefHolde
         message_id: messageId,
         date: options.date ?? Math.floor(Date.now() / 1000),
         reactions,
+      },
+    } as Update);
+  }
+
+  /**
+   * Dispatches a `message` update with no `from` field, simulating a Telegram system or
+   * service message that carries no sender identity.
+   * @param text - The message text.
+   * @param options - Optional `messageId` override; auto-generated when omitted.
+   */
+  async sendSystemMessage(text: string, options: SendSystemMessageOptions = {}): Promise<void> {
+    await this.bot.handleUpdate({
+      update_id: this.ids.nextUpdateId(),
+      message: {
+        message_id: options.messageId ?? this.ids.nextMessageId(),
+        date: Math.floor(Date.now() / 1000),
+        chat: this.toTelegramChat(),
+        text,
       },
     } as Update);
   }

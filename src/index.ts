@@ -11,7 +11,7 @@ export {
 
 export type { ActionsLog } from './high-level/actions-log';
 
-export type { Chats, RepliesInbox, DispatchPollStateOptions } from './high-level/chats';
+export type { ChatProfile, Chats, RepliesInbox, DispatchPollStateOptions } from './high-level/chats';
 
 export type { Deletion, DeletionsLog } from './high-level/deletions-log';
 
@@ -66,11 +66,13 @@ export type {
   PermissionFlags,
   PromotePermissions,
   RestrictPermissions,
+  SendSystemMessageOptions,
 } from './high-level/types';
 
 export { makeChannelBotUser } from './high-level/dispatch';
 
 export {
+  GROUP_ANONYMOUS_BOT,
   User,
   type AnswerPollOptions,
   type BoostChatOptions,

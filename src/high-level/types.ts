@@ -64,3 +64,8 @@ export interface DispatchReactionCountOptions {
   /** Override the `date` timestamp of the reaction count update. */
   date?: number;
 }
+
+export interface SendSystemMessageOptions {
+  /** Override the auto-generated `message_id` for the dispatched update. */
+  messageId?: number;
+}

@@ -27,6 +27,20 @@ export interface UserProfile {
   username?: string;
 }
 
+/**
+ * The synthetic "Group Anonymous Bot" user that Telegram inserts as `from` when a group admin
+ * posts using the "Send as Group" (anonymous admin) feature. Distinct from `Channel_Bot`
+ * (`id: 136_817_688`) which is used for channel posts into linked groups.
+ *
+ * Import this constant to assert on the `from` field without hard-coding the magic number.
+ */
+export const GROUP_ANONYMOUS_BOT = {
+  id: 1_087_968_824,
+  is_bot: false,
+  first_name: 'Group',
+  username: 'GroupAnonymousBot',
+} as const;
+
 export interface SendTextOptionsReplyParameter {
   message_id: number;
 }
@@ -37,6 +51,12 @@ export interface SendTextOptions<TContext extends Context = Context> {
   parse_mode?: 'HTML' | 'Markdown' | 'MarkdownV2';
   reply_parameters?: SendTextOptionsReplyParameter;
   reply_to_message?: Message;
+  /**
+   * When `true`, replaces `message.from` with the GroupAnonymousBot identity and sets
+   * `message.sender_chat` to the target group. Requires `options.chat` to be a `Group` or
+   * `Supergroup` — Telegram only sends this shape in group contexts.
+   */
+  anonymous?: boolean;
 }
 
 export interface SendForwardedOptions<TContext extends Context = Context> {
@@ -235,10 +255,22 @@ export class User<TContext extends Context = Context> {
   /**
    * Dispatches a text message update from this user.
    * @param text - The message text.
-   * @param options - Optional target chat, entities, parse mode, and reply parameters.
+   * @param options - Optional target chat, entities, parse mode, reply parameters, and
+   *   anonymous mode (GroupAnonymousBot identity).
    */
   async sendText(text: string, options: SendTextOptions<TContext> = {}): Promise<void> {
     const targetChat: Chat = options.chat ? this.ctx.resolveChatToTelegram(options.chat) : this.ctx.defaultPrivateChat();
+
+    if (options.anonymous) {
+      const chatType = (options.chat as { type?: string } | undefined)?.type;
+
+      if (!options.chat || (chatType !== 'group' && chatType !== 'supergroup')) {
+        throw new Error(
+          'sendText: anonymous: true requires options.chat to be a Group or Supergroup — ' +
+            'GroupAnonymousBot only exists in group contexts',
+        );
+      }
+    }
 
     await dispatchTextMessage({
       bot: this.ctx.bot,
@@ -250,6 +282,10 @@ export class User<TContext extends Context = Context> {
       entities: options.entities,
       replyToMessageId: options.reply_parameters?.message_id,
       replyToMessage: options.reply_to_message,
+      ...(options.anonymous && {
+        fromOverride: GROUP_ANONYMOUS_BOT,
+        senderChat: targetChat,
+      }),
     });
   }
 
@@ -356,17 +392,18 @@ export class User<TContext extends Context = Context> {
    * Dispatches a bot command message from this user. A leading `/` is added if absent.
    * @param command - The command name (with or without a leading `/`).
    * @param args - Optional arguments appended after the command.
-   * @param options - Optional target chat override.
+   * @param options - Optional target chat override and anonymous flag.
    * @param options.chat - The target chat (defaults to the private chat with this user).
+   * @param options.anonymous - When `true`, dispatches as GroupAnonymousBot (see `sendText`).
    * @returns A promise that resolves when the update is handled.
    */
-  async sendCommand(command: string, args?: string, options: { chat?: AnyChat<TContext> } = {}): Promise<void> {
+  async sendCommand(command: string, args?: string, options: { chat?: AnyChat<TContext>; anonymous?: boolean } = {}): Promise<void> {
     const normalized = command.startsWith('/') ? command : `/${command}`;
     const text = args ? `${normalized} ${args}` : normalized;
 
     const entities: MessageEntity[] = [{ type: 'bot_command', offset: 0, length: normalized.length }];
 
-    return this.sendText(text, { entities, chat: options.chat });
+    return this.sendText(text, { entities, chat: options.chat, anonymous: options.anonymous });
   }
 
   /**

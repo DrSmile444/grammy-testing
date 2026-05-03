@@ -13,6 +13,7 @@ import type {
   MemberStatusTransition,
   PromotePermissions,
   RestrictPermissions,
+  SendSystemMessageOptions,
 } from './types';
 import type { User } from './user';
 
@@ -228,6 +229,26 @@ export class Supergroup<TContext extends Context = Context> implements ChatRefHo
         message_id: messageId,
         date: options.date ?? Math.floor(Date.now() / 1000),
         reactions,
+      },
+    } as Update);
+  }
+
+  /**
+   * Dispatches a `message` update with no `from` field, simulating a Telegram system or
+   * service message that carries no sender identity. Bots guard against this with
+   * `if (!ctx.from) return next()` — this verb makes that branch testable without raw
+   * `handleUpdate` calls.
+   * @param text - The message text.
+   * @param options - Optional `messageId` override; auto-generated when omitted.
+   */
+  async sendSystemMessage(text: string, options: SendSystemMessageOptions = {}): Promise<void> {
+    await this.bot.handleUpdate({
+      update_id: this.ids.nextUpdateId(),
+      message: {
+        message_id: options.messageId ?? this.ids.nextMessageId(),
+        date: Math.floor(Date.now() / 1000),
+        chat: this.toTelegramChat(),
+        text,
       },
     } as Update);
   }

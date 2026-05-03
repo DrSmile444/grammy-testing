@@ -25,28 +25,85 @@ import type { Membership, PromotePermissions } from './types';
 import { User, type UserProfile } from './user';
 
 /**
+ * Optional profile for chat factory methods. Mirrors `UserProfile` — pass an object to
+ * supply a specific `id` (any integer, e.g. a production log-channel ID) and/or a custom
+ * title. Omitting `id` auto-generates one; omitting `title` derives a default from the type
+ * name and the absolute value of the ID.
+ */
+export interface ChatProfile {
+  id?: number;
+  title?: string;
+}
+
+interface ResolveChatProfileReturn {
+  id: number;
+  title: string;
+}
+
+/**
+ * Normalises the `string | ChatProfile | undefined` argument accepted by chat factory methods
+ * into a concrete `{ id, title }` pair.
+ * @param profile - Raw argument passed to the factory.
+ * @param nextId - Counter function that yields the next auto-generated ID.
+ * @param defaultTitle - Derives a title from the resolved ID when none is supplied.
+ * @returns Resolved `{ id, title }` pair.
+ */
+function resolveChatProfile(
+  profile: ChatProfile | string | undefined,
+  nextId: () => number,
+  defaultTitle: (id: number) => string,
+): ResolveChatProfileReturn {
+  if (typeof profile === 'string') {
+    const id = nextId();
+
+    return { id, title: profile };
+  }
+
+  const id = profile?.id ?? nextId();
+
+  return { id, title: profile?.title ?? defaultTitle(id) };
+}
+
+/**
  * Converts a `Membership` record to the `ChatMember` discriminated union shape expected by the Telegram API.
  * `User<TContext>` is structurally compatible with the Telegram `User` interface (same required fields).
  * For `'administrator'` and `'restricted'` statuses the permissions spread may not satisfy every required
  * field of the strict Telegram shape, so those branches use an explicit cast.
+ * @param membership - The membership record to convert.
+ * @returns The corresponding `ChatMember` discriminated union value.
  */
 function membershipToChatMember<TContext extends Context>(membership: Membership<TContext>): ChatMember {
   const user = membership.user as unknown as TelegramUser;
   const { status, permissions, untilDate } = membership;
 
   switch (status) {
-    case 'creator':
+    case 'creator': {
       return { status: 'creator', user, is_anonymous: permissions.is_anonymous ?? false };
-    case 'administrator':
+    }
+
+    case 'administrator': {
       return { status: 'administrator', user, is_anonymous: false, can_be_edited: true, ...permissions } as ChatMember;
-    case 'member':
+    }
+
+    case 'member': {
       return { status: 'member', user };
-    case 'restricted':
+    }
+
+    case 'restricted': {
       return { status: 'restricted', user, is_member: true, until_date: untilDate ?? 0, ...permissions } as ChatMember;
-    case 'left':
+    }
+
+    case 'left': {
       return { status: 'left', user };
-    case 'kicked':
+    }
+
+    case 'kicked': {
       return { status: 'kicked', user, until_date: untilDate ?? 0 };
+    }
+
+    default: {
+      throw new Error(`Unknown membership status: ${String(status)}`);
+    }
   }
 }
 
@@ -389,13 +446,20 @@ export class Chats<TContext extends Context = Context> {
   }
 
   /**
-   * Creates a new group chat with an auto-generated negative ID.
-   * @param title - Optional title; defaults to `Group<id>`.
+   * Creates a new group chat.
+   * @param profile - Optional title string, or an object with `id` and/or `title`. When `id`
+   *   is supplied the auto-ID counter is skipped; any integer is accepted. Title defaults to
+   *   `Group<abs(id)>` when omitted.
    * @returns The new `Group` instance.
    */
-  newGroup(title?: string): Group<TContext> {
-    const id = this.ids.nextGroupId();
-    const group = new Group<TContext>(id, title ?? `Group${String(-id)}`, this.ids);
+  newGroup(profile?: ChatProfile | string): Group<TContext> {
+    const { id, title } = resolveChatProfile(
+      profile,
+      () => this.ids.nextGroupId(),
+      (chatId) => `Group${String(Math.abs(chatId))}`,
+    );
+
+    const group = new Group<TContext>(id, title, this.ids);
 
     this.registerChat(group);
 
@@ -403,13 +467,20 @@ export class Chats<TContext extends Context = Context> {
   }
 
   /**
-   * Creates a new supergroup chat with an auto-generated negative ID.
-   * @param title - Optional title; defaults to `Supergroup<id>`.
+   * Creates a new supergroup chat.
+   * @param profile - Optional title string, or an object with `id` and/or `title`. When `id`
+   *   is supplied the auto-ID counter is skipped; any integer is accepted. Title defaults to
+   *   `Supergroup<abs(id)>` when omitted.
    * @returns The new `Supergroup` instance.
    */
-  newSupergroup(title?: string): Supergroup<TContext> {
-    const id = this.ids.nextSupergroupId();
-    const supergroup = new Supergroup<TContext>(id, title ?? `Supergroup${String(-id)}`, this.ids);
+  newSupergroup(profile?: ChatProfile | string): Supergroup<TContext> {
+    const { id, title } = resolveChatProfile(
+      profile,
+      () => this.ids.nextSupergroupId(),
+      (chatId) => `Supergroup${String(Math.abs(chatId))}`,
+    );
+
+    const supergroup = new Supergroup<TContext>(id, title, this.ids);
 
     this.registerChat(supergroup);
 
@@ -417,13 +488,20 @@ export class Chats<TContext extends Context = Context> {
   }
 
   /**
-   * Creates a new channel with an auto-generated negative ID.
-   * @param title - Optional title; defaults to `Channel<id>`.
+   * Creates a new channel.
+   * @param profile - Optional title string, or an object with `id` and/or `title`. When `id`
+   *   is supplied the auto-ID counter is skipped; any integer is accepted. Title defaults to
+   *   `Channel<abs(id)>` when omitted.
    * @returns The new `Channel` instance.
    */
-  newChannel(title?: string): Channel<TContext> {
-    const id = this.ids.nextChannelId();
-    const channel = new Channel<TContext>(id, title ?? `Channel${String(-id)}`, this.ids);
+  newChannel(profile?: ChatProfile | string): Channel<TContext> {
+    const { id, title } = resolveChatProfile(
+      profile,
+      () => this.ids.nextChannelId(),
+      (chatId) => `Channel${String(Math.abs(chatId))}`,
+    );
+
+    const channel = new Channel<TContext>(id, title, this.ids);
 
     this.registerChat(channel);
 
@@ -500,7 +578,12 @@ export class Chats<TContext extends Context = Context> {
       return { message_id: messageId };
     };
 
-    const getChatMemberResolver = (payload: { chat_id: ChatId; user_id: number }): ChatMember => {
+    interface GetChatMemberResolverPayload {
+      chat_id: ChatId;
+      user_id: number;
+    }
+
+    const getChatMemberResolver = (payload: GetChatMemberResolverPayload): ChatMember => {
       const chat = this.findChatByTelegramId(Number(payload.chat_id));
 
       if (!chat || !('members' in chat)) {
@@ -519,7 +602,11 @@ export class Chats<TContext extends Context = Context> {
       return { status: 'left', user: fallbackUser };
     };
 
-    const getChatAdministratorsResolver = (payload: { chat_id: ChatId }): Array<ChatMember> => {
+    interface GetChatAdministratorsResolverPayload {
+      chat_id: ChatId;
+    }
+
+    const getChatAdministratorsResolver = (payload: GetChatAdministratorsResolverPayload): ChatMember[] => {
       const chat = this.findChatByTelegramId(Number(payload.chat_id));
 
       if (!chat || !('members' in chat)) {
@@ -527,11 +614,15 @@ export class Chats<TContext extends Context = Context> {
       }
 
       return [...chat.members.values()]
-        .filter((m) => m.status === 'creator' || m.status === 'administrator')
-        .map((m) => membershipToChatMember(m));
+        .filter((membership) => membership.status === 'creator' || membership.status === 'administrator')
+        .map((membership) => membershipToChatMember(membership));
     };
 
-    const getChatResolver = (payload: { chat_id: ChatId }) => {
+    interface GetChatResolverPayload {
+      chat_id: ChatId;
+    }
+
+    const getChatResolver = (payload: GetChatResolverPayload) => {
       const chat = this.findChatByTelegramId(Number(payload.chat_id));
 
       if (!chat) {
