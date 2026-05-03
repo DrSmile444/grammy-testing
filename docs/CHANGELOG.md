@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.20.0 — 2026-05-03
+
+### 20 runnable examples added under `examples/`
+
+A new `examples/` directory ships 20 self-contained bots with matching test files, covering a wide range of testing patterns:
+
+| #   | Scenario                                                |
+| --- | ------------------------------------------------------- |
+| 01  | Echo bot — simplest possible text-echo handler          |
+| 02  | Start command — `/start` reply                          |
+| 03  | Greeting bot — per-user name with fallback              |
+| 04  | Chat-type filter — private vs. group routing            |
+| 05  | Regex handler — pattern-matched messages                |
+| 06  | Callback query — inline keyboard responses              |
+| 07  | Session counter — persistent per-user state             |
+| 08  | Chat settings — `mockChatSession` usage                 |
+| 09  | Photo bot — caption extraction                          |
+| 10  | Document bot — file-ID and MIME type reply              |
+| 11  | Poll bot — quiz creation and answer scoring             |
+| 12  | Group welcome — `new_chat_members` service event        |
+| 13  | Admin guard — `getChatMember` status check              |
+| 14  | Moderation bot — `banChatMember` / `restrictChatMember` |
+| 15  | Channel post bot — `channel_post` handler               |
+| 16  | Reactions bot — `message_reaction` handler              |
+| 17  | Dice game — incoming dice value evaluation              |
+| 18  | Middleware test — `prepareMiddleware` isolation         |
+| 19  | Composer test — `prepareComposer` isolation             |
+| 20  | Multi-chat scenario — cross-chat summary posting        |
+
+All examples are included in the test run and pass the full quality gate.
+
 ## 0.19.0 — 2026-05-03
 
 ### `user.sendCallbackQuery` and `clickButton` reply_markup fix
