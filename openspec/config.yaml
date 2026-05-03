@@ -21,4 +21,4 @@ rules:
   tasks:
     - Always include a final task to update docs/CHANGELOG.md with the user-visible changes introduced by this change, placed just before the version bump task
     - The version bump task must bump BOTH package.json AND jsr.json to the same version string
-    - Always include a task to run the full quality gate in order before marking implementation complete: (1) npm run lint:fix, (2) npm run format:md, (3) npm run typecheck, (4) npm run lint, (5) npm run test:run, (6) npm run test:coverage. Fix every error before proceeding to the next step.
+    - "Always include a task to run the full quality gate in order before marking implementation complete: (1) npm run lint:fix, (2) npm run format:md, (3) npm run typecheck, (4) npm run lint, (5) npm run test:run, (6) npm run test:coverage. Fix every error before proceeding to the next step."
