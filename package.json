@@ -1,6 +1,6 @@
 {
   "name": "@grammyjs/testing",
-  "version": "0.21.0",
+  "version": "0.22.0",
   "type": "module",
   "packageManager": "npm@11.9.0",
   "engines": {
@@ -51,7 +51,10 @@
     "bump-version": "npx tsx ./scripts/bump-version.script.ts && npm audit fix",
     "parse-llm-response": "npx tsx ./scripts/split-plain-code.wrap.ts",
     "after-parse-llm-response": "npx tsx ./scripts/create-auto-ts-paths.script.ts && npm run lint:fix && npm run format:md",
-    "format": "npx prettier . --write"
+    "format": "npx prettier . --write",
+    "docs:dev": "vitepress dev site",
+    "docs:build": "vitepress build site",
+    "docs:preview": "vitepress preview site"
   },
   "keywords": [
     "grammy",
@@ -114,6 +117,7 @@
     "type-fest": "^5.6.0",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.58.2",
+    "vitepress": "^1.6.4",
     "vitest": "^4.1.4"
   },
   "overrides": {

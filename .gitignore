@@ -15,5 +15,7 @@ coverage
 docs/project.md
 dist/
 *.tgz
+site/.vitepress/cache
+site/.vitepress/dist
 TODO.md
 EXAMPLE_BOTS.md
