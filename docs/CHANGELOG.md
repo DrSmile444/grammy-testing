@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.22.0 — 2026-05-05
+
+### VitePress documentation site
+
+Standalone documentation site under `site/` — 42 pages covering every public export.
+
+- **Infrastructure**: `site/.vitepress/config.ts` with dynamic GitHub Pages base URL, full
+  nav/sidebar, local search, social links, and version badge from `package.json`.
+- **Logo**: `docs/Y.svg` (the grammY Y mark) copied to `site/public/logo.svg`.
+- **Brand theme**: blue palette — `#0057b7` in light mode (6.9:1 on white, WCAG AA) /
+  `#4d9eff` in dark mode (6.3:1 on dark background, WCAG AA).
+- **Guide section** (6 pages): Introduction, Getting Started, How It Works, With Vitest,
+  With Jest, With Deno.
+- **High-Level API section** (9 pages): Chats, User, Group & Supergroup, Channel, PrivateChat,
+  BusinessAccount, Reply, Logs, Overview.
+- **Low-Level API section** (5 pages): Outgoing Requests, Session Mocking, Update Builders,
+  Response Mocking, Overview.
+- **Recipes section** (7 pages): Sessions & State, Keyboards & Buttons, Error Simulation,
+  Multi-Chat Scenarios, Conversations Plugin, Menu Plugin, Fire & Forget.
+- **API Reference section** (14 pages): full typed signatures for every exported symbol.
+- **Reference**: Changelog page linked to `docs/CHANGELOG.md`.
+- **GitHub Actions workflow** (`.github/workflows/docs.yml`): builds and deploys to GitHub
+  Pages at `https://drsmile444.github.io/grammy-testing/` on every push to `main`.
+
 ## 0.21.0 — 2026-05-05
 
 ### README rewrite
