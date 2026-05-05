@@ -17,6 +17,10 @@ export default defineConfig([
       // Scripts target the current Node runtime, not the package.json engines range
       'n/no-unsupported-features/es-syntax': 'off',
       'n/no-unsupported-features/es-builtins': 'off',
+      // CJS scripts use require/module/exports which ESLint's default env doesn't define
+      'no-undef': 'off',
+      // verify-cjs.js references dist/ build artifacts that don't exist at lint time
+      'import/no-unresolved': 'off',
     },
   },
 ]);

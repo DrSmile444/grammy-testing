@@ -148,11 +148,11 @@ If none of the above apply, no README update is needed, but you must explicitly 
 
 ### Step 7 - Bump the version
 
-Increment the `version` field in `package.json` after the implementation and documentation updates are complete.
+Increment the `version` field in **both** `package.json` **and** `jsr.json` after the implementation and documentation updates are complete. Both files must always carry the same version string.
 
 #### Semantic Versioning
 
-Increment the `version` field in `package.json` using Semantic Versioning:
+Increment the `version` field using Semantic Versioning:
 
 | Change type                                           | Version segment to bump |
 | ----------------------------------------------------- | ----------------------- |
@@ -165,7 +165,7 @@ Rules:
 - When bumping `major`, reset `minor` and `patch` to `0`.
 - When bumping `minor`, reset `patch` to `0`.
 - Never skip a segment.
-- `package.json` is the source of truth for the project version.
+- `package.json` is the source of truth for the project version; `jsr.json` must be kept in sync.
 
 ### Step 8 - Self-review checklist
 
@@ -185,6 +185,7 @@ Before declaring the task complete, verify each item:
 - [ ] `npm build` passes if a build script exists
 - [ ] `README.md` was reviewed and updated when the change was important, or explicitly confirmed unnecessary
 - [ ] `version` in `package.json` was bumped according to Semantic Versioning
+- [ ] `version` in `jsr.json` was bumped to match `package.json`
 - [ ] No rules, tests, or coverage thresholds were weakened to make the task pass
 
 ## Quick reference - key file locations

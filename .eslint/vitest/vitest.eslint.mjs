@@ -19,6 +19,7 @@ export default defineConfig([
       'import/no-extraneous-dependencies': 'off',
       'n/no-unpublished-import': 'off',
       'n/no-process-env': 'off',
+      'jsdoc/require-jsdoc': 'off',
       'vitest/consistent-test-filename': ['error', { pattern: String.raw`\.spec\.(js|ts|jsx|tsx)$` }],
       'vitest/max-nested-describe': ['error', { max: 3 }],
       'vitest/valid-title': 'off',

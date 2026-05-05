@@ -1,0 +1,164 @@
+# chats-orchestrator Specification
+
+## Purpose
+
+TBD - created by archiving change add-high-level-chats-api. Update Purpose after archive.
+
+## Requirements
+
+### Requirement: `chats.newUser` mints a participant
+
+The system SHALL provide `chats.newUser(profile?)` that returns a `User<TContext>` instance. The optional `profile` parameter SHALL accept `{ id?, first_name?, last_name?, username?, ... }` partial Telegram `User` fields; missing fields SHALL be filled from sensible defaults derived from the v0.1 `genericUserAtom` fixture, with unique IDs generated per call.
+
+#### Scenario: Mints a user with default profile
+
+- **WHEN** the test calls `const user = chats.newUser()`
+- **THEN** the returned value is a `User` instance
+- **AND** `user.id` is a number unique to this `chats` instance
+- **AND** `user.first_name` is a non-empty string
+- **AND** `user.is_bot` is `false`
+
+#### Scenario: Honors profile overrides
+
+- **WHEN** the test calls `chats.newUser({ id: 42, username: 'alice' })`
+- **THEN** the returned `user.id` equals `42`
+- **AND** `user.username` equals `'alice'`
+
+### Requirement: `chats.newAdmin` is sugar for newUser + promote
+
+The system SHALL provide `chats.newAdmin(profile?, perms?)` that creates a user via `newUser`, mints (if needed) a default supergroup on the `chats` instance, and promotes the user in that group. The returned value SHALL be a `User<TContext>` (NOT a distinct class). `chats.newAdmin()` is a convenience for tests that don't need explicit role-transition control.
+
+#### Scenario: Creates user and promotes in default group
+
+- **WHEN** the test calls `const admin = chats.newAdmin()`
+- **THEN** the returned value is a `User` instance
+- **AND** `admin.in(chats.defaultGroup).status` equals `'administrator'`
+
+#### Scenario: Honors permission overrides
+
+- **WHEN** the test calls `chats.newAdmin(undefined, { can_delete_messages: true, can_restrict_members: false })`
+- **THEN** `admin.in(chats.defaultGroup).permissions.can_delete_messages` is `true`
+- **AND** `admin.in(chats.defaultGroup).permissions.can_restrict_members` is `false`
+
+### Requirement: Chat-creating factory methods
+
+The system SHALL provide chat-creating methods on `Chats`:
+
+- `chats.newPrivateChat(user)` returning a `PrivateChat` with `chat.id === user.id`.
+- `chats.newGroup(name?)` returning a `Group`.
+- `chats.newSupergroup(name?)` returning a `Supergroup`.
+- `chats.newChannel(name?)` returning a `Channel`.
+
+Each chat factory SHALL produce a chat with a unique numeric `chat.id` and the appropriate Telegram `chat.type` discriminant (`'private'` | `'group'` | `'supergroup'` | `'channel'`).
+
+#### Scenario: Each factory yields the right chat type
+
+- **WHEN** the test calls each of `newPrivateChat`, `newGroup`, `newSupergroup`, `newChannel`
+- **THEN** the returned chats have types `'private'`, `'group'`, `'supergroup'`, `'channel'` respectively
+- **AND** each `chat.id` is unique across the `chats` instance
+
+#### Scenario: PrivateChat id matches user id
+
+- **WHEN** the test calls `const dm = chats.newPrivateChat(user)`
+- **THEN** `dm.id` equals `user.id`
+- **AND** `dm.type` equals `'private'`
+
+### Requirement: Message-method set is validated against grammy's API surface at compile time
+
+The set of outgoing API method names that trigger `Reply` derivation SHALL be defined using `satisfies Partial<Record<keyof RawApi, true>>`. This means every entry must be a real grammy method name — the TypeScript compiler rejects typos and stale names. The set is intentionally a curated subset; not all grammy methods that produce a `Message` are included, only those the testing library explicitly captures.
+
+#### Scenario: Only known grammy methods can enter the set
+
+- **WHEN** a developer adds a misspelled or non-existent method name to the message-method guard
+- **THEN** the `satisfies Partial<Record<keyof RawApi, true>>` constraint fails to compile
+- **AND** the developer must use the exact method name from grammy before the build succeeds
+
+### Requirement: v0.1 surface remains accessible on `chats`
+
+`chats.outgoing` (the `OutgoingRequests` collector) and `chats.idle()` (the async settle helper) SHALL remain accessible on the `Chats` object exposed by every entry point. v0.2 adds capabilities; it does NOT remove or rename anything from v0.1.
+
+The `pollStateCounter` used to generate `update_id` values for `chats.dispatchPollState()` SHALL be instance-scoped (i.e., held on the `Chats` instance), not module-level, so that multiple `Chats` instances within the same test process do not share counter state.
+
+#### Scenario: outgoing and idle remain on chats
+
+- **WHEN** the test calls `await prepareBot(bot)` and inspects the returned `chats`
+- **THEN** `chats.outgoing` is the `OutgoingRequests` collector
+- **AND** `chats.idle` is a function returning `Promise<void>`
+
+#### Scenario: pollState counter does not bleed between Chats instances
+
+- **WHEN** two separate `Chats` instances are created in the same process
+- **AND** each calls `chats.dispatchPollState(poll)` once
+- **THEN** both dispatches succeed without interference
+- **AND** the `update_id` values produced by each instance are independent of the other
+
+### Requirement: Reply routing Rule 4 scoped to originating chat
+
+When routing a bot reply to per-user inboxes, Rule 4 (route to a user who recently clicked a button) SHALL only match if the click occurred **in the same chat** as the reply being routed. A button click in chat A SHALL NOT cause bot replies in chat B to appear in the clicking user's inbox.
+
+The `clickers` registry SHALL store both the `userId` and `chatId` of each recorded click. The `recordClick` hook SHALL accept a `chatId` parameter. `userReceivesReply` Rule 4 SHALL require both `byUserId === entry.user.id` AND `byChatId === chat.id` to fire.
+
+#### Scenario: Click in chat A does not route replies in chat B
+
+- **WHEN** user Alice clicks a button in chat A
+- **AND** the bot subsequently sends a message in chat B (a different chat)
+- **THEN** the message in chat B does NOT appear in Alice's `chats.repliesFor(alice)` inbox
+
+#### Scenario: Click in same chat routes the follow-up reply
+
+- **WHEN** user Alice clicks a button in chat A
+- **AND** the bot subsequently sends a message in chat A
+- **THEN** the message in chat A appears in Alice's `chats.repliesFor(alice)` inbox
+
+### Requirement: `RepliesInbox.lastOrThrow()` returns the last reply or throws
+
+The system SHALL provide a `lastOrThrow()` method on `RepliesInbox<TContext>` that returns the last captured reply as `Reply<TContext>` (non-nullable). If the inbox is empty, the method SHALL throw an `Error` with the message `"Expected a reply but the reply collection is empty"`. The method SHALL never return `undefined`.
+
+#### Scenario: lastOrThrow returns last reply when inbox is non-empty
+
+- **WHEN** the bot has sent at least one reply to the user
+- **THEN** `user.replies.lastOrThrow()` returns the last `Reply<TContext>` instance
+- **AND** the return type is `Reply<TContext>` (not `Reply<TContext> | undefined`)
+
+#### Scenario: lastOrThrow throws when inbox is empty
+
+- **WHEN** no replies have been sent to the user
+- **THEN** calling `user.replies.lastOrThrow()` throws an `Error`
+- **AND** the error message is `"Expected a reply but the reply collection is empty"`
+
+#### Scenario: lastOrThrow is equivalent to last when inbox is non-empty
+
+- **WHEN** the inbox contains at least one reply
+- **THEN** `user.replies.lastOrThrow()` returns the same object as `user.replies.last`
+
+### Requirement: `Chats` tracks the last captured Reply for use in synthetic responses
+
+`Chats` SHALL maintain an internal `lastCapturedReply` reference (initially `undefined`) that is updated to the most recently created `Reply` each time `deriveFromCapture` processes a message-method API call. This reference SHALL be readable by the default-response builder at call time (after `onCapture` has fired but before `resolveCall` completes).
+
+#### Scenario: lastCapturedReply is set after the first message-method capture
+
+- **WHEN** the bot calls `ctx.reply("hello")`
+- **AND** `deriveFromCapture` processes the `sendMessage` request
+- **THEN** the internal `lastCapturedReply` reference equals the Reply that was just pushed into the user's inbox
+
+#### Scenario: lastCapturedReply is updated on each subsequent capture
+
+- **WHEN** the bot calls `ctx.reply("first")` then `ctx.reply("second")`
+- **THEN** after both calls, `lastCapturedReply.messageId` equals the `messageId` of the second Reply
+
+### Requirement: `Chats` provides a `buildDefaultResponses()` method for synthetic Message defaults
+
+`Chats` SHALL expose an internal `buildDefaultResponses()` method that returns a `Responses` map covering every method in `MESSAGE_METHODS`. Each entry SHALL be a dynamic resolver function that, when called, reads `lastCapturedReply?.messageId` and returns `{ message_id, date }`. For `sendMediaGroup`, the resolver SHALL return an array `[{ message_id, date }]`. If `lastCapturedReply` is `undefined` at call time, the resolver SHALL fall back to `{ ok: true, result: true }` behavior (return `true` or a minimal stub).
+
+The `buildDefaultResponses()` output SHALL be merged with user-supplied responses in prepare functions, with user entries taking precedence.
+
+#### Scenario: buildDefaultResponses covers all MESSAGE_METHODS
+
+- **WHEN** `chats.buildDefaultResponses()` is called
+- **THEN** the returned object has an entry for each of: `sendMessage`, `sendPhoto`, `sendDocument`, `sendVideo`, `sendAudio`, `sendVoice`, `sendVideoNote`, `sendAnimation`, `sendSticker`, `sendLocation`, `sendContact`, `sendVenue`, `sendPoll`, `sendDice`, `sendMediaGroup`
+
+#### Scenario: Default response for sendMessage uses the last captured Reply's messageId
+
+- **WHEN** the bot calls `ctx.reply("hello")`
+- **AND** no user-supplied `responses.sendMessage` is configured
+- **THEN** calling the `sendMessage` resolver from `buildDefaultResponses()` returns an object with `message_id` equal to the last captured Reply's `messageId`

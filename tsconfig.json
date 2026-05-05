@@ -1,25 +1,19 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
+    "ignoreDeprecations": "6.0", // suppress TS6.0 deprecations: 'moduleResolution: bundler' deprecates the old 'node' resolution strategy warning
     "moduleResolution": "bundler",
     "target": "esnext",
+    "module": "esnext",
     "strict": true,
     "allowJs": true,
     "skipLibCheck": true,
-    "paths": {
-      "@config/*": ["./src/config/*"],
-      "@decorators/*": ["./src/decorators/*"],
-      "@fixtures/*": ["./src/fixtures/*"],
-      "@interfaces/*": ["./src/interfaces/*"],
-      "@interfaces": ["./src/interfaces"],
-      "@models/*": ["./src/models/*"],
-      "@pages/*": ["./src/pages/*"],
-      "@test-data/*": ["./src/test-data/*"],
-      "@tests/*": ["./src/tests/*"],
-      "@utils/*": ["./src/utils/*"]
-    },
     "resolveJsonModule": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "paths": {
+      "@grammyjs/testing": ["./src/index.ts"],
+      "@grammyjs/testing/low-level": ["./src/low-level.ts"]
+    }
   },
-  "include": [".eslint", "src", "tests", "scripts", "vitest.config.ts"]
+  "include": [".eslint", "src", "tests", "scripts", "examples", "vitest.config.ts", "tsup.config.ts"]
 }

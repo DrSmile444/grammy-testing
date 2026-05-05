@@ -1,7 +1,15 @@
-import tsconfigPaths from 'vite-tsconfig-paths';
+import path from 'node:path';
+
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+  resolve: {
+    tsconfigPaths: true,
+    alias: {
+      '@grammyjs/testing/low-level': path.resolve('./src/low-level.ts'),
+      '@grammyjs/testing': path.resolve('./src/index.ts'),
+    },
+  },
   test: {
     globals: true,
     root: './',
@@ -30,5 +38,4 @@ export default defineConfig({
     },
     setupFiles: ['./tests/setup.ts'],
   },
-  plugins: [tsconfigPaths()],
 });

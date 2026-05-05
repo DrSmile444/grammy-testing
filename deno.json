@@ -1,0 +1,9 @@
+{
+  "imports": {
+    "grammy": "npm:grammy",
+    "grammy/types": "npm:grammy/types",
+    "deepmerge": "npm:deepmerge",
+    "type-fest": "npm:type-fest"
+  },
+  "sloppyImports": true
+}
