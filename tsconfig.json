@@ -9,7 +9,11 @@
     "allowJs": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "paths": {
+      "@grammyjs/testing": ["./src/index.ts"],
+      "@grammyjs/testing/low-level": ["./src/low-level.ts"]
+    }
   },
   "include": [".eslint", "src", "tests", "scripts", "examples", "vitest.config.ts", "tsup.config.ts"]
 }
