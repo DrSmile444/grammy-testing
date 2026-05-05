@@ -1,5 +1,6 @@
-import { prepareComposer } from '@grammyjs/testing';
 import { describe, expect, it } from 'vitest';
+
+import { prepareComposer } from '@grammyjs/testing';
 
 import { createLanguagePickerComposer, SUPPORTED_LANGUAGES } from './bot';
 
