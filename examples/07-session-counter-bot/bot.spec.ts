@@ -1,6 +1,7 @@
-import { mockSession, prepareBot } from '@grammyjs/testing';
 import { Bot, session } from 'grammy';
 import { describe, expect, it } from 'vitest';
+
+import { mockSession, prepareBot } from '@grammyjs/testing';
 
 import type { CounterContext, CounterSession } from './bot';
 

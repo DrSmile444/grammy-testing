@@ -1,5 +1,6 @@
-import { prepareBot } from '@grammyjs/testing';
 import { describe, expect, it } from 'vitest';
+
+import { prepareBot } from '@grammyjs/testing';
 
 import { createEchoBot } from './bot';
 

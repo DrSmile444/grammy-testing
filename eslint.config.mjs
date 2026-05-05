@@ -7,7 +7,7 @@ export default defineConfig([
   // Ignore generated output and tooling artifacts
   {
     name: 'Ignored paths',
-    ignores: ['dist/**', 'node_modules/**'],
+    ignores: ['dist/**', 'node_modules/**', 'site/**'],
   },
   // Apply this config to js and ts files only
   {
