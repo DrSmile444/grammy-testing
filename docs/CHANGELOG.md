@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.21.0 — 2026-05-05
+
+### README rewrite
+
+`README.md` has been completely replaced. The previous file was a TypeScript Boilerplate
+placeholder with no relation to the library. The new README is production-grade and
+client-facing:
+
+- Logo (`docs/Y.svg` — the grammY Y mark) with yellow `#ffd700` brand color across all badges
+- Why section with bold hook sentence and problem/solution statement
+- Quick Start with npm + JSR install commands and a `/start` command bot example
+- Features section covering high-level actors, dispatch verbs, assertions, session injection,
+  and isolation utilities
+- Examples table linking all 20 examples in `examples/`
+- Documentation placeholder pointing to the planned VitePress site
+- Credits section acknowledging `grammy_tests` and `ua-anti-spam-bot`
+
 ## 0.20.0 — 2026-05-03
 
 ### 20 runnable examples added under `examples/`
