@@ -12,7 +12,7 @@
 [![JSR](https://img.shields.io/jsr/v/@grammyjs/testing?style=flat&labelColor=000&color=ffd700)](https://jsr.io/@grammyjs/testing)
 [![License: MIT](https://img.shields.io/badge/License-MIT-ffd700?style=flat&labelColor=000)](LICENSE)
 
-## _[npm.](https://www.npmjs.com/package/@grammyjs/testing) [jsr.](https://jsr.io/@grammyjs/testing) [examples.](./examples/)_
+## _[docs.](https://drsmile444.github.io/grammy-testing/) [npm.](https://www.npmjs.com/package/@grammyjs/testing) [jsr.](https://jsr.io/@grammyjs/testing) [examples.](./examples/)_
 
 </div>
 
@@ -124,9 +124,11 @@ expect(user.replies.lastOrThrow().text).toContain('Welcome');
 
 ## Documentation
 
-> Full API reference and step-by-step guides are being built with VitePress.
-> In the meantime, the [examples/](./examples/) directory covers a wide range of real-world
-> patterns — from the simplest echo bot to multi-chat scenarios with sessions and admin guards.
+Full API reference, step-by-step guides, and recipes are available at
+**[drsmile444.github.io/grammy-testing/](https://drsmile444.github.io/grammy-testing/)**.
+
+The [examples/](./examples/) directory also covers a wide range of real-world patterns — from
+the simplest echo bot to multi-chat scenarios with sessions and admin guards.
 
 ## Credits
 
