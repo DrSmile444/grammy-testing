@@ -17,5 +17,7 @@ dist/
 *.tgz
 site/.vitepress/cache
 site/.vitepress/dist
-TODO.md
-EXAMPLE_BOTS.md
+
+drafts
+/*.png
+/*.md
