@@ -84,9 +84,19 @@ export default defineConfig({
           { text: 'Keyboards & Buttons', link: '/recipes/keyboards-and-buttons' },
           { text: 'Error Simulation', link: '/recipes/error-simulation' },
           { text: 'Multi-Chat Scenarios', link: '/recipes/multi-chat-scenarios' },
-          { text: 'Conversations Plugin', link: '/recipes/conversations-plugin' },
-          { text: 'Menu Plugin', link: '/recipes/menu-plugin' },
           { text: 'Fire & Forget', link: '/recipes/fire-and-forget' },
+        ],
+      },
+      {
+        text: 'Plugins',
+        items: [
+          { text: 'Conversations', link: '/plugins/conversations-plugin' },
+          { text: 'Menu', link: '/plugins/menu-plugin' },
+          { text: 'Chat Members', link: '/plugins/chat-members' },
+          { text: 'Files', link: '/plugins/files' },
+          { text: 'Hydrate', link: '/plugins/hydrate' },
+          { text: 'Auto-Retry', link: '/plugins/auto-retry' },
+          { text: 'Transformer Throttler', link: '/plugins/transformer-throttler' },
         ],
       },
       {
