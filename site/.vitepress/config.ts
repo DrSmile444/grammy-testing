@@ -93,6 +93,7 @@ export default defineConfig({
           { text: 'Conversations', link: '/plugins/conversations-plugin' },
           { text: 'Menu', link: '/plugins/menu-plugin' },
           { text: 'Chat Members', link: '/plugins/chat-members' },
+          { text: 'Media Groups', link: '/plugins/media-groups' },
           { text: 'Files', link: '/plugins/files' },
           { text: 'Hydrate', link: '/plugins/hydrate' },
           { text: 'Auto-Retry', link: '/plugins/auto-retry' },
