@@ -96,6 +96,10 @@ async function resolveCall<TM extends Methods>(
  * @returns A grammY transformer ready for `bot.api.config.use`.
  */
 export function createTransformer({ outgoing, idle, responses, onCapture }: TransformerOptions): Transformer {
+  // _previous is intentionally never called. This transformer is terminal: it intercepts every
+  // API call and returns a synthetic response without forwarding to the real Telegram API.
+  // prepareBot reinstalls user transformers above this one; if _previous were called, the inner
+  // copy of each user transformer would forward requests to the actual API.
   return ((_previous: unknown, method: Methods, payload: Payload<Methods>, signal?: AbortSignal) => {
     const request = { method, payload, signal };
 
