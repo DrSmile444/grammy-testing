@@ -34,40 +34,18 @@ import { prepareBot } from '../../src/index';
 
 type MyContext = Context & ChatMembersFlavor;
 
-/**
- *
- * @param userId
- * @param firstName
- */
 function makeUser(userId: number, firstName: string): User {
   return { id: userId, is_bot: false, first_name: firstName };
 }
 
-/**
- *
- * @param userId
- * @param firstName
- */
 function asMember(userId: number, firstName: string): ChatMember {
   return { status: 'member', user: makeUser(userId, firstName) };
 }
 
-/**
- *
- * @param userId
- * @param firstName
- */
 function asLeft(userId: number, firstName: string): ChatMember {
   return { status: 'left', user: makeUser(userId, firstName) };
 }
 
-/**
- *
- * @param chatId
- * @param oldMember
- * @param newMember
- * @param updateId
- */
 function makeChatMemberUpdate(chatId: number, oldMember: ChatMember, newMember: ChatMember, updateId = 1): Update {
   return {
     update_id: updateId,
