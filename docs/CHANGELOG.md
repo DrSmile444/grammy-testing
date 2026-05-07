@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.24.0 — 2026-05-07
+
+### Plugin interop: `grammy-media-groups`
+
+`mediaGroupTransformer(adapter)` installed via `bot.api.config.use()` before `prepareBot` now
+runs correctly during tests and stores outgoing media group messages in the adapter.
+
+- **`syntheticMediaGroup` response shape**: every message in the default `sendMediaGroup` response
+  now includes a `chat` field (required by `storeMessages` for deduplication by `chat.id`) and a
+  `media_group_id` string shared across all messages in the same call (required for adapter grouping).
+  This is a minor additive change — bots reading `sendMediaGroup` return values in tests will see
+  the additional fields.
+- **`grammy-media-groups` added to plugin interop table**: install `mediaGroupTransformer(adapter)`
+  before `prepareBot`, assert on `adapter.read(media_group_id)`.
+
+See `tests/plugins/media-groups.spec.ts` and `site/plugins/media-groups.md`.
+
 ## 0.23.0 — 2026-05-07
 
 ### Plugin transformer support
