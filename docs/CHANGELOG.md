@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.24.1 — 2026-05-07
+
+### Code quality
+
+- **`createTransformer` terminal-intent comment**: `_previous` in `src/low-level/transformer.ts`
+  is now annotated with an inline comment explaining it is intentionally never called. This
+  documents the invariant that the snapshot-and-reinstall pattern in `prepareBot` relies on.
+- **Plugin example context flavor types**: `examples/21-files-bot` now uses `FileFlavor<Context>`
+  and `examples/22-hydrate-bot` uses `HydrateFlavor<Context>`, replacing `as unknown as` casts
+  with proper plugin-exported flavor types.
+- **Test helper cleanup**: Empty `/** */` JSDoc blocks removed from the four private helper
+  functions in `tests/plugins/chat-members.spec.ts`.
+- **ESLint examples alignment**: `examples/**/*.ts` JSDoc rules are no longer silenced — examples
+  are now held to the same JSDoc standards as `src/`.
+
 ## 0.24.0 — 2026-05-07
 
 ### Plugin interop: `grammy-media-groups`
