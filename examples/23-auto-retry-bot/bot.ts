@@ -2,7 +2,8 @@ import { autoRetry } from '@grammyjs/auto-retry';
 import { Bot, GrammyError } from 'grammy';
 
 /**
- *
+ * Creates a bot that broadcasts a message to a fixed set of chats using `@grammyjs/auto-retry`.
+ * @returns A configured Bot instance.
  */
 export function createAutoRetryBot() {
   const bot = new Bot('token');
