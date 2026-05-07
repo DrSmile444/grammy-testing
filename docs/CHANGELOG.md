@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.25.0 — 2026-05-07
+
+### Transformer infrastructure
+
+- **`TerminalTransformer` type**: `createTransformer` in `src/low-level/transformer.ts` now returns
+  an internal `TerminalTransformer` type whose signature omits `_previous`. A new `asTransformer`
+  adapter in `prepare-bot.ts` converts it for `bot.api.config.use`. The 4-line prose comment
+  explaining why `_previous` was never called is replaced by this compile-time invariant.
+- **`respondNextRaw(method, response)`**: New method on `OutgoingRequests` (accessible as
+  `chats.outgoing.respondNextRaw`) that injects a verbatim raw response for the next matching
+  API call — bypassing the `{ ok: true, result }` wrapper. Use it to simulate rate-limit
+  responses (`{ ok: false, error_code: 429, parameters: { retry_after: 0 } }`) that outer
+  transformers such as `@grammyjs/auto-retry` can observe and act on.
+- **Auto-retry retry-on-429 test**: `tests/plugins/auto-retry.spec.ts` now includes a test
+  that verifies autoRetry retries a `sendMessage` call when `respondNextRaw` injects a 429
+  raw response. Two `sendMessage` entries appear in `chats.outgoing.requests` (original + retry).
+
 ## 0.24.1 — 2026-05-07
 
 ### Code quality

@@ -1,14 +1,8 @@
-# mock-transformer-terminal-intent Specification
-
-## Purpose
-
-Enforces the invariant that the library's mock transformer never forwards API calls to the real Telegram API chain. The invariant is expressed at the type level via `TerminalTransformer`, making it compiler-checked rather than prose-only.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: `_previous` in `createTransformer` is enforced as intentionally unused via the type system
 
-The `createTransformer` function in `src/low-level/transformer.ts` SHALL return a `TerminalTransformer` — an internal type whose signature omits `_previous` entirely. The `_previous` parameter SHALL NOT appear in `createTransformer`'s return function signature. An `asTransformer` adapter in `src/low-level/prepare-bot.ts` SHALL convert `TerminalTransformer` to grammY's `Transformer` type for use with `bot.api.config.use()`. The prose comment previously placed on `_previous` SHALL be absent; the type structure is the sole expression of the terminal invariant.
+The `createTransformer` function in `src/low-level/transformer.ts` SHALL return a `TerminalTransformer` — an internal type whose signature omits `_previous` entirely. The `_previous` parameter SHALL NOT appear in `createTransformer`'s return function signature. An `asTransformer` adapter in `src/low-level/prepare-bot.ts` SHALL convert `TerminalTransformer` to grammY's `Transformer` type for use with `bot.api.config.use()`. The 4-line prose comment previously placed on `_previous` SHALL be removed; the type structure is the sole expression of the terminal invariant.
 
 #### Scenario: Code reviewer can understand the invariant without reading prepareBot
 
