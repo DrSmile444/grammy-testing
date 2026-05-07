@@ -1,5 +1,72 @@
 # Changelog
 
+## 0.23.0 — 2026-05-07
+
+### Plugin transformer support
+
+Bot-level transformers installed via `bot.api.config.use()` are now correctly chained during
+tests. Previously the library's mock transformer was installed last (outermost), silently
+skipping all user-installed transformers. With this fix, the library transformer is always
+innermost — every transformer you install runs normally and can process synthetic responses.
+
+- **Transformer chain fix**: `prepareBot` now snapshots existing transformers, installs the
+  library transformer first, then reinstalls user transformers on top. Uses only the public
+  `installedTransformers()` / `use()` API — no private access.
+- **Realistic `getFile` default**: `buildDefaultResponses` now returns a valid `File` shape
+  for `getFile` (`file_id`, `file_unique_id`, `file_size`, `file_path`) instead of `true`, so
+  `@grammyjs/files` can hydrate it without a custom `responses` override.
+- **Synthetic message includes `chat`**: Default `sendMessage` / `sendPhoto` / etc. responses
+  now include a `chat` field so `@grammyjs/hydrate` can attach `delete()` / `edit()` methods.
+
+### New plugin interop: `@grammyjs/files`
+
+`hydrateFiles(bot.token)` installed before `prepareBot` runs correctly. `ctx.getFile()` returns
+a hydrated `File` with `getUrl()` and `download()` methods.
+
+See `tests/plugins/files.spec.ts` and `examples/21-files-bot/`.
+
+### New plugin interop: `@grammyjs/hydrate`
+
+`hydrateApi()` (bot-level transformer) and `hydrate()` (context middleware) both work. Bot API
+call results include `delete()` / `edit()` / `pin()` convenience methods. Context objects get
+`ctx.message.delete()` and similar shortcuts.
+
+See `tests/plugins/hydrate.spec.ts` and `examples/22-hydrate-bot/`.
+
+### New plugin interop: `@grammyjs/auto-retry`
+
+`autoRetry(options)` installed before `prepareBot` is now part of the transformer chain for
+every API call. Normal bot operation is unaffected. `failNext` errors propagate through
+`autoRetry` to the handler catch block (autoRetry does not retry thrown GrammyErrors).
+
+See `tests/plugins/auto-retry.spec.ts` and `examples/23-auto-retry-bot/`.
+
+### New plugin interop: `@grammyjs/chat-members` — `hydrateChatMember()`
+
+`hydrateChatMember()` API transformer is now supported. Install via
+`bot.api.config.use(hydrateChatMember())` before `prepareBot`. `getChatMember` and
+`getChatAdministrators` results are augmented with an `.is(query)` method at test time, matching
+production behaviour.
+
+See `tests/plugins/chat-members.spec.ts` (new `hydrateChatMember()` describe block).
+
+### Custom transformer chain support
+
+Request-mutating and response-augmenting transformers installed via `bot.api.config.use()`
+before `prepareBot` now run normally. Payload mutations are visible in
+`chats.outgoing.requests`; response augmentations are visible to handlers.
+
+See `tests/plugins/custom-transformer.spec.ts`.
+
+### VitePress: new Plugins section
+
+A dedicated **Plugins** sidebar group replaces the mixed plugin/recipe content in **Recipes**:
+
+- `conversations` and `menu` pages moved from `site/recipes/` to `site/plugins/`
+- Five new pages: Chat Members, Files, Hydrate, Auto-Retry, Transformer Throttler
+- Recipes retains only general-pattern pages: Sessions, Keyboards, Error Simulation,
+  Multi-Chat Scenarios, Fire & Forget
+
 ## 0.22.0 — 2026-05-05
 
 ### VitePress documentation site
