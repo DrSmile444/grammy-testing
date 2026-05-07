@@ -24,6 +24,13 @@ interface OkReturn {
 }
 
 /**
+ * Internal type for the terminal mock transformer. Omits `_previous` so the
+ * compiler prevents accidental forwarding to the real Telegram API chain.
+ * Adapt to grammY's `Transformer` with {@link asTransformer}.
+ */
+type TerminalTransformer = (method: Methods, payload: Payload<Methods>, signal?: AbortSignal) => Promise<OkReturn>;
+
+/**
  * Wraps a raw result value into the `{ ok: true, result }` shape grammY expects.
  * @param result - The API result value to wrap.
  * @returns An `OkReturn` envelope.
@@ -54,6 +61,10 @@ async function resolveCall<TM extends Methods>(
     throw toGrammyError(oneShot.error, method);
   }
 
+  if (oneShot?.kind === 'respond-raw') {
+    return oneShot.response as OkReturn;
+  }
+
   if (oneShot?.kind === 'respond') {
     return ok(oneShot.payload);
   }
@@ -81,26 +92,23 @@ async function resolveCall<TM extends Methods>(
 }
 
 /**
- * Build a grammY API transformer that captures every outgoing call,
+ * Build a terminal transformer that captures every outgoing call,
  * applies overrides ({@link OutgoingRequests.failNext} / `failAll` /
- * `respondNext`) or a canned response, tracks the resulting promise
- * via {@link IdleTracker}, and returns it.
+ * `respondNext` / `respondNextRaw`) or a canned response, and tracks
+ * the resulting promise via {@link IdleTracker}.
  *
  * Defaults to `{ ok: true, result: true }` for any method without
- * override or canned response.
+ * override or canned response. Pass the return value to {@link asTransformer}
+ * before supplying it to `bot.api.config.use`.
  * @param options - Wired-up collector, idle tracker, and optional canned responses.
  * @param options.outgoing - The {@link OutgoingRequests} collector to push captures into.
  * @param options.idle - The {@link IdleTracker} that wraps every returned promise.
  * @param options.responses - Optional canned-response map.
  * @param options.onCapture - Optional synchronous hook called after each request is captured.
- * @returns A grammY transformer ready for `bot.api.config.use`.
+ * @returns A {@link TerminalTransformer} — adapt with {@link asTransformer} for grammY.
  */
-export function createTransformer({ outgoing, idle, responses, onCapture }: TransformerOptions): Transformer {
-  // _previous is intentionally never called. This transformer is terminal: it intercepts every
-  // API call and returns a synthetic response without forwarding to the real Telegram API.
-  // prepareBot reinstalls user transformers above this one; if _previous were called, the inner
-  // copy of each user transformer would forward requests to the actual API.
-  return ((_previous: unknown, method: Methods, payload: Payload<Methods>, signal?: AbortSignal) => {
+export function createTransformer({ outgoing, idle, responses, onCapture }: TransformerOptions): TerminalTransformer {
+  return (method: Methods, payload: Payload<Methods>, signal?: AbortSignal) => {
     const request = { method, payload, signal };
 
     outgoing.push(request);
@@ -110,5 +118,17 @@ export function createTransformer({ outgoing, idle, responses, onCapture }: Tran
     }
 
     return idle.track(resolveCall(outgoing, responses, method, payload));
-  }) as Transformer;
+  };
+}
+
+/**
+ * Adapts a {@link TerminalTransformer} to grammY's `Transformer` type for
+ * use with `bot.api.config.use`. The `_previous` argument is structurally
+ * discarded here — the terminal transformer does not forward to the inner chain.
+ * @param terminal - The terminal transformer to wrap.
+ * @returns A grammY-compatible `Transformer`.
+ */
+export function asTransformer(terminal: TerminalTransformer): Transformer {
+  return ((_previous, method: Methods, payload: Payload<Methods>, signal?: AbortSignal) =>
+    terminal(method, payload, signal)) as Transformer;
 }

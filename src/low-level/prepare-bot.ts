@@ -6,7 +6,7 @@ import { genericBotInfo } from './bot-info';
 import { IdleTracker } from './idle';
 import { OutgoingRequests } from './outgoing-requests';
 import type { Responses } from './responses';
-import { createTransformer } from './transformer';
+import { asTransformer, createTransformer } from './transformer';
 
 export interface PrepareOptions {
   /**
@@ -56,14 +56,16 @@ export async function prepareBot<TContext extends Context = Context, TApi extend
   const existingTransformers = bot.api.config.installedTransformers();
 
   bot.api.config.use(
-    createTransformer({
-      outgoing,
-      idle,
-      responses,
-      onCapture: (request) => {
-        chats.deriveFromCapture(request);
-      },
-    }),
+    asTransformer(
+      createTransformer({
+        outgoing,
+        idle,
+        responses,
+        onCapture: (request) => {
+          chats.deriveFromCapture(request);
+        },
+      }),
+    ),
   );
 
   if (existingTransformers.length > 0) {
