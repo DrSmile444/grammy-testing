@@ -1,10 +1,4 @@
-# examples-catalog Specification
-
-## Purpose
-
-Requirements for the `examples/` directory: structure, content, and integration with the test and build pipeline.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: examples/ folder exists with 23 numbered subfolders
 
@@ -15,27 +9,6 @@ The repository SHALL contain an `examples/` directory at the root. It SHALL cont
 - **WHEN** the `examples/` directory is listed
 - **THEN** exactly 23 subfolders are present, numbered 01 through 23
 - **AND** each subfolder contains `bot.ts` and `bot.spec.ts`
-
-### Requirement: example bot files export factory functions
-
-Each `examples/<N>-<name>/bot.ts` SHALL export a named factory function (e.g., `createEchoBot()`) that returns a configured `Bot` instance. The factory SHALL NOT use module-level singletons.
-
-#### Scenario: factory returns a fresh Bot instance per call
-
-- **WHEN** the factory function is called twice
-- **THEN** two distinct `Bot` instances are returned
-- **AND** neither instance shares state with the other
-
-### Requirement: example specs import from @grammyjs/testing
-
-All `bot.spec.ts` files in the examples folder SHALL import testing utilities from `@grammyjs/testing` (not from relative paths into `src/`), so the examples are copy-paste-ready for end users.
-
-#### Scenario: import resolves during vitest run
-
-- **WHEN** `vitest run` is executed
-- **THEN** all `examples/*/bot.spec.ts` files are included in the test run
-- **AND** `import { prepareBot } from '@grammyjs/testing'` resolves to `src/index.ts` via the vitest alias
-- **AND** all tests pass
 
 ### Requirement: each example demonstrates a distinct library API surface
 
@@ -89,29 +62,9 @@ Plugin example `bot.ts` files (examples 21–23) SHALL use the context flavor ty
 - **THEN** `sent.message_id` compiles as `number` without any cast
 - **AND** the bot is typed as `Bot<HydrateFlavor<Context>>`
 
-### Requirement: examples are included in the full vitest run
+### Requirement: examples may import plugin devDependencies
 
-Running `npm run test:run` from the repo root SHALL execute all `examples/*/bot.spec.ts` files alongside the existing `tests/` suite.
-
-#### Scenario: examples run with the standard test command
-
-- **WHEN** `npm run test:run` is executed
-- **THEN** test files matching `examples/**/*.spec.ts` are included
-- **AND** no separate command is required to run the examples
-
-### Requirement: examples are included in TypeScript type-checking
-
-Running `npm run typecheck` SHALL type-check all files in `examples/`, including `bot.ts` files, without errors.
-
-#### Scenario: typecheck covers example bot files
-
-- **WHEN** `npm run typecheck` is executed
-- **THEN** TypeScript checks all `examples/*/bot.ts` and `examples/*/bot.spec.ts` files
-- **AND** the check exits with code 0
-
-### Requirement: plugin examples may import plugin devDependencies
-
-`bot.ts` files in plugin-demonstration examples (examples 21–23) MAY import from plugin packages listed in `devDependencies` (e.g., `@grammyjs/files`, `@grammyjs/hydrate`, `@grammyjs/auto-retry`). The ESLint `import/no-extraneous-dependencies` and `n/no-unpublished-import` rules SHALL be relaxed for `examples/**/*.ts` to permit these imports. No plugin packages MAY be added to `dependencies` (only `devDependencies`).
+`bot.ts` files in plugin-demonstration examples (examples 21–23) MAY import from plugin packages listed in `devDependencies` (e.g., `@grammyjs/files`, `@grammyjs/hydrate`, `@grammyjs/auto-retry`). The ESLint `import/no-extraneous-dependencies` and `n/no-unpublished-import` rules SHALL be relaxed for `examples/**/*.ts` to permit these imports. No new runtime dependencies MAY be added to `dependencies` (only `devDependencies`).
 
 #### Scenario: plugin example compiles and runs without install step
 
