@@ -103,6 +103,7 @@ expect(user.replies.lastOrThrow().text).toContain('Welcome');
 | `@grammyjs/menu`                  | `bot.use(menu)`                                                         | v0.21.0           |
 | `@grammyjs/parse-mode`            | formatting utilities, no transformer                                    | v0.21.0           |
 | `@grammyjs/chat-members`          | `bot.use(chatMembers(...))` / `bot.api.config.use(hydrateChatMember())` | v0.21.0 / v0.23.0 |
+| `grammy-media-groups`             | `bot.api.config.use(mediaGroupTransformer(...))`                        | v0.24.0           |
 | `@grammyjs/files`                 | `bot.api.config.use(hydrateFiles(...))`                                 | v0.23.0           |
 | `@grammyjs/hydrate`               | `bot.api.config.use(hydrateApi())` + `bot.use(hydrate())`               | v0.23.0           |
 | `@grammyjs/auto-retry`            | `bot.api.config.use(autoRetry(...))`                                    | v0.23.0           |
