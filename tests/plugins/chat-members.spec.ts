@@ -16,9 +16,15 @@
  *   default. Set keepLeftChatMembers: true to retain them.
  * - ctx.chatMembers.getChatMember() is available on every update when the
  *   middleware is installed. It reads from the adapter (no API call if found).
+ *
+ * hydrateChatMember() setup notes:
+ * - Install via bot.api.config.use(hydrateChatMember()) BEFORE prepareBot.
+ * - Adds an .is(query) method to getChatMember and getChatAdministrators results.
+ * - Works with the library's default responses for those methods without any
+ *   custom responses override.
  */
 
-import { chatMembers, type ChatMembersFlavor } from '@grammyjs/chat-members';
+import { chatMembers, type ChatMembersFlavor, hydrateChatMember } from '@grammyjs/chat-members';
 import type { Context } from 'grammy';
 import { Bot, MemorySessionStorage } from 'grammy';
 import type { ChatMember, Update, User } from 'grammy/types';
@@ -138,5 +144,57 @@ describe('plugin: @grammyjs/chat-members', () => {
     await user.sendText('hello', { chat: group });
 
     expect(observedStatus).toBe('member');
+  });
+});
+
+describe('plugin: @grammyjs/chat-members — hydrateChatMember()', () => {
+  it('getChatMember result has .is() method when hydrateChatMember() is installed', async () => {
+    const bot = new Bot('test-token');
+
+    bot.api.config.use(hydrateChatMember());
+
+    let hasIsMethod = false;
+
+    bot.on('message:text', async (ctx) => {
+      const member = await ctx.api.getChatMember(ctx.chat.id, ctx.from.id);
+
+      hasIsMethod = typeof (member as unknown as { is?: unknown }).is === 'function';
+    });
+
+    const { chats } = await prepareBot(bot);
+    const group = chats.newSupergroup();
+    const user = chats.newUser();
+
+    group.join(user);
+
+    await user.sendText('ping', { chat: group });
+
+    expect(hasIsMethod).toBe(true);
+  });
+
+  it('getChatAdministrators results each have .is() method', async () => {
+    const bot = new Bot('test-token');
+
+    bot.api.config.use(hydrateChatMember());
+
+    let hasIsMethodOnAll = false;
+
+    bot.on('message:text', async (ctx) => {
+      const admins = await ctx.api.getChatAdministrators(ctx.chat.id);
+
+      hasIsMethodOnAll = admins.length > 0 && admins.every((admin) => typeof (admin as unknown as { is?: unknown }).is === 'function');
+    });
+
+    const { chats } = await prepareBot(bot);
+    const group = chats.newSupergroup();
+    const admin = chats.newUser({ first_name: 'Admin' });
+    const user = chats.newUser();
+
+    group.promote(admin);
+    group.join(user);
+
+    await user.sendText('ping', { chat: group });
+
+    expect(hasIsMethodOnAll).toBe(true);
   });
 });
