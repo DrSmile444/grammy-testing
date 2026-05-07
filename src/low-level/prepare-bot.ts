@@ -51,6 +51,10 @@ export async function prepareBot<TContext extends Context = Context, TApi extend
 
   const responses = { ...chats.buildDefaultResponses(), ...options.responses };
 
+  // Snapshot user-installed transformers before adding the library's so we can
+  // reinstall them on top — making the library transformer innermost (index 0).
+  const existingTransformers = bot.api.config.installedTransformers();
+
   bot.api.config.use(
     createTransformer({
       outgoing,
@@ -61,6 +65,10 @@ export async function prepareBot<TContext extends Context = Context, TApi extend
       },
     }),
   );
+
+  if (existingTransformers.length > 0) {
+    bot.api.config.use(...existingTransformers);
+  }
 
   // eslint-disable-next-line no-param-reassign -- intentional: matches the inspiration's pattern of setting fixture botInfo before init
   bot.botInfo = { ...genericBotInfo };
