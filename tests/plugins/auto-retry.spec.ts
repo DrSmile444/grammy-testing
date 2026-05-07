@@ -5,15 +5,14 @@
  * - Install `autoRetry(options)` via `bot.api.config.use()` BEFORE calling
  *   `prepareBot`. With the chain-ordering fix, autoRetry runs as an outer
  *   transformer and can intercept API calls before they reach the library.
- * - `autoRetry` retries when the inner transformer returns a not-ok response
- *   with a `parameters.retry_after` value (raw API response, not a thrown
- *   GrammyError). The library's `failNext` throws a GrammyError which autoRetry
- *   does not retry — it propagates the throw as-is. This is consistent with
- *   production behaviour where non-retryable errors are not caught by autoRetry.
+ * - To trigger autoRetry's retry loop, use `chats.outgoing.respondNextRaw` to
+ *   inject a raw `{ ok: false, error_code: 429, parameters: { retry_after: 0 } }`
+ *   response. autoRetry observes the not-ok shape and retries after the delay.
+ *   Use `retry_after: 0` in tests to avoid real wall-clock delays in CI.
+ * - `failNext` throws a GrammyError, which autoRetry does not retry — it
+ *   propagates the throw as-is. This is consistent with production behaviour.
  * - For most bot tests, autoRetry is a transparent pass-through: the library
  *   returns ok responses and autoRetry passes them along without delay.
- * - After the chain fix, installing autoRetry no longer silently skips it —
- *   it genuinely participates in every API call made during tests.
  */
 
 import { autoRetry } from '@grammyjs/auto-retry';
@@ -92,5 +91,32 @@ describe('plugin: @grammyjs/auto-retry', () => {
 
     expect(sendMessageRequests).toHaveLength(3);
     expect(user.replies).toHaveLength(3);
+  });
+
+  it('autoRetry retries a sendMessage call after a 429 raw response', async () => {
+    const bot = new Bot('test-token');
+
+    bot.api.config.use(autoRetry({ maxRetryAttempts: 1, maxDelaySeconds: 0 }));
+
+    bot.on('message:text', async (ctx) => {
+      await ctx.reply('Hello!');
+    });
+
+    const { chats } = await prepareBot(bot);
+    const user = chats.newUser();
+
+    chats.outgoing.respondNextRaw('sendMessage', {
+      ok: false,
+      error_code: 429,
+      description: 'Too Many Requests: retry after 0',
+      parameters: { retry_after: 0 },
+    });
+
+    await user.sendText('trigger');
+
+    const sendMessageRequests = chats.outgoing.requests.filter((request) => request.method === 'sendMessage');
+
+    expect(sendMessageRequests).toHaveLength(2);
+    expect(user.replies.last?.text).toBe('Hello!');
   });
 });
