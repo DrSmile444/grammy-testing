@@ -1,5 +1,121 @@
 # Changelog
 
+## 0.25.0 — 2026-05-07
+
+### Transformer infrastructure
+
+- **`TerminalTransformer` type**: `createTransformer` in `src/low-level/transformer.ts` now returns
+  an internal `TerminalTransformer` type whose signature omits `_previous`. A new `asTransformer`
+  adapter in `prepare-bot.ts` converts it for `bot.api.config.use`. The 4-line prose comment
+  explaining why `_previous` was never called is replaced by this compile-time invariant.
+- **`respondNextRaw(method, response)`**: New method on `OutgoingRequests` (accessible as
+  `chats.outgoing.respondNextRaw`) that injects a verbatim raw response for the next matching
+  API call — bypassing the `{ ok: true, result }` wrapper. Use it to simulate rate-limit
+  responses (`{ ok: false, error_code: 429, parameters: { retry_after: 0 } }`) that outer
+  transformers such as `@grammyjs/auto-retry` can observe and act on.
+- **Auto-retry retry-on-429 test**: `tests/plugins/auto-retry.spec.ts` now includes a test
+  that verifies autoRetry retries a `sendMessage` call when `respondNextRaw` injects a 429
+  raw response. Two `sendMessage` entries appear in `chats.outgoing.requests` (original + retry).
+
+## 0.24.1 — 2026-05-07
+
+### Code quality
+
+- **`createTransformer` terminal-intent comment**: `_previous` in `src/low-level/transformer.ts`
+  is now annotated with an inline comment explaining it is intentionally never called. This
+  documents the invariant that the snapshot-and-reinstall pattern in `prepareBot` relies on.
+- **Plugin example context flavor types**: `examples/21-files-bot` now uses `FileFlavor<Context>`
+  and `examples/22-hydrate-bot` uses `HydrateFlavor<Context>`, replacing `as unknown as` casts
+  with proper plugin-exported flavor types.
+- **Test helper cleanup**: Empty `/** */` JSDoc blocks removed from the four private helper
+  functions in `tests/plugins/chat-members.spec.ts`.
+- **ESLint examples alignment**: `examples/**/*.ts` JSDoc rules are no longer silenced — examples
+  are now held to the same JSDoc standards as `src/`.
+
+## 0.24.0 — 2026-05-07
+
+### Plugin interop: `grammy-media-groups`
+
+`mediaGroupTransformer(adapter)` installed via `bot.api.config.use()` before `prepareBot` now
+runs correctly during tests and stores outgoing media group messages in the adapter.
+
+- **`syntheticMediaGroup` response shape**: every message in the default `sendMediaGroup` response
+  now includes a `chat` field (required by `storeMessages` for deduplication by `chat.id`) and a
+  `media_group_id` string shared across all messages in the same call (required for adapter grouping).
+  This is a minor additive change — bots reading `sendMediaGroup` return values in tests will see
+  the additional fields.
+- **`grammy-media-groups` added to plugin interop table**: install `mediaGroupTransformer(adapter)`
+  before `prepareBot`, assert on `adapter.read(media_group_id)`.
+
+See `tests/plugins/media-groups.spec.ts` and `site/plugins/media-groups.md`.
+
+## 0.23.0 — 2026-05-07
+
+### Plugin transformer support
+
+Bot-level transformers installed via `bot.api.config.use()` are now correctly chained during
+tests. Previously the library's mock transformer was installed last (outermost), silently
+skipping all user-installed transformers. With this fix, the library transformer is always
+innermost — every transformer you install runs normally and can process synthetic responses.
+
+- **Transformer chain fix**: `prepareBot` now snapshots existing transformers, installs the
+  library transformer first, then reinstalls user transformers on top. Uses only the public
+  `installedTransformers()` / `use()` API — no private access.
+- **Realistic `getFile` default**: `buildDefaultResponses` now returns a valid `File` shape
+  for `getFile` (`file_id`, `file_unique_id`, `file_size`, `file_path`) instead of `true`, so
+  `@grammyjs/files` can hydrate it without a custom `responses` override.
+- **Synthetic message includes `chat`**: Default `sendMessage` / `sendPhoto` / etc. responses
+  now include a `chat` field so `@grammyjs/hydrate` can attach `delete()` / `edit()` methods.
+
+### New plugin interop: `@grammyjs/files`
+
+`hydrateFiles(bot.token)` installed before `prepareBot` runs correctly. `ctx.getFile()` returns
+a hydrated `File` with `getUrl()` and `download()` methods.
+
+See `tests/plugins/files.spec.ts` and `examples/21-files-bot/`.
+
+### New plugin interop: `@grammyjs/hydrate`
+
+`hydrateApi()` (bot-level transformer) and `hydrate()` (context middleware) both work. Bot API
+call results include `delete()` / `edit()` / `pin()` convenience methods. Context objects get
+`ctx.message.delete()` and similar shortcuts.
+
+See `tests/plugins/hydrate.spec.ts` and `examples/22-hydrate-bot/`.
+
+### New plugin interop: `@grammyjs/auto-retry`
+
+`autoRetry(options)` installed before `prepareBot` is now part of the transformer chain for
+every API call. Normal bot operation is unaffected. `failNext` errors propagate through
+`autoRetry` to the handler catch block (autoRetry does not retry thrown GrammyErrors).
+
+See `tests/plugins/auto-retry.spec.ts` and `examples/23-auto-retry-bot/`.
+
+### New plugin interop: `@grammyjs/chat-members` — `hydrateChatMember()`
+
+`hydrateChatMember()` API transformer is now supported. Install via
+`bot.api.config.use(hydrateChatMember())` before `prepareBot`. `getChatMember` and
+`getChatAdministrators` results are augmented with an `.is(query)` method at test time, matching
+production behaviour.
+
+See `tests/plugins/chat-members.spec.ts` (new `hydrateChatMember()` describe block).
+
+### Custom transformer chain support
+
+Request-mutating and response-augmenting transformers installed via `bot.api.config.use()`
+before `prepareBot` now run normally. Payload mutations are visible in
+`chats.outgoing.requests`; response augmentations are visible to handlers.
+
+See `tests/plugins/custom-transformer.spec.ts`.
+
+### VitePress: new Plugins section
+
+A dedicated **Plugins** sidebar group replaces the mixed plugin/recipe content in **Recipes**:
+
+- `conversations` and `menu` pages moved from `site/recipes/` to `site/plugins/`
+- Five new pages: Chat Members, Files, Hydrate, Auto-Retry, Transformer Throttler
+- Recipes retains only general-pattern pages: Sessions, Keyboards, Error Simulation,
+  Multi-Chat Scenarios, Fire & Forget
+
 ## 0.22.0 — 2026-05-05
 
 ### VitePress documentation site

@@ -95,32 +95,49 @@ expect(user.replies.lastOrThrow().text).toContain('Welcome');
 - TypeScript-first — all types exported
 - Low-level API available for advanced and custom scenarios
 
+**Plugin interop**
+
+| Plugin                            | How it installs                                                         | Supported since   |
+| --------------------------------- | ----------------------------------------------------------------------- | ----------------- |
+| `@grammyjs/conversations`         | `bot.use(conversations())`                                              | v0.21.0           |
+| `@grammyjs/menu`                  | `bot.use(menu)`                                                         | v0.21.0           |
+| `@grammyjs/parse-mode`            | formatting utilities, no transformer                                    | v0.21.0           |
+| `@grammyjs/chat-members`          | `bot.use(chatMembers(...))` / `bot.api.config.use(hydrateChatMember())` | v0.21.0 / v0.23.0 |
+| `grammy-media-groups`             | `bot.api.config.use(mediaGroupTransformer(...))`                        | v0.24.0           |
+| `@grammyjs/files`                 | `bot.api.config.use(hydrateFiles(...))`                                 | v0.23.0           |
+| `@grammyjs/hydrate`               | `bot.api.config.use(hydrateApi())` + `bot.use(hydrate())`               | v0.23.0           |
+| `@grammyjs/auto-retry`            | `bot.api.config.use(autoRetry(...))`                                    | v0.23.0           |
+| `@grammyjs/transformer-throttler` | `bot.api.config.use(throttler(...))`                                    | v0.23.0           |
+
 ## Examples
 
-20 self-contained bots with matching test files live in [`examples/`](./examples/):
+23 self-contained bots with matching test files live in [`examples/`](./examples/):
 
-| #   | Scenario                                                                                 |
-| --- | ---------------------------------------------------------------------------------------- |
-| 01  | [Echo bot](./examples/01-echo-bot/) — simplest text-echo handler                         |
-| 02  | [Command bot](./examples/02-command-bot/) — `/start` and `/help`                         |
-| 03  | [Greeting bot](./examples/03-greeting-bot/) — per-user name with fallback                |
-| 04  | [Chat-type filter](./examples/04-chat-type-filter-bot/) — private vs. group routing      |
-| 05  | [Inline keyboard](./examples/05-inline-keyboard-bot/) — regex handler with keyboard      |
-| 06  | [Callback query](./examples/06-callback-query-bot/) — inline keyboard responses          |
-| 07  | [Session counter](./examples/07-session-counter-bot/) — persistent per-user state        |
-| 08  | [Chat settings](./examples/08-chat-settings-bot/) — `mockChatSession` usage              |
-| 09  | [Photo bot](./examples/09-photo-bot/) — caption extraction                               |
-| 10  | [Document bot](./examples/10-document-bot/) — file-ID and MIME type reply                |
-| 11  | [Poll bot](./examples/11-poll-bot/) — quiz creation and answer scoring                   |
-| 12  | [Group welcome](./examples/12-group-welcome-bot/) — `new_chat_members` service event     |
-| 13  | [Admin guard](./examples/13-admin-guard-bot/) — `getChatMember` status check             |
-| 14  | [Moderation bot](./examples/14-moderation-bot/) — `banChatMember` / `restrictChatMember` |
-| 15  | [Channel post bot](./examples/15-channel-post-bot/) — `channel_post` handler             |
-| 16  | [Reactions bot](./examples/16-reactions-bot/) — `message_reaction` handler               |
-| 17  | [Dice game](./examples/17-dice-game-bot/) — incoming dice value evaluation               |
-| 18  | [Middleware test](./examples/18-middleware-test/) — isolation with `prepareMiddleware`   |
-| 19  | [Composer test](./examples/19-composer-test/) — isolation with `prepareComposer`         |
-| 20  | [Multi-chat scenario](./examples/20-multi-chat-scenario/) — cross-chat summary posting   |
+| #   | Scenario                                                                                                 |
+| --- | -------------------------------------------------------------------------------------------------------- |
+| 01  | [Echo bot](./examples/01-echo-bot/) — simplest text-echo handler                                         |
+| 02  | [Command bot](./examples/02-command-bot/) — `/start` and `/help`                                         |
+| 03  | [Greeting bot](./examples/03-greeting-bot/) — per-user name with fallback                                |
+| 04  | [Chat-type filter](./examples/04-chat-type-filter-bot/) — private vs. group routing                      |
+| 05  | [Inline keyboard](./examples/05-inline-keyboard-bot/) — regex handler with keyboard                      |
+| 06  | [Callback query](./examples/06-callback-query-bot/) — inline keyboard responses                          |
+| 07  | [Session counter](./examples/07-session-counter-bot/) — persistent per-user state                        |
+| 08  | [Chat settings](./examples/08-chat-settings-bot/) — `mockChatSession` usage                              |
+| 09  | [Photo bot](./examples/09-photo-bot/) — caption extraction                                               |
+| 10  | [Document bot](./examples/10-document-bot/) — file-ID and MIME type reply                                |
+| 11  | [Poll bot](./examples/11-poll-bot/) — quiz creation and answer scoring                                   |
+| 12  | [Group welcome](./examples/12-group-welcome-bot/) — `new_chat_members` service event                     |
+| 13  | [Admin guard](./examples/13-admin-guard-bot/) — `getChatMember` status check                             |
+| 14  | [Moderation bot](./examples/14-moderation-bot/) — `banChatMember` / `restrictChatMember`                 |
+| 15  | [Channel post bot](./examples/15-channel-post-bot/) — `channel_post` handler                             |
+| 16  | [Reactions bot](./examples/16-reactions-bot/) — `message_reaction` handler                               |
+| 17  | [Dice game](./examples/17-dice-game-bot/) — incoming dice value evaluation                               |
+| 18  | [Middleware test](./examples/18-middleware-test/) — isolation with `prepareMiddleware`                   |
+| 19  | [Composer test](./examples/19-composer-test/) — isolation with `prepareComposer`                         |
+| 20  | [Multi-chat scenario](./examples/20-multi-chat-scenario/) — cross-chat summary posting                   |
+| 21  | [Files bot](./examples/21-files-bot/) — `@grammyjs/files` — `file.getUrl()` from `ctx.getFile()`         |
+| 22  | [Hydrate bot](./examples/22-hydrate-bot/) — `@grammyjs/hydrate` — hydrated replies with `delete()`       |
+| 23  | [Auto-retry bot](./examples/23-auto-retry-bot/) — `@grammyjs/auto-retry` — broadcast with error handling |
 
 ## Documentation
 

@@ -56,12 +56,12 @@ This means the same build works for `npm run docs:dev` (root) and GitHub Pages
 
 ### D3 — Dual-mode blue colour palette for WCAG AA compliance
 
-| Token                           | Light mode              | Contrast on white | Dark mode               | Contrast on `#1b1b1f` |
-| ------------------------------- | ----------------------- | ----------------- | ----------------------- | --------------------- |
-| `--vp-c-brand-1` (primary text) | `#0057b7`               | 6.9:1 ✅ AA       | `#4d9eff`               | 6.3:1 ✅ AA           |
-| `--vp-c-brand-2` (hover)        | `#0066d6`               | 5.7:1             | `#3d8ef0`               | 5.1:1                 |
-| `--vp-c-brand-3` (active)       | `#0074f0`               | 4.9:1             | `#60aaff`               | 7.4:1                 |
-| `--vp-c-brand-soft` (bg tint)   | `rgba(0,87,183,.12)`    | N/A               | `rgba(77,158,255,.16)`  | N/A                   |
+| Token                           | Light mode           | Contrast on white | Dark mode              | Contrast on `#1b1b1f` |
+| ------------------------------- | -------------------- | ----------------- | ---------------------- | --------------------- |
+| `--vp-c-brand-1` (primary text) | `#0057b7`            | 6.9:1 ✅ AA       | `#4d9eff`              | 6.3:1 ✅ AA           |
+| `--vp-c-brand-2` (hover)        | `#0066d6`            | 5.7:1             | `#3d8ef0`              | 5.1:1                 |
+| `--vp-c-brand-3` (active)       | `#0074f0`            | 4.9:1             | `#60aaff`              | 7.4:1                 |
+| `--vp-c-brand-soft` (bg tint)   | `rgba(0,87,183,.12)` | N/A               | `rgba(77,158,255,.16)` | N/A                   |
 
 `#0057b7` fails on dark backgrounds (~2.5:1), so dark mode uses `#4d9eff` — same brand hue
 lightened to pass AA. Alternative considered: gold/yellow from original logo — rejected as it

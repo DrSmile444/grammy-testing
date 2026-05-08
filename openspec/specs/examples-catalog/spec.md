@@ -6,14 +6,14 @@ Requirements for the `examples/` directory: structure, content, and integration 
 
 ## Requirements
 
-### Requirement: examples/ folder exists with 20 numbered subfolders
+### Requirement: examples/ folder exists with 23 numbered subfolders
 
-The repository SHALL contain an `examples/` directory at the root. It SHALL contain exactly 20 subfolders named `01-echo-bot` through `20-multi-chat-scenario`. Each subfolder SHALL contain `bot.ts` (bot implementation) and `bot.spec.ts` (tests).
+The repository SHALL contain an `examples/` directory at the root. It SHALL contain exactly 23 subfolders named `01-echo-bot` through `23-auto-retry-bot`. Each subfolder SHALL contain `bot.ts` (bot implementation) and `bot.spec.ts` (tests).
 
 #### Scenario: folder structure matches convention
 
 - **WHEN** the `examples/` directory is listed
-- **THEN** exactly 20 subfolders are present, numbered 01 through 20
+- **THEN** exactly 23 subfolders are present, numbered 01 through 23
 - **AND** each subfolder contains `bot.ts` and `bot.spec.ts`
 
 ### Requirement: example bot files export factory functions
@@ -39,7 +39,7 @@ All `bot.spec.ts` files in the examples folder SHALL import testing utilities fr
 
 ### Requirement: each example demonstrates a distinct library API surface
 
-The 20 examples SHALL collectively cover the following capabilities, each introduced for the first time in the numbered example that first uses it:
+The 23 examples SHALL collectively cover the following capabilities, each introduced for the first time in the numbered example that first uses it:
 
 - 01: `prepareBot`, `chats.newUser()`, `user.sendText()`, `user.replies`
 - 02: `user.sendCommand()`
@@ -61,11 +61,33 @@ The 20 examples SHALL collectively cover the following capabilities, each introd
 - 18: `prepareMiddleware`
 - 19: `prepareComposer`
 - 20: multi-actor scenario combining users, a group, and a channel
+- 21: `@grammyjs/files` — `hydrateFiles` transformer with `FileFlavor<Context>` and `file.getUrl()`
+- 22: `@grammyjs/hydrate` — `hydrateApi()` + `hydrate()` with `HydrateFlavor<Context>` and `sent.message_id`
+- 23: `@grammyjs/auto-retry` — `autoRetry` with broadcast and per-chat error handling
 
 #### Scenario: test suite covers all advertised surfaces
 
-- **WHEN** all 20 example spec files pass
+- **WHEN** all 23 example spec files pass
 - **THEN** each of the capabilities listed above has been exercised by at least one assertion
+
+### Requirement: plugin example bot.ts files use context flavor types
+
+Plugin example `bot.ts` files (examples 21–23) SHALL use the context flavor type exported by the plugin rather than `as unknown as` casts to access plugin-augmented properties.
+
+- Example 21 (`@grammyjs/files`) SHALL use `FileFlavor<Context>` as the bot's context type parameter so that `file.getUrl()` is typed without casting.
+- Example 22 (`@grammyjs/hydrate`) SHALL use `HydrateFlavor<Context>` as the bot's context type parameter so that hydrated properties on API results and context objects are typed without casting.
+
+#### Scenario: FileFlavor gives typed getUrl() access
+
+- **WHEN** `createFilesBot` is type-checked
+- **THEN** `file.getUrl()` compiles without any `as unknown as` cast
+- **AND** the bot is typed as `Bot<FileFlavor<Context>>`
+
+#### Scenario: HydrateFlavor gives typed message_id access on sent messages
+
+- **WHEN** `createHydrateBot` is type-checked
+- **THEN** `sent.message_id` compiles as `number` without any cast
+- **AND** the bot is typed as `Bot<HydrateFlavor<Context>>`
 
 ### Requirement: examples are included in the full vitest run
 
@@ -87,12 +109,12 @@ Running `npm run typecheck` SHALL type-check all files in `examples/`, including
 - **THEN** TypeScript checks all `examples/*/bot.ts` and `examples/*/bot.spec.ts` files
 - **AND** the check exits with code 0
 
-### Requirement: examples use only grammy and @grammyjs/testing as dependencies
+### Requirement: plugin examples may import plugin devDependencies
 
-No `bot.ts` or `bot.spec.ts` file SHALL import from packages not already present in the project's `devDependencies`. Examples SHALL rely solely on `grammy` and `@grammyjs/testing`.
+`bot.ts` files in plugin-demonstration examples (examples 21–23) MAY import from plugin packages listed in `devDependencies` (e.g., `@grammyjs/files`, `@grammyjs/hydrate`, `@grammyjs/auto-retry`). The ESLint `import/no-extraneous-dependencies` and `n/no-unpublished-import` rules SHALL be relaxed for `examples/**/*.ts` to permit these imports. No plugin packages MAY be added to `dependencies` (only `devDependencies`).
 
-#### Scenario: no new dependencies introduced
+#### Scenario: plugin example compiles and runs without install step
 
-- **WHEN** the examples are added
-- **THEN** `package.json` `devDependencies` is unchanged
-- **AND** no `npm install` step is required before the examples run
+- **WHEN** `npm run test:run` is executed after a clean `npm install`
+- **THEN** all `examples/*/bot.spec.ts` files pass, including examples 21–23
+- **AND** the plugin packages are resolved from `devDependencies`

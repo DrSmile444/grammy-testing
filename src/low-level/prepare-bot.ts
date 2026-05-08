@@ -6,7 +6,7 @@ import { genericBotInfo } from './bot-info';
 import { IdleTracker } from './idle';
 import { OutgoingRequests } from './outgoing-requests';
 import type { Responses } from './responses';
-import { createTransformer } from './transformer';
+import { asTransformer, createTransformer } from './transformer';
 
 export interface PrepareOptions {
   /**
@@ -51,16 +51,26 @@ export async function prepareBot<TContext extends Context = Context, TApi extend
 
   const responses = { ...chats.buildDefaultResponses(), ...options.responses };
 
+  // Snapshot user-installed transformers before adding the library's so we can
+  // reinstall them on top — making the library transformer innermost (index 0).
+  const existingTransformers = bot.api.config.installedTransformers();
+
   bot.api.config.use(
-    createTransformer({
-      outgoing,
-      idle,
-      responses,
-      onCapture: (request) => {
-        chats.deriveFromCapture(request);
-      },
-    }),
+    asTransformer(
+      createTransformer({
+        outgoing,
+        idle,
+        responses,
+        onCapture: (request) => {
+          chats.deriveFromCapture(request);
+        },
+      }),
+    ),
   );
+
+  if (existingTransformers.length > 0) {
+    bot.api.config.use(...existingTransformers);
+  }
 
   // eslint-disable-next-line no-param-reassign -- intentional: matches the inspiration's pattern of setting fixture botInfo before init
   bot.botInfo = { ...genericBotInfo };

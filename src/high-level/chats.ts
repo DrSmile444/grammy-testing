@@ -549,29 +549,38 @@ export class Chats<TContext extends Context = Context> {
    */
   buildDefaultResponses(): Responses {
     const syntheticMessage = (): Partial<Message> => {
-      const messageId = this.lastCapturedReply?.messageId;
+      const reply = this.lastCapturedReply;
 
-      if (messageId === undefined) {
+      if (reply === undefined) {
         return true as unknown as Partial<Message>;
       }
 
-      return { message_id: messageId, date: Math.floor(Date.now() / 1000) };
+      return {
+        message_id: reply.messageId,
+        date: Math.floor(Date.now() / 1000),
+        chat: reply.chat?.toTelegramChat() ?? ({ id: 0, type: 'private' } as Message['chat']),
+      };
     };
 
     const syntheticMediaGroup = (payload: Record<string, unknown>): unknown[] => {
-      const firstMessageId = this.lastCapturedReply?.messageId;
+      const reply = this.lastCapturedReply;
 
-      if (firstMessageId === undefined) {
+      if (reply === undefined) {
         return [];
       }
 
       const now = Math.floor(Date.now() / 1000);
       const media = payload.media as unknown[] | undefined;
       const count = media?.length ?? 1;
-      const messages: { message_id: number; date: number }[] = [{ message_id: firstMessageId, date: now }];
+      const mediaGroupId = this.ids.nextMediaGroupId();
+      const chat = reply.chat?.toTelegramChat() ?? ({ id: 0, type: 'private' } as Message['chat']);
+
+      const messages: { message_id: number; date: number; chat: Message['chat']; media_group_id: string }[] = [
+        { message_id: reply.messageId, date: now, chat, media_group_id: mediaGroupId },
+      ];
 
       for (let index = 1; index < count; index += 1) {
-        messages.push({ message_id: this.ids.nextMessageId(), date: now });
+        messages.push({ message_id: this.ids.nextMessageId(), date: now, chat, media_group_id: mediaGroupId });
       }
 
       return messages;
@@ -662,6 +671,12 @@ export class Chats<TContext extends Context = Context> {
       getChatMember: getChatMemberResolver as never,
       getChatAdministrators: getChatAdministratorsResolver as never,
       getChat: getChatResolver as never,
+      getFile: () => ({
+        file_id: 'test_file_id',
+        file_unique_id: 'test_file_unique_id',
+        file_size: 1024,
+        file_path: 'documents/test_file.pdf',
+      }),
     };
   }
 

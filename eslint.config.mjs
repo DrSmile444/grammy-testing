@@ -18,6 +18,15 @@ export default defineConfig([
   ...nodeConfigs,
   // Vitest rules for testing
   ...vitestEslint,
+  // Example bot files use devDependencies (plugins under test) — relax import rules only.
+  {
+    name: 'Examples — allow devDependency imports',
+    files: ['examples/**/*.ts'],
+    rules: {
+      'import/no-extraneous-dependencies': 'off',
+      'n/no-unpublished-import': 'off',
+    },
+  },
   // Library entry points are intentional barrel files — exempt them from the no-barrel-files rule.
   {
     name: 'Library entry points',

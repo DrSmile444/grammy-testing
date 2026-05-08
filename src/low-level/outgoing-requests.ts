@@ -19,7 +19,10 @@ export type RealApiMethodKeys = Methods;
  * Internal: per-call override stored by `failNext` / `respondNext`.
  * @internal
  */
-type OneShotOverride = { kind: 'fail'; error: GrammyError | GrammyErrorSpec } | { kind: 'respond'; payload: unknown };
+type OneShotOverride =
+  | { kind: 'fail'; error: GrammyError | GrammyErrorSpec }
+  | { kind: 'respond'; payload: unknown }
+  | { kind: 'respond-raw'; response: unknown };
 
 /**
  * Collects every outgoing API call captured by the testing transformer
@@ -304,6 +307,21 @@ export class OutgoingRequests<TMethod extends RealApiMethodKeys = RealApiMethodK
    */
   respondNext(method: RealApiMethodKeys, payload: unknown): this {
     this.enqueueOneShot(method, { kind: 'respond', payload });
+
+    return this;
+  }
+
+  /**
+   * Override the next call to `method` to return `response` verbatim —
+   * without wrapping in `{ ok: true, result }`. Use this to inject raw
+   * not-ok responses (e.g. `{ ok: false, error_code: 429, parameters: { retry_after: 0 } }`)
+   * that outer transformers such as `@grammyjs/auto-retry` can observe and act on.
+   * @param method - grammY API method name.
+   * @param response - Raw response value to return as-is.
+   * @returns `this` for chaining.
+   */
+  respondNextRaw(method: RealApiMethodKeys, response: unknown): this {
+    this.enqueueOneShot(method, { kind: 'respond-raw', response });
 
     return this;
   }
