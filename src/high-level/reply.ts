@@ -1,5 +1,5 @@
 import type { Bot, Context } from 'grammy';
-import type { InlineKeyboardButton, Message, MessageEntity, ParseMode, Update } from 'grammy/types';
+import type { InlineKeyboardButton, InputRichMessage, Message, MessageEntity, ParseMode, Update } from 'grammy/types';
 
 import type { AnyChat } from './chat';
 import type { IdGenerator } from './id-generator';
@@ -30,6 +30,74 @@ export interface ReplyButton {
   callbackData?: string;
   url?: string;
   raw: InlineKeyboardButton;
+}
+
+/**
+ * Normalized view of the `InputRichMessage` a bot sent via `sendRichMessage` /
+ * `sendRichMessageDraft`. Carries every field of the grammY `InputRichMessage` (so it stays in
+ * sync with `@grammyjs/types`) plus a `plainText` convenience.
+ */
+export interface ReplyRichMessage extends InputRichMessage {
+  /**
+   * Best-effort plain text: the `html ?? markdown` content with tags / emphasis markup stripped,
+   * for simple assertions. It does not decode HTML entities or parse links — assert on `html` /
+   * `markdown` directly when you need the exact authored content. Empty string when neither is set.
+   */
+  plainText: string;
+}
+
+/**
+ * Strips HTML tags from a string (e.g. `<b>hello</b>` → `hello`).
+ * @param value - The HTML-formatted string.
+ * @returns The text with all `<...>` tags removed.
+ */
+function stripHtml(value: string): string {
+  let result = '';
+  let isInsideTag = false;
+
+  for (const char of value) {
+    if (char === '<') {
+      isInsideTag = true;
+    } else if (char === '>') {
+      isInsideTag = false;
+    } else if (!isInsideTag) {
+      result += char;
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Strips common Markdown emphasis/code markup from a string (e.g. `**hello**` → `hello`).
+ * @param value - The Markdown-formatted string.
+ * @returns The text with emphasis/code markers removed.
+ */
+function stripMarkdown(value: string): string {
+  return value.replaceAll(/\*\*|__|[*_~`]/g, '');
+}
+
+/**
+ * Derives the {@link ReplyRichMessage} view from a raw outgoing payload's `rich_message` field.
+ * @param payload - The raw outgoing API payload.
+ * @returns A {@link ReplyRichMessage}, or `undefined` if the payload carries no rich message.
+ */
+function deriveRichMessage(payload: Record<string, unknown>): ReplyRichMessage | undefined {
+  const rich = payload.rich_message as InputRichMessage | undefined;
+
+  if (rich === undefined) {
+    return undefined;
+  }
+
+  let plainText = '';
+
+  if (rich.html) {
+    plainText = stripHtml(rich.html);
+  } else if (rich.markdown) {
+    plainText = stripMarkdown(rich.markdown);
+  }
+
+  return { ...rich, plainText };
 }
 
 interface ReplyDeps<TContext extends Context = Context> {
@@ -205,6 +273,9 @@ export class Reply<TContext extends Context = Context> {
 
   readonly media: ReplyMedia | undefined;
 
+  /** The sent `InputRichMessage` for `sendRichMessage` / `sendRichMessageDraft` calls, else `undefined`. */
+  readonly richMessage: ReplyRichMessage | undefined;
+
   readonly replyMarkup: Record<string, unknown> | undefined;
 
   readonly replyingTo: Reply<TContext> | undefined;
@@ -249,6 +320,7 @@ export class Reply<TContext extends Context = Context> {
     this.mentionUsernames = collectMentionUsernames(text, this.entities);
     this.buttons = collectButtons(rawPayload);
     this.media = deriveMedia(rawPayload);
+    this.richMessage = deriveRichMessage(rawPayload);
     this.replyMarkup = rawPayload.reply_markup as Record<string, unknown> | undefined;
 
     this.replyingTo = this.replyToMessageId === undefined ? undefined : deps.resolveReply(this.replyToMessageId);

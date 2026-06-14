@@ -15,6 +15,8 @@ export type { ChatProfile, Chats, RepliesInbox, DispatchPollStateOptions } from 
 
 export type { Deletion, DeletionsLog } from './high-level/deletions-log';
 
+export type { DraftEntry, DraftsLog } from './high-level/drafts-log';
+
 export type { Edit, EditsLog } from './high-level/edits-log';
 
 export type { GrammyErrorSpec } from './low-level/grammy-error';
@@ -51,7 +53,9 @@ export { MessagesLog } from './high-level/messages-log';
 
 export { PrivateChat } from './high-level/private-chat';
 
-export { Reply, type MediaType, type ReplyButton, type ReplyMedia } from './high-level/reply';
+export type { ReactionRemoval, ReactionRemovalsLog } from './high-level/reaction-removals-log';
+
+export { Reply, type MediaType, type ReplyButton, type ReplyMedia, type ReplyRichMessage } from './high-level/reply';
 
 export type { ParseMode } from 'grammy/types';
 
@@ -77,6 +81,7 @@ export {
   type AnswerPollOptions,
   type BoostChatOptions,
   type BotUserProfile,
+  type GuestMessageOptions,
   type ManageBotOptions,
   type PurchasePaidMediaOptions,
   type ReactToOptions,
