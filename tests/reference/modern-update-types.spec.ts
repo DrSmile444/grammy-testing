@@ -330,6 +330,22 @@ describe('reference: modern-update-types', () => {
         expect(observed.bot.id).toBe(99_999);
         expect(observed.bot.is_bot).toBe(true);
       });
+
+      it('resolves ctx.from to the managing user (Bot API 10.0 fix)', async () => {
+        const bot = new Bot('test-token');
+        let observedFromId: number | undefined;
+
+        bot.on('managed_bot', (ctx) => {
+          observedFromId = ctx.from.id;
+        });
+
+        const { chats } = await prepareBot(bot);
+        const user = chats.newUser();
+
+        await user.manageBot({ id: 99_999, first_name: 'MyBot' });
+
+        expect(observedFromId).toBe(user.id);
+      });
     });
   });
 
@@ -421,6 +437,7 @@ describe('reference: modern-update-types', () => {
           options: [],
           is_closed: true,
           is_anonymous: true,
+          members_only: false,
           type: 'regular',
           allows_multiple_answers: false,
           allows_revoting: false,
