@@ -14,11 +14,13 @@ import { BusinessAccount } from './business-account';
 import { Channel } from './channel';
 import { type AnyChat, setBotRef } from './chat';
 import { type Deletion, DeletionsLog } from './deletions-log';
+import { DraftsLog } from './drafts-log';
 import { type Edit, EditsLog } from './edits-log';
 import { Group } from './group';
 import { IdGenerator } from './id-generator';
 import { MessagesLog } from './messages-log';
 import { PrivateChat } from './private-chat';
+import { ReactionRemovalsLog } from './reaction-removals-log';
 import { Reply } from './reply';
 import { Supergroup } from './supergroup';
 import type { Membership, PromotePermissions } from './types';
@@ -127,6 +129,8 @@ const MESSAGE_METHODS_GUARD = {
   sendVenue: true,
   sendPoll: true,
   sendDice: true,
+  sendLivePhoto: true,
+  sendRichMessage: true,
   sendMediaGroup: true,
   copyMessage: true,
   forwardMessage: true,
@@ -153,6 +157,20 @@ const DELETE_METHODS_GUARD = {
 } satisfies Partial<Record<keyof RawApi, true>>;
 
 const DELETE_METHODS = new Set(Object.keys(DELETE_METHODS_GUARD));
+
+const DRAFT_METHODS_GUARD = {
+  sendMessageDraft: true,
+  sendRichMessageDraft: true,
+} satisfies Partial<Record<keyof RawApi, true>>;
+
+const DRAFT_METHODS = new Set(Object.keys(DRAFT_METHODS_GUARD));
+
+const REACTION_REMOVAL_METHODS_GUARD = {
+  deleteMessageReaction: true,
+  deleteAllMessageReactions: true,
+} satisfies Partial<Record<keyof RawApi, true>>;
+
+const REACTION_REMOVAL_METHODS = new Set(Object.keys(REACTION_REMOVAL_METHODS_GUARD));
 
 /**
  * Per-user inbox: filtered view of messages directed at this user.
@@ -233,6 +251,7 @@ interface UserEntry<TContext extends Context = Context> {
   replies: RepliesInbox<TContext>;
   actions: ActionsLog;
   edits: EditsLog;
+  drafts: DraftsLog;
   privateChat?: PrivateChat<TContext>;
 }
 
@@ -285,6 +304,12 @@ export class Chats<TContext extends Context = Context> {
   /** chatId->DeletionsLog registry for deleteMessage routing. */
   private readonly chatDeletions = new Map<number, DeletionsLog<TContext>>();
 
+  /** Orchestrator-wide log of captured `deleteMessageReaction` / `deleteAllMessageReactions` calls. */
+  readonly reactionRemovals = new ReactionRemovalsLog();
+
+  /** guest_query_id->User registry, populated by `user.sendGuestMessage`, for answer correlation. */
+  private readonly guestQueryToUser = new Map<string, User<TContext>>();
+
   /** The Reply created by the most recent message-method `onCapture` call. Read by the default response resolvers. */
   private lastCapturedReply: Reply<TContext> | undefined;
 
@@ -322,6 +347,7 @@ export class Chats<TContext extends Context = Context> {
       entry.replies.clear();
       entry.actions.clear();
       entry.edits.clear();
+      entry.drafts.clear();
     }
 
     for (const chat of this.chats.values()) {
@@ -332,6 +358,8 @@ export class Chats<TContext extends Context = Context> {
       log.clear();
     }
 
+    this.reactionRemovals.clear();
+    this.guestQueryToUser.clear();
     this.messageIdToReply.clear();
     this.clickers.clear();
     this.lastCapturedReply = undefined;
@@ -359,6 +387,7 @@ export class Chats<TContext extends Context = Context> {
   newUser(profile: UserProfile = {}): User<TContext> {
     const id = profile.id ?? this.ids.nextUserId();
     const inbox = new RepliesInbox<TContext>();
+    const drafts = new DraftsLog();
 
     // Two-phase: declare `user` so closures capture it by reference,
     // then assign before any closure can fire.
@@ -378,11 +407,15 @@ export class Chats<TContext extends Context = Context> {
           this.applyMembershipTransition(chat, who, mode);
         },
         replies: inbox,
+        drafts,
+        recordGuestQuery: (queryId, who) => {
+          this.guestQueryToUser.set(queryId, who);
+        },
       },
       (chat: AnyChat<TContext>) => this.readMembership(user, chat),
     );
 
-    this.users.set(id, { user, replies: inbox, actions: new ActionsLog(), edits: new EditsLog() });
+    this.users.set(id, { user, replies: inbox, actions: new ActionsLog(), edits: new EditsLog(), drafts });
 
     return user;
   }
@@ -622,6 +655,7 @@ export class Chats<TContext extends Context = Context> {
 
     interface GetChatAdministratorsResolverPayload {
       chat_id: ChatId;
+      return_bots?: boolean;
     }
 
     const getChatAdministratorsResolver = (payload: GetChatAdministratorsResolverPayload): ChatMember[] => {
@@ -631,9 +665,16 @@ export class Chats<TContext extends Context = Context> {
         return [];
       }
 
-      return [...chat.members.values()]
+      const admins = [...chat.members.values()]
         .filter((membership) => membership.status === 'creator' || membership.status === 'administrator')
         .map((membership) => membershipToChatMember(membership));
+
+      // Bot API 10.0: return_bots: false excludes bot administrators.
+      if (payload.return_bots === false) {
+        return admins.filter((member) => !member.user.is_bot);
+      }
+
+      return admins;
     };
 
     interface GetChatResolverPayload {
@@ -665,6 +706,8 @@ export class Chats<TContext extends Context = Context> {
       sendVenue: syntheticMessage,
       sendPoll: syntheticMessage,
       sendDice: syntheticMessage,
+      sendLivePhoto: syntheticMessage as never,
+      sendRichMessage: syntheticMessage as never,
       sendMediaGroup: syntheticMediaGroup as never,
       copyMessage: syntheticMessageId as never,
       forwardMessage: syntheticMessage,
@@ -677,6 +720,13 @@ export class Chats<TContext extends Context = Context> {
         file_size: 1024,
         file_path: 'documents/test_file.pdf',
       }),
+      // Bot API 10.0: answerGuestQuery is an inline-style answer returning a SentGuestMessage.
+      answerGuestQuery: () => ({ inline_message_id: `igm-${String(this.ids.nextMessageId())}` }),
+      getManagedBotAccessSettings: () => ({ is_access_restricted: false }),
+      setManagedBotAccessSettings: () => true,
+      getManagedBotToken: (() => `managed-bot-token-${String(this.ids.nextMessageId())}`) as never,
+      replaceManagedBotToken: (() => `managed-bot-token-${String(this.ids.nextMessageId())}`) as never,
+      getUserPersonalChatMessages: () => [],
     };
   }
 
@@ -703,6 +753,18 @@ export class Chats<TContext extends Context = Context> {
 
     if (DELETE_METHODS.has(request.method)) {
       this.deriveDelete(payload);
+
+      return;
+    }
+
+    if (DRAFT_METHODS.has(request.method)) {
+      this.deriveDraft(request.method, payload);
+
+      return;
+    }
+
+    if (REACTION_REMOVAL_METHODS.has(request.method)) {
+      this.deriveReactionRemoval(request.method, payload);
 
       return;
     }
@@ -837,6 +899,51 @@ export class Chats<TContext extends Context = Context> {
     const deletion: Deletion<TContext> = { messageId, reply, raw: payload };
 
     log.push(deletion);
+  }
+
+  /**
+   * Routes a captured `sendMessageDraft` / `sendRichMessageDraft` payload to the target user's
+   * drafts log. Draft sends return `true` and do not produce a `Message`, so they are not added
+   * to `chat.messages` / `user.replies`. The draft's `chat_id` is a private chat whose id equals
+   * the user's id (Telegram convention).
+   * @param method - The draft-sending method name.
+   * @param payload - The raw outgoing API payload.
+   */
+  private deriveDraft(method: string, payload: Record<string, unknown>): void {
+    const chatId = payload.chat_id as number | undefined;
+
+    if (chatId === undefined) {
+      return;
+    }
+
+    const entry = this.users.get(chatId);
+
+    if (!entry) {
+      this.warnUnregisteredChat(method, chatId);
+
+      return;
+    }
+
+    entry.drafts.push({ method, chatId, payload });
+  }
+
+  /**
+   * Routes a captured `deleteMessageReaction` / `deleteAllMessageReactions` payload to the
+   * orchestrator-wide reactions-removed log.
+   * @param method - The reaction-removal method name.
+   * @param payload - The raw outgoing API payload.
+   */
+  private deriveReactionRemoval(method: string, payload: Record<string, unknown>): void {
+    const chatId = payload.chat_id as ChatId | undefined;
+
+    if (chatId === undefined) {
+      return;
+    }
+
+    // deleteMessageReaction carries message_id; deleteAllMessageReactions does not.
+    const messageId = payload.message_id as number | undefined;
+
+    this.reactionRemovals.push({ method, chatId, messageId, raw: payload });
   }
 
   /**
@@ -1066,6 +1173,31 @@ export class Chats<TContext extends Context = Context> {
     }
 
     return entry.edits;
+  }
+
+  /**
+   * Access the per-user drafts log (`sendMessageDraft` / `sendRichMessageDraft` captures).
+   * @param user - The user whose drafts log to retrieve.
+   * @returns The `DraftsLog` for `user`.
+   */
+  draftsFor(user: User<TContext>): DraftsLog {
+    const entry = this.users.get(user.id);
+
+    if (!entry) {
+      throw new Error(`User ${String(user.id)} was not minted by this Chats instance`);
+    }
+
+    return entry.drafts;
+  }
+
+  /**
+   * Resolves the `User` that originated a guest query via `user.sendGuestMessage`.
+   * Use this to assert that the bot's captured `answerGuestQuery` call targeted the right guest.
+   * @param guestQueryId - The `guest_query_id` returned by `user.sendGuestMessage`.
+   * @returns The originating `User`, or `undefined` if the query id is unknown.
+   */
+  guestQueryUser(guestQueryId: string): User<TContext> | undefined {
+    return this.guestQueryToUser.get(guestQueryId);
   }
 
   /**

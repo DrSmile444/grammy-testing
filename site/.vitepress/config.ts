@@ -65,6 +65,7 @@ export default defineConfig({
           { text: 'BusinessAccount', link: '/high-level/business-account' },
           { text: 'Reply', link: '/high-level/reply' },
           { text: 'Logs', link: '/high-level/logs' },
+          { text: 'Bot API 10 Features', link: '/high-level/bot-api-10' },
         ],
       },
       {

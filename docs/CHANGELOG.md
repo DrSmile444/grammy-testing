@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.26.0 — 2026-06-14
+
+### grammY 1.44 / Bot API 10.0 + 10.1 support
+
+Bumps the `grammy` peer and dev dependency to `^1.44.0` (Bot API 10.1, `@grammyjs/types@3.28.0`)
+and adds first-class support for the new surfaces. All shapes were verified against the published
+types.
+
+- **New message-sending methods**: `sendRichMessage` and `sendLivePhoto` now return a synthetic
+  `Message` and are routed into `chat.messages` / `user.replies`, like other senders.
+- **Rich message accessor**: `reply.richMessage` exposes the sent `InputRichMessage`
+  (`html` / `markdown` / `is_rtl` / `skip_entity_detection`) with a `plainText` convenience.
+- **Message drafts**: `sendMessageDraft` / `sendRichMessageDraft` (both return `true`) are captured
+  into a drafts projection — `user.drafts` and `chats.draftsFor(user)` — for streaming-sequence
+  assertions.
+- **Guest mode**: `user.sendGuestMessage(chat, text?)` dispatches a `guest_message` update and
+  returns the generated `guest_query_id`. `answerGuestQuery` resolves with a synthetic
+  `SentGuestMessage` (`{ inline_message_id }`) and is correlated to the originating user via
+  `chats.guestQueryUser(queryId)`; it is not routed into `chat.messages`.
+- **Join-request queries**: `user.requestJoin(group)` now emits and returns the
+  `chat_join_request.query_id`.
+- **Reaction removal**: `deleteMessageReaction` / `deleteAllMessageReactions` are captured into
+  `chats.reactionRemovals`.
+- **Managed-bot defaults**: synthetic defaults for `getManagedBotAccessSettings`,
+  `setManagedBotAccessSettings`, `getManagedBotToken`, `replaceManagedBotToken`, and
+  `getUserPersonalChatMessages`; `getChatAdministrators` honors `return_bots: false`.
+- **Examples & docs**: new `24-guest-mode-bot`, `25-rich-message-bot`, and `26-reaction-removal-bot`
+  examples plus a "Bot API 10 Features" documentation page.
+
 ## 0.25.0 — 2026-05-07
 
 ### Transformer infrastructure

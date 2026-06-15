@@ -4,6 +4,7 @@ import type { Chat, Message, MessageEntity, MessageOrigin, ReactionType, Shippin
 import type { AnyChat } from './chat';
 import type { RepliesInbox } from './chats';
 import { dispatchEditedMessage, dispatchServiceMessage, dispatchTextMessage } from './dispatch';
+import type { DraftsLog } from './drafts-log';
 import type { Group } from './group';
 import type { IdGenerator } from './id-generator';
 import {
@@ -153,6 +154,11 @@ export interface RequestJoinOptions {
   bio?: string;
 }
 
+export interface GuestMessageOptions {
+  /** Override the auto-generated update_id. */
+  updateId?: number;
+}
+
 export interface BoostChatOptions {
   expirationDays?: number;
 }
@@ -209,6 +215,10 @@ interface UserContext<TContext extends Context = Context> {
   updateMembership: (chat: Group<TContext> | Supergroup<TContext>, user: User<TContext>, mode: 'join' | 'leave') => void;
   /** Live inbox of replies addressed to this user. */
   replies: RepliesInbox<TContext>;
+  /** Live log of message drafts the bot sent to this user. */
+  drafts: DraftsLog;
+  /** Records a guest_query_id → user association so `answerGuestQuery` can be correlated. */
+  recordGuestQuery: (guestQueryId: string, user: User<TContext>) => void;
 }
 
 export interface UserSendMediaGroupItem<TContext extends Context = Context> {
@@ -274,6 +284,15 @@ export class User<TContext extends Context = Context> {
    */
   get replies(): RepliesInbox<TContext> {
     return this.ctx.replies;
+  }
+
+  /**
+   * Live log of message drafts (`sendMessageDraft` / `sendRichMessageDraft`) the bot sent to
+   * this user. Equivalent to `chats.draftsFor(this)` — same reference.
+   * @returns The `DraftsLog` for this user.
+   */
+  get drafts(): DraftsLog {
+    return this.ctx.drafts;
   }
 
   /**
@@ -1095,11 +1114,15 @@ export class User<TContext extends Context = Context> {
 
   /**
    * Dispatches a `chat_join_request` update — the user requesting to join a
-   * group or supergroup.
+   * group or supergroup. Returns the generated `query_id` (Bot API 10.1) so callers can
+   * correlate the bot's answer to the join-request query.
    * @param group - The group or supergroup the user wants to join.
    * @param options - Optional overrides such as a custom `bio` string.
+   * @returns The generated `chat_join_request.query_id` string.
    */
-  async requestJoin(group: Group<TContext> | Supergroup<TContext>, options: RequestJoinOptions = {}): Promise<void> {
+  async requestJoin(group: Group<TContext> | Supergroup<TContext>, options: RequestJoinOptions = {}): Promise<string> {
+    const queryId = `cjrq-${String(this.ctx.ids.nextMessageId())}`;
+
     await this.ctx.bot.handleUpdate({
       update_id: this.ctx.ids.nextUpdateId(),
       chat_join_request: {
@@ -1114,8 +1137,11 @@ export class User<TContext extends Context = Context> {
         user_chat_id: this.id,
         date: Math.floor(Date.now() / 1000),
         bio: options.bio,
+        query_id: queryId,
       },
     } as Update);
+
+    return queryId;
   }
 
   /**
@@ -1234,5 +1260,42 @@ export class User<TContext extends Context = Context> {
         paid_media_payload: payload,
       },
     } as Update);
+  }
+
+  /**
+   * Dispatches a `guest_message` update — the user messaging the bot as a guest in a chat the
+   * bot is not a member of (Bot API 10.0 guest mode). The synthesized `guest_message` is a
+   * `Message` carrying a generated `guest_query_id`; the bot replies with `answerGuestQuery`.
+   * Returns the `guest_query_id` so callers can correlate the bot's answer.
+   * @param chat - The chat the guest message targets.
+   * @param text - Optional message text.
+   * @param options - Optional overrides such as a custom `update_id`.
+   * @returns The generated `guest_query_id` string.
+   */
+  async sendGuestMessage(chat: AnyChat<TContext>, text?: string, options: GuestMessageOptions = {}): Promise<string> {
+    const guestQueryId = `gq-${String(this.ctx.ids.nextMessageId())}`;
+    const targetChat: Chat = this.ctx.resolveChatToTelegram(chat);
+
+    this.ctx.recordGuestQuery(guestQueryId, this);
+
+    await this.ctx.bot.handleUpdate({
+      update_id: options.updateId ?? this.ctx.ids.nextUpdateId(),
+      guest_message: {
+        message_id: this.ctx.ids.nextMessageId(),
+        date: Math.floor(Date.now() / 1000),
+        chat: targetChat,
+        from: {
+          id: this.id,
+          is_bot: false,
+          first_name: this.first_name,
+          last_name: this.last_name,
+          username: this.username,
+        },
+        text,
+        guest_query_id: guestQueryId,
+      },
+    } as Update);
+
+    return guestQueryId;
   }
 }

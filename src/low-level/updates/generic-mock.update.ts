@@ -64,6 +64,7 @@ export abstract class GenericMockUpdate {
     can_manage_bots: false,
     has_topics_enabled: false,
     allows_users_to_create_topics: false,
+    supports_join_request_queries: false,
   };
 
   readonly genericUserAtom = {
