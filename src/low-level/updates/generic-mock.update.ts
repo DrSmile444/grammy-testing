@@ -24,7 +24,7 @@ export type PartialUpdate<U extends Update = Update> = PartialDeep<U>;
  * - arrays REPLACE (do not concatenate)
  * - primitives REPLACE
  *
- * Reachable only via `@grammyjs/testing/low-level` — not the default
+ * Reachable only via `grammy-testing/low-level` — not the default
  * package entry — to signal escape-hatch status.
  */
 export abstract class GenericMockUpdate {

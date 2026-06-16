@@ -11,8 +11,8 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "paths": {
-      "@grammyjs/testing": ["./src/index.ts"],
-      "@grammyjs/testing/low-level": ["./src/low-level.ts"]
+      "grammy-testing": ["./src/index.ts"],
+      "grammy-testing/low-level": ["./src/low-level.ts"]
     }
   },
   "include": [".eslint", "src", "tests", "scripts", "examples", "vitest.config.ts", "tsup.config.ts"]
