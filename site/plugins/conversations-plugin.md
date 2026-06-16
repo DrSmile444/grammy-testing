@@ -27,7 +27,7 @@ const bot = new Bot<MyContext>('test-token', { client: { fetch: okFetch } });
 
 ```ts
 import { conversations, createConversation, type Conversation, type ConversationFlavor } from '@grammyjs/conversations';
-import { prepareBot } from '@grammyjs/testing';
+import { prepareBot } from 'grammy-testing';
 import { Bot, type Context } from 'grammy';
 import { describe, expect, it } from 'vitest';
 

@@ -1,7 +1,7 @@
 import { Bot } from 'grammy';
 import { describe, expect, it } from 'vitest';
 
-import { mockChatSession, prepareBot } from '@grammyjs/testing';
+import { mockChatSession, prepareBot } from 'grammy-testing';
 
 import type { ChatSettings, SettingsContext } from './bot';
 

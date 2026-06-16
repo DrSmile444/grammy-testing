@@ -1,6 +1,6 @@
 # Introduction
 
-`@grammyjs/testing` is a testing framework for [grammY](https://grammy.dev)-based Telegram bots.
+`grammy-testing` is a testing framework for [grammY](https://grammy.dev)-based Telegram bots.
 Instead of sending live messages to Telegram, it runs your bot **entirely in-process**: a
 transformer intercepts every outgoing API call, synthetic updates drive your handlers, and you
 inspect what the bot sent without touching a network.
@@ -45,7 +45,7 @@ No mocking of grammY internals. No monkey-patching. Your handlers run real code.
 
 ## Relationship to grammY
 
-grammY Testing is an **official** grammY ecosystem package (`@grammyjs/testing`). It depends on
+grammY Testing is an **official** grammY ecosystem package (`grammy-testing`). It depends on
 `grammy` as a peer dependency and tracks grammY's API surface. Any grammY bot — with or without
 plugins — can be tested with this library.
 

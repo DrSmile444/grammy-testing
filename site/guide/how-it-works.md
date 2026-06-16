@@ -36,10 +36,10 @@ No real network call is made. grammY's internal `sendMessage` resolves with the 
 
 The library exposes two layers:
 
-| Layer          | Import path                   | When to use                      |
-| -------------- | ----------------------------- | -------------------------------- |
-| **High-level** | `@grammyjs/testing`           | Most tests — readable actor API  |
-| **Low-level**  | `@grammyjs/testing/low-level` | Edge cases, custom update shapes |
+| Layer          | Import path                | When to use                      |
+| -------------- | -------------------------- | -------------------------------- |
+| **High-level** | `grammy-testing`           | Most tests — readable actor API  |
+| **Low-level**  | `grammy-testing/low-level` | Edge cases, custom update shapes |
 
 High-level: you work with `User`, `Group`, `Channel` actors. You call `user.sendText('hi')` and
 assert on `user.replies.lastOrThrow().text`. Everything is named after Telegram domain concepts.

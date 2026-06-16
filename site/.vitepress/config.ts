@@ -135,7 +135,7 @@ export default defineConfig({
       },
       {
         icon: 'npm',
-        link: 'https://www.npmjs.com/package/@grammyjs/testing',
+        link: 'https://www.npmjs.com/package/grammy-testing',
       },
     ],
 

@@ -10,7 +10,7 @@ read/write it directly in your tests.
 ```ts
 // bot.ts
 import { Bot, session } from 'grammy';
-import type { SessionContext } from '@grammyjs/testing';
+import type { SessionContext } from 'grammy-testing';
 
 export interface CounterSession {
   count: number;
@@ -39,7 +39,7 @@ export function createBot() {
 **Test with mockSession:**
 
 ```ts
-import { mockSession, prepareBot } from '@grammyjs/testing';
+import { mockSession, prepareBot } from 'grammy-testing';
 import { Bot } from 'grammy';
 import { describe, expect, it } from 'vitest';
 import type { CounterContext, CounterSession } from './bot';
@@ -89,7 +89,7 @@ describe('session counter', () => {
 ## Per-chat session with mockChatSession
 
 ```ts
-import { mockChatSession } from '@grammyjs/testing';
+import { mockChatSession } from 'grammy-testing';
 
 interface ChatSettings {
   language: string;
@@ -105,7 +105,7 @@ bot.use(mockChatSessionMiddleware);
 Use `state` in `prepareComposer` options to pre-populate `ctx.state` for every update:
 
 ```ts
-import { prepareComposer } from '@grammyjs/testing';
+import { prepareComposer } from 'grammy-testing';
 import { Composer } from 'grammy';
 
 interface MyState {

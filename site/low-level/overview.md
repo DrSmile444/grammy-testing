@@ -1,7 +1,7 @@
 # Low-Level API
 
 The low-level layer gives you direct access to the machinery underneath the high-level actors.
-Import it from the `@grammyjs/testing/low-level` subpath.
+Import it from the `grammy-testing/low-level` subpath.
 
 ## When to use it
 
@@ -21,14 +21,14 @@ Most tests don't need any of this — the high-level actors cover the common cas
 The low-level update builders are only available from the `/low-level` subpath:
 
 ```ts
-import { GenericMockUpdate, MessageMockUpdate } from '@grammyjs/testing/low-level';
+import { GenericMockUpdate, MessageMockUpdate } from 'grammy-testing/low-level';
 ```
 
 Everything else (prepare functions, OutgoingRequests, mock\* helpers) is available from the main
 entry point:
 
 ```ts
-import { prepareBot, OutgoingRequests, mockSession } from '@grammyjs/testing';
+import { prepareBot, OutgoingRequests, mockSession } from 'grammy-testing';
 ```
 
 ## What's in this section

@@ -1,6 +1,6 @@
 # Reference test suite
 
-This directory is the **v1.0 acceptance suite** for `@grammyjs/testing`. v1.0 cuts only when every test in here passes — these are the patterns the plugin must support.
+This directory is the **v1.0 acceptance suite** for `grammy-testing`. v1.0 cuts only when every test in here passes — these are the patterns the plugin must support.
 
 ## Organization
 

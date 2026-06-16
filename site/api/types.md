@@ -1,6 +1,6 @@
 # Types (API Reference)
 
-All exported type aliases, interfaces, and constants from `@grammyjs/testing`.
+All exported type aliases, interfaces, and constants from `grammy-testing`.
 
 ## Chat member types
 
@@ -193,7 +193,7 @@ type ParseMode = 'HTML' | 'Markdown' | 'MarkdownV2';
 Re-exported directly from `grammy` for convenience:
 
 ```ts
-import { GrammyError } from '@grammyjs/testing';
+import { GrammyError } from 'grammy-testing';
 ```
 
 ---

@@ -33,7 +33,7 @@ export function createBot() {
 **Test:**
 
 ```ts
-import { prepareBot } from '@grammyjs/testing';
+import { prepareBot } from 'grammy-testing';
 import { describe, expect, it } from 'vitest';
 
 describe('inline keyboard', () => {

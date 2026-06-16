@@ -1,7 +1,7 @@
 import { Bot } from 'grammy';
 import { describe, expect, it } from 'vitest';
 
-import { prepareBot, prepareMiddleware } from '@grammyjs/testing';
+import { prepareBot, prepareMiddleware } from 'grammy-testing';
 
 import { createRateLimitMiddleware } from './bot';
 

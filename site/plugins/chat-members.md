@@ -1,6 +1,6 @@
 # Chat Members Plugin
 
-`@grammyjs/chat-members` provides two distinct features, both supported by `@grammyjs/testing`:
+`@grammyjs/chat-members` provides two distinct features, both supported by `grammy-testing`:
 
 | Feature                | Install API                               | Supported since |
 | ---------------------- | ----------------------------------------- | --------------- |
@@ -18,7 +18,7 @@ adapter — no live API call is made.
 ```ts
 import { chatMembers } from '@grammyjs/chat-members';
 import { Bot, MemorySessionStorage } from 'grammy';
-import { prepareBot } from '@grammyjs/testing';
+import { prepareBot } from 'grammy-testing';
 
 const adapter = new MemorySessionStorage();
 const bot = new Bot('token');
@@ -79,7 +79,7 @@ Install `hydrateChatMember()` **before** `prepareBot`:
 ```ts
 import { hydrateChatMember } from '@grammyjs/chat-members';
 import { Bot } from 'grammy';
-import { prepareBot } from '@grammyjs/testing';
+import { prepareBot } from 'grammy-testing';
 
 const bot = new Bot('token');
 bot.api.config.use(hydrateChatMember()); // before prepareBot ✓
@@ -107,7 +107,7 @@ bot.on('message:text', async (ctx) => {
 import { hydrateChatMember } from '@grammyjs/chat-members';
 import { Bot } from 'grammy';
 import { describe, expect, it } from 'vitest';
-import { prepareBot } from '@grammyjs/testing';
+import { prepareBot } from 'grammy-testing';
 
 describe('hydrateChatMember', () => {
   it('getChatMember result has .is() method', async () => {

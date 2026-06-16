@@ -1,6 +1,6 @@
 import { Bot } from 'grammy';
 
-import type { ChatSessionContext } from '@grammyjs/testing';
+import type { ChatSessionContext } from 'grammy-testing';
 
 export interface ChatSettings {
   isMuted: boolean;

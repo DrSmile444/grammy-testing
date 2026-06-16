@@ -1,5 +1,5 @@
 {
-  "name": "@grammyjs/testing",
+  "name": "grammy-testing",
   "version": "0.26.0",
   "type": "module",
   "packageManager": "npm@11.9.0",
@@ -137,6 +137,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:DrSmile444/grammy-testing.git"
+    "url": "git+https://github.com/DrSmile444/grammy-testing.git"
+  },
+  "homepage": "https://drsmile444.github.io/grammy-testing/",
+  "bugs": {
+    "url": "https://github.com/DrSmile444/grammy-testing/issues"
   }
 }

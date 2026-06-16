@@ -12,7 +12,7 @@ buttons by their **visible text** label.
 
 ```ts
 import { Menu } from '@grammyjs/menu';
-import { prepareBot } from '@grammyjs/testing';
+import { prepareBot } from 'grammy-testing';
 import { Bot } from 'grammy';
 import { describe, expect, it } from 'vitest';
 

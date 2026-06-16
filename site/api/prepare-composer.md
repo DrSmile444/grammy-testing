@@ -47,7 +47,7 @@ interface PrepareComposerReturn<TContext extends Context = Context> {
 ## Example — basic composer
 
 ```ts
-import { prepareComposer } from '@grammyjs/testing';
+import { prepareComposer } from 'grammy-testing';
 import { Composer } from 'grammy';
 
 const composer = new Composer();
@@ -64,7 +64,7 @@ expect(user.replies.lastOrThrow().text).toBe('pong');
 ## Example — custom context + state
 
 ```ts
-import { prepareComposer } from '@grammyjs/testing';
+import { prepareComposer } from 'grammy-testing';
 import { Composer, Context } from 'grammy';
 
 interface MyState {

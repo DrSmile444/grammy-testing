@@ -40,7 +40,7 @@ TBD - created by archiving change update-project-vision. Update Purpose after ar
 #### Scenario: Doc names the layered exports decision
 
 - **WHEN** a reader looks at the package's import surface
-- **THEN** the doc shows that `@grammyjs/testing` is the curated default and `@grammyjs/testing/low-level` is the escape hatch containing update-builder primitives
+- **THEN** the doc shows that `grammy-testing` is the curated default and `grammy-testing/low-level` is the escape hatch containing update-builder primitives
 
 #### Scenario: Doc names Admin as role, not identity
 

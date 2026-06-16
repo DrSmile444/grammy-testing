@@ -1,7 +1,7 @@
 # Auto-Retry Plugin
 
 Testing bots that use [@grammyjs/auto-retry](https://grammy.dev/plugins/auto-retry) works with
-`@grammyjs/testing` v0.23.0 and later.
+`grammy-testing` v0.23.0 and later.
 
 ## How auto-retry works
 
@@ -16,7 +16,7 @@ Install `autoRetry()` before `prepareBot`:
 ```ts
 import { autoRetry } from '@grammyjs/auto-retry';
 import { Bot } from 'grammy';
-import { prepareBot } from '@grammyjs/testing';
+import { prepareBot } from 'grammy-testing';
 
 const bot = new Bot('token');
 bot.api.config.use(autoRetry({ maxRetryAttempts: 3, maxDelaySeconds: 60 }));

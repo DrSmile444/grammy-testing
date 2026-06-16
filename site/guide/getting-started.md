@@ -7,19 +7,19 @@ Get your first test passing in under five minutes.
 ::: code-group
 
 ```sh [npm]
-npm install --save-dev @grammyjs/testing
+npm install --save-dev grammy-testing
 ```
 
 ```sh [yarn]
-yarn add --dev @grammyjs/testing
+yarn add --dev grammy-testing
 ```
 
 ```sh [pnpm]
-pnpm add --save-dev @grammyjs/testing
+pnpm add --save-dev grammy-testing
 ```
 
-```ts [Deno (jsr)]
-import { prepareBot } from 'jsr:@grammyjs/testing';
+```ts [Deno (npm)]
+import { prepareBot } from 'npm:grammy-testing';
 ```
 
 :::
@@ -53,7 +53,7 @@ Write a test:
 
 ```ts
 // bot.spec.ts
-import { prepareBot } from '@grammyjs/testing';
+import { prepareBot } from 'grammy-testing';
 import { describe, expect, it } from 'vitest';
 
 import { createBot } from './bot';

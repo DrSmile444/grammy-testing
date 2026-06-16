@@ -1,7 +1,7 @@
 import { Bot } from 'grammy';
 import { describe, expect, it } from 'vitest';
 
-import { prepareBot } from '@grammyjs/testing';
+import { prepareBot } from 'grammy-testing';
 
 import { createCallbackQueryBot } from './bot';
 

@@ -1,7 +1,7 @@
 # Hydrate Plugin
 
 Testing bots that use [@grammyjs/hydrate](https://grammy.dev/plugins/hydrate) works out of the
-box with `@grammyjs/testing` v0.23.0 and later.
+box with `grammy-testing` v0.23.0 and later.
 
 ## Two installation paths
 
@@ -28,7 +28,7 @@ ordering issue.
 ```ts
 import { hydrate, hydrateApi } from '@grammyjs/hydrate';
 import { Bot } from 'grammy';
-import { prepareBot } from '@grammyjs/testing';
+import { prepareBot } from 'grammy-testing';
 
 const bot = new Bot('token');
 
@@ -57,7 +57,7 @@ chats with `chats.newUser()` or similar before dispatching updates.
 import { hydrate, hydrateApi, type HydrateFlavor } from '@grammyjs/hydrate';
 import { Bot, type Context } from 'grammy';
 import { describe, expect, it } from 'vitest';
-import { prepareBot } from '@grammyjs/testing';
+import { prepareBot } from 'grammy-testing';
 
 type MyContext = HydrateFlavor<Context>;
 

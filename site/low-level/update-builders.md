@@ -1,7 +1,7 @@
 # Update Builders
 
 Update builders let you construct raw `Update` objects manually. Import them from the
-`@grammyjs/testing/low-level` subpath.
+`grammy-testing/low-level` subpath.
 
 ```ts
 import {
@@ -11,7 +11,7 @@ import {
   NewMemberMockUpdate,
   LeftMemberMockUpdate,
   MyChatMemberMockUpdate,
-} from '@grammyjs/testing/low-level';
+} from 'grammy-testing/low-level';
 ```
 
 ## When to use update builders
@@ -45,7 +45,7 @@ type PartialUpdate<U extends Update> = Omit<U, 'update_id'>;
 Builds a private-chat text-message update.
 
 ```ts
-import { MessagePrivateMockUpdate } from '@grammyjs/testing/low-level';
+import { MessagePrivateMockUpdate } from 'grammy-testing/low-level';
 
 const update = new MessagePrivateMockUpdate('Hello!');
 const bot = new Bot('token');
@@ -84,7 +84,7 @@ await bot.handleUpdate({ update_id: 1, ...update.build() });
 Builds a `my_chat_member` update (the bot's own membership status changing).
 
 ```ts
-import { MyChatMemberMockUpdate } from '@grammyjs/testing/low-level';
+import { MyChatMemberMockUpdate } from 'grammy-testing/low-level';
 
 const update = new MyChatMemberMockUpdate();
 await bot.handleUpdate({ update_id: 1, ...update.build() });

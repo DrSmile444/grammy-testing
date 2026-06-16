@@ -6,7 +6,7 @@ Vitest handles it without any special configuration.
 ## Setup
 
 ```sh
-npm install --save-dev vitest @grammyjs/testing grammy
+npm install --save-dev vitest grammy-testing grammy
 ```
 
 Minimal `vitest.config.ts`:
@@ -27,7 +27,7 @@ No transform plugins, no special flags. Vitest's default ESM support handles eve
 
 ```ts
 // bot.spec.ts
-import { prepareBot } from '@grammyjs/testing';
+import { prepareBot } from 'grammy-testing';
 import { describe, expect, it } from 'vitest';
 
 import { createBot } from './bot';

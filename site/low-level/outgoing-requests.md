@@ -141,7 +141,7 @@ a full `GrammyError`:
 { code: 403, description: 'Forbidden: bot was blocked by the user' }
 
 // Or a real GrammyError:
-import { GrammyError } from 'grammy'; // re-exported from @grammyjs/testing
+import { GrammyError } from 'grammy'; // re-exported from grammy-testing
 ```
 
 ---
