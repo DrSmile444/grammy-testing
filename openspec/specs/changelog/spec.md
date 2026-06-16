@@ -1,6 +1,6 @@
 ### Requirement: Changelog file exists at docs/CHANGELOG.md
 
-The project SHALL maintain a `docs/CHANGELOG.md` file that records all user-visible changes per released version of `@grammyjs/testing`.
+The project SHALL maintain a `docs/CHANGELOG.md` file that records all user-visible changes per released version of `grammy-testing`.
 
 #### Scenario: File exists after change is applied
 
@@ -37,7 +37,7 @@ Each version entry SHALL use the format `## X.Y.Z — YYYY-MM-DD` as its heading
 
 ### Requirement: Changelog is updated with each new release
 
-When a new version of `@grammyjs/testing` is released, `docs/CHANGELOG.md` SHALL be updated to include a new section at the top for that version before the release is tagged.
+When a new version of `grammy-testing` is released, `docs/CHANGELOG.md` SHALL be updated to include a new section at the top for that version before the release is tagged.
 
 #### Scenario: New version section added before release
 

@@ -1,10 +1,4 @@
-# build-and-publish Specification
-
-## Purpose
-
-Requirements for the npm build pipeline, dual-format output, and CI verification matrix for `grammy-testing`.
-
-## Requirements
+## ADDED Requirements
 
 ### Requirement: Package is published under the third-party name `grammy-testing`
 
@@ -60,15 +54,7 @@ SHALL contain `dist/`, `README.md`, and `LICENSE`, and SHALL NOT contain `src/`,
 - **THEN** the listed files include `dist/`, `README.md`, and `LICENSE`
 - **AND** they exclude `src/`, `tests/`, `examples/`, and `openspec/`
 
-### Requirement: Package builds to a dual-format dist/
-
-The system SHALL produce a `dist/` directory containing ESM (`.js`), CJS (`.cjs`), and TypeScript declaration (`.d.ts`) files for both entry points (`index` and `low-level`) when `npm run build` is executed. The build SHALL be reproducible and SHALL complete without errors on Node 20 and 22.
-
-#### Scenario: Build produces all required files
-
-- **WHEN** `npm run build` is run in a clean checkout
-- **THEN** `dist/index.js`, `dist/index.cjs`, `dist/index.d.ts` exist
-- **AND** `dist/low-level.js`, `dist/low-level.cjs`, `dist/low-level.d.ts` exist
+## MODIFIED Requirements
 
 ### Requirement: ESM and CJS consumers can import the package
 
@@ -94,47 +80,6 @@ The development test suite (`vitest run`) SHALL resolve `grammy-testing` to the 
 - **WHEN** `dist/` does not exist and `vitest run` is executed
 - **THEN** all tests pass
 - **AND** no module-not-found errors occur
-
-### Requirement: CI validates Node 18, 20, and 22
-
-A GitHub Actions workflow SHALL run `vitest run` on Node.js versions 20 and 22 on every push and pull request to `main`. All matrix jobs SHALL pass before a change is considered mergeable.
-
-#### Scenario: CI matrix runs on both Node versions
-
-- **WHEN** a commit is pushed to main
-- **THEN** two CI jobs run in parallel: Node 20, Node 22
-- **AND** each job installs dependencies and runs `npm run test:run`
-- **AND** both jobs pass
-
-### Requirement: CJS build is verified after every build
-
-A `test:cjs` script SHALL verify the built CJS output by `require`-ing both entry points from `dist/` and asserting that key exports are functions. The script SHALL use only Node.js built-ins (no test-framework dependency). The CI `build-and-verify` job SHALL run this script after `npm run build`.
-
-#### Scenario: CJS verification passes after build
-
-- **WHEN** `npm run build` has completed and `npm run test:cjs` is executed
-- **THEN** the script exits with code 0
-- **AND** `prepareBot`, `OutgoingRequests`, `mockSession`, and `MessagePrivateMockUpdate` are confirmed to be functions from the CJS build
-
-### Requirement: Bun CI step passes vitest run
-
-A CI step SHALL install the latest Bun release and run `bun run test:run`. All tests SHALL pass, verifying that the library works in the Bun runtime.
-
-#### Scenario: Bun passes all tests
-
-- **WHEN** the Bun CI step runs
-- **THEN** `bun run test:run` exits with code 0
-- **AND** all 136+ tests pass
-
-### Requirement: Deno type-check passes on source entry points
-
-A CI job SHALL run `deno check src/index.ts src/low-level.ts` using the latest Deno v2.x release. The check SHALL use `deno.json` at the repo root to resolve bare specifiers (`grammy`, `deepmerge`, `type-fest`) to their `npm:` equivalents. Runtime test execution under Deno is out of scope until JSR publishing is approved by the grammY team.
-
-#### Scenario: Deno check passes
-
-- **WHEN** the `deno` CI job runs
-- **THEN** `deno check src/index.ts src/low-level.ts` exits with code 0
-- **AND** no TypeScript errors are reported
 
 ### Requirement: Package installs cleanly in consumer projects
 

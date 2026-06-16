@@ -26,15 +26,15 @@ Each `examples/<N>-<name>/bot.ts` SHALL export a named factory function (e.g., `
 - **THEN** two distinct `Bot` instances are returned
 - **AND** neither instance shares state with the other
 
-### Requirement: example specs import from @grammyjs/testing
+### Requirement: example specs import from grammy-testing
 
-All `bot.spec.ts` files in the examples folder SHALL import testing utilities from `@grammyjs/testing` (not from relative paths into `src/`), so the examples are copy-paste-ready for end users.
+All `bot.spec.ts` files in the examples folder SHALL import testing utilities from `grammy-testing` (not from relative paths into `src/`), so the examples are copy-paste-ready for end users.
 
 #### Scenario: import resolves during vitest run
 
 - **WHEN** `vitest run` is executed
 - **THEN** all `examples/*/bot.spec.ts` files are included in the test run
-- **AND** `import { prepareBot } from '@grammyjs/testing'` resolves to `src/index.ts` via the vitest alias
+- **AND** `import { prepareBot } from 'grammy-testing'` resolves to `src/index.ts` via the vitest alias
 - **AND** all tests pass
 
 ### Requirement: each example demonstrates a distinct library API surface

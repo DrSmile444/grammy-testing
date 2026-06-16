@@ -123,7 +123,7 @@ The site footer/navbar SHALL include social links to the GitHub repository and t
 #### Scenario: npm link present
 
 - **WHEN** any page is rendered
-- **THEN** an npm icon link pointing to `npmjs.com/package/@grammyjs/testing` is visible
+- **THEN** an npm icon link pointing to `npmjs.com/package/grammy-testing` is visible
 
 ### Requirement: GitHub Actions deployment workflow
 

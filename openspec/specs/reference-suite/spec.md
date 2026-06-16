@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The reference suite is the v1.0 acceptance suite for `@grammyjs/testing`. It lives at `tests/reference/` and contains one spec file per pattern category. The suite proves that the library supports real-world testing patterns at the highest available API surface. v1.0 cuts only when every test in this suite passes.
+The reference suite is the v1.0 acceptance suite for `grammy-testing`. It lives at `tests/reference/` and contains one spec file per pattern category. The suite proves that the library supports real-world testing patterns at the highest available API surface. v1.0 cuts only when every test in this suite passes.
 
 ## Requirements
 

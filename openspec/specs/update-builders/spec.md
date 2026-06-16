@@ -6,18 +6,18 @@ TBD - created by archiving change add-low-level-testing-primitives. Update Purpo
 
 ## Requirements
 
-### Requirement: Update builders are reachable only via `@grammyjs/testing/low-level`
+### Requirement: Update builders are reachable only via `grammy-testing/low-level`
 
-The system SHALL export the update-builder primitives and generic fixtures from the `@grammyjs/testing/low-level` subpath only. The default `@grammyjs/testing` entry SHALL NOT re-export these symbols. Both subpath entries SHALL be declared in `package.json#exports` so resolution works under Node, Bun, and Deno (`npm:` import) without per-runtime configuration.
+The system SHALL export the update-builder primitives and generic fixtures from the `grammy-testing/low-level` subpath only. The default `grammy-testing` entry SHALL NOT re-export these symbols. Both subpath entries SHALL be declared in `package.json#exports` so resolution works under Node, Bun, and Deno (`npm:` import) without per-runtime configuration.
 
 #### Scenario: Subpath import succeeds
 
-- **WHEN** a test imports `MessagePrivateMockUpdate` from `@grammyjs/testing/low-level`
+- **WHEN** a test imports `MessagePrivateMockUpdate` from `grammy-testing/low-level`
 - **THEN** the import resolves to a class
 
 #### Scenario: Default entry does not expose builders
 
-- **WHEN** a test attempts to import `MessagePrivateMockUpdate` from `@grammyjs/testing`
+- **WHEN** a test attempts to import `MessagePrivateMockUpdate` from `grammy-testing`
 - **THEN** the import fails to resolve the symbol
 
 ### Requirement: `GenericMockUpdate` abstract base provides shared fixtures

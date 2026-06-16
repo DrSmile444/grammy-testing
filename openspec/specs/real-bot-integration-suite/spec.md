@@ -21,12 +21,12 @@ One agent per bot SHALL run in parallel after setup. Each agent installs grammy-
 #### Scenario: Node bot test setup
 
 - **WHEN** a bot uses Node.js
-- **THEN** the agent installs vitest and `@grammyjs/testing` via npm, writes `*.spec.ts` files co-located with handlers, and runs `npx vitest run`
+- **THEN** the agent installs vitest and `grammy-testing` via npm, writes `*.spec.ts` files co-located with handlers, and runs `npx vitest run`
 
 #### Scenario: Deno bot test setup
 
 - **WHEN** a bot uses Deno
-- **THEN** the agent runs `npm run build` in the grammy-testing repo to produce `dist/index.js`, adds `"@grammyjs/testing": "../../grammy-testing/dist/index.js"` to the bot's `deno.json` imports (the built ESM bundle has no bare specifiers beyond `grammy`), writes `*.test.ts` files using `Deno.test` + `@std/expect`, and runs `deno test`
+- **THEN** the agent runs `npm run build` in the grammy-testing repo to produce `dist/index.js`, adds `"grammy-testing": "../../grammy-testing/dist/index.js"` to the bot's `deno.json` imports (the built ESM bundle has no bare specifiers beyond `grammy`), writes `*.test.ts` files using `Deno.test` + `@std/expect`, and runs `deno test`
 
 #### Scenario: Deno bot grammy version too old
 
