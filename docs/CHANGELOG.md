@@ -1,6 +1,14 @@
 # Changelog
 
-## 0.26.0 — 2026-06-14
+## 0.26.0 — 2026-06-16
+
+### First public release as `grammy-testing`
+
+This is the first public npm release. The package is published under the third-party name
+**`grammy-testing`** (previously scaffolded as `@grammyjs/testing`), following the grammY
+third-party plugin convention (`grammy-<name>`). Install with `npm install --save-dev grammy-testing`
+and import from `grammy-testing` / `grammy-testing/low-level`. JSR publishing is deferred for now;
+the `@grammyjs/testing` name is reserved for a future official grammY release.
 
 ### grammY 1.44 / Bot API 10.0 + 10.1 support
 
@@ -294,7 +302,7 @@ const relay = await group.postRelayMessage('post text', { channel });
 A `TELEGRAM_RELAY` constant is exported for assertions:
 
 ```ts
-import { TELEGRAM_RELAY } from '@grammyjs/testing';
+import { TELEGRAM_RELAY } from 'grammy-testing';
 expect(ctx.message.from).toMatchObject(TELEGRAM_RELAY);
 ```
 
@@ -636,7 +644,7 @@ Tests that called `user.in(group)` after `changeMemberStatus` to verify the new 
 
 ### Plugin interop
 
-- Added `tests/plugins/` reference suite demonstrating `@grammyjs/testing` usage alongside:
+- Added `tests/plugins/` reference suite demonstrating `grammy-testing` usage alongside:
   - `@grammyjs/conversations` — multi-step conversation flows
   - `@grammyjs/menu` — inline menu navigation and callback routing
   - `@grammyjs/parse-mode` — `ctx.replyWithHTML()` / `ctx.replyFmt()` and `parseMode` assertions

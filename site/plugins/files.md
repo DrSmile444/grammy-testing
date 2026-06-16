@@ -1,7 +1,7 @@
 # Files Plugin
 
 Testing bots that use [@grammyjs/files](https://grammy.dev/plugins/files) works out of the box
-with `@grammyjs/testing` v0.23.0 and later.
+with `grammy-testing` v0.23.0 and later.
 
 ## How it works
 
@@ -28,7 +28,7 @@ Install `hydrateFiles` **before** calling `prepareBot`:
 ```ts
 import { hydrateFiles } from '@grammyjs/files';
 import { Bot } from 'grammy';
-import { prepareBot } from '@grammyjs/testing';
+import { prepareBot } from 'grammy-testing';
 
 const bot = new Bot('token');
 bot.api.config.use(hydrateFiles(bot.token)); // before prepareBot ✓
@@ -59,7 +59,7 @@ sufficient for asserting that `file.getUrl()` returns a valid HTTPS URL in tests
 import { hydrateFiles } from '@grammyjs/files';
 import { Bot } from 'grammy';
 import { describe, expect, it } from 'vitest';
-import { prepareBot } from '@grammyjs/testing';
+import { prepareBot } from 'grammy-testing';
 
 describe('files-bot', () => {
   it('bot can call file.getUrl() on a document', async () => {

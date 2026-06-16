@@ -52,7 +52,7 @@ interface PrepareBotReturn<TContext extends Context = Context> {
 ## Example
 
 ```ts
-import { prepareBot } from '@grammyjs/testing';
+import { prepareBot } from 'grammy-testing';
 import { Bot } from 'grammy';
 
 const bot = new Bot('token');

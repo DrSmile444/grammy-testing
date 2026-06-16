@@ -5,7 +5,7 @@ grammY Testing is ESM-first. Jest requires extra configuration to handle ESM pac
 ## Setup
 
 ```sh
-npm install --save-dev jest @types/jest ts-jest @grammyjs/testing grammy
+npm install --save-dev jest @types/jest ts-jest grammy-testing grammy
 ```
 
 ## ESM configuration
@@ -47,7 +47,7 @@ transform TypeScript with `ts-jest` in ESM mode:
 
 ```ts
 // bot.spec.ts
-import { prepareBot } from '@grammyjs/testing';
+import { prepareBot } from 'grammy-testing';
 
 import { createBot } from './bot';
 
@@ -65,7 +65,7 @@ describe('my bot', () => {
 
 ## Known caveats
 
-- `grammy` and `@grammyjs/testing` are ESM-only. If you use CommonJS Jest without
+- `grammy` and `grammy-testing` are ESM-only. If you use CommonJS Jest without
   `--experimental-vm-modules`, tests will fail with `ERR_REQUIRE_ESM`.
 - `ts-jest` v29+ with `useESM: true` is required. Older versions may need additional config.
 - If you hit issues with `deepmerge` or other ESM-only transitive deps, add them to

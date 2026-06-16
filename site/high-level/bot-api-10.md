@@ -1,6 +1,6 @@
 # Bot API 10 Features
 
-`@grammyjs/testing` v0.26.0 adds first-class support for the surfaces introduced in grammY 1.43
+`grammy-testing` v0.26.0 adds first-class support for the surfaces introduced in grammY 1.43
 (Bot API 10.0) and 1.44 (Bot API 10.1). All new outgoing methods are captured in
 `chats.outgoing` automatically; the helpers below add ergonomic responses, dispatch verbs, and
 read accessors on top of that capture.

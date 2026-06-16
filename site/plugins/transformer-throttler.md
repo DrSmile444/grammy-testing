@@ -6,7 +6,7 @@ installed via `bot.api.config.use(throttler())`.
 
 ## Compatibility with the testing framework
 
-`@grammyjs/transformer-throttler` is compatible with `@grammyjs/testing` v0.23.0 and later.
+`@grammyjs/transformer-throttler` is compatible with `grammy-testing` v0.23.0 and later.
 With the chain-ordering fix in v0.23.0, the throttler transformer is correctly positioned as an
 outer transformer and participates in every API call.
 
@@ -21,7 +21,7 @@ To keep tests fast, configure the throttler with permissive limits when testing:
 ```ts
 import { throttler } from '@grammyjs/transformer-throttler';
 import { Bot } from 'grammy';
-import { prepareBot } from '@grammyjs/testing';
+import { prepareBot } from 'grammy-testing';
 
 const bot = new Bot('token');
 

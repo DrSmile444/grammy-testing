@@ -6,7 +6,7 @@ Forces the next call to a specific API method to reject with a `GrammyError`. Af
 subsequent calls revert to normal.
 
 ```ts
-import { GrammyError, prepareBot } from '@grammyjs/testing';
+import { GrammyError, prepareBot } from 'grammy-testing';
 
 const { chats } = await prepareBot(createBot());
 const user = chats.newUser();
@@ -50,7 +50,7 @@ await user.sendCommand('/check');
 ## Testing your bot's error handler
 
 ```ts
-import { GrammyError } from 'grammy'; // also re-exported from @grammyjs/testing
+import { GrammyError } from 'grammy'; // also re-exported from grammy-testing
 
 const bot = new Bot('token');
 
@@ -93,7 +93,7 @@ Both `failNext` and `failAll` accept either a real `GrammyError` or a shorthand 
 { code: 403, description: 'Forbidden: ...' }
 
 // Real GrammyError (e.g. to set extra fields):
-import { GrammyError } from '@grammyjs/testing';
+import { GrammyError } from 'grammy-testing';
 const err = new GrammyError('...', { error_code: 403, description: '...', ok: false }, 'sendMessage', {});
 chats.outgoing.failNext('sendMessage', err);
 ```

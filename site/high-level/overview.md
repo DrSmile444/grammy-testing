@@ -7,7 +7,7 @@ groups, channels, private chats — each as an actor object you control.
 
 ```
 ┌───────────────────────────────────────────────────────────┐
-│  High-Level Layer   @grammyjs/testing                     │
+│  High-Level Layer   grammy-testing                     │
 │                                                           │
 │  Chats (orchestrator)                                     │
 │   ├─ newUser()   → User      → .replies (RepliesInbox)    │
@@ -18,7 +18,7 @@ groups, channels, private chats — each as an actor object you control.
 │   ├─ newChannel() → Channel  → .messages (MessagesLog)    │
 │   └─ newPrivateChat() → PrivateChat → .messages           │
 │                                                           │
-│  Low-Level Layer   @grammyjs/testing/low-level            │
+│  Low-Level Layer   grammy-testing/low-level            │
 │   ├─ OutgoingRequests  (raw capture)                      │
 │   ├─ Mock update builders                                 │
 │   └─ Session / state mocking                              │

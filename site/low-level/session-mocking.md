@@ -8,7 +8,7 @@ real storage middleware.
 Mocks `ctx.session` for per-user session state.
 
 ```ts
-import { mockSession, prepareBot } from '@grammyjs/testing';
+import { mockSession, prepareBot } from 'grammy-testing';
 import { Bot } from 'grammy';
 
 interface MySession {
@@ -60,7 +60,7 @@ Pre-populates `ctx.state` before every handler invocation. Available via `prepar
 `prepareMiddleware` options, or manually:
 
 ```ts
-import { mockState } from '@grammyjs/testing';
+import { mockState } from 'grammy-testing';
 
 interface MyState {
   isAdmin: boolean;
@@ -80,7 +80,7 @@ const { chats } = await prepareComposer(composer, {
 Generic helper for mocking any context field. The specialised helpers above are built on it.
 
 ```ts
-import { mockContextField } from '@grammyjs/testing';
+import { mockContextField } from 'grammy-testing';
 
 interface MyContext extends Context {
   premium: boolean;

@@ -1,35 +1,19 @@
 # With Deno
 
-grammY Testing is published to [JSR](https://jsr.io/@grammyjs/testing) and works with Deno natively.
+::: tip Third-party release
+`grammy-testing` is currently published to **npm only**. Native Deno/JSR support — a `jsr:` import
+and a `deno.json` entry — will arrive when the library migrates to the official `@grammyjs/testing`
+package. Until then, Deno consumes it through the `npm:` specifier.
+:::
 
 ## Import
 
-```ts
-import { prepareBot } from 'jsr:@grammyjs/testing';
-import { Bot } from 'jsr:@grammyjs/grammy';
-```
-
-Or pin to a version:
+Deno can import the package directly from npm using the `npm:` specifier — no `npm install` or
+`node_modules` required:
 
 ```ts
-import { prepareBot } from 'jsr:@grammyjs/testing@^0.21.0';
-```
-
-## deno.json configuration
-
-```json
-{
-  "imports": {
-    "@grammyjs/testing": "jsr:@grammyjs/testing",
-    "grammy": "jsr:@grammyjs/grammy"
-  }
-}
-```
-
-Then import by name:
-
-```ts
-import { prepareBot } from '@grammyjs/testing';
+import { prepareBot } from 'npm:grammy-testing';
+import { Bot } from 'npm:grammy';
 ```
 
 ## Writing tests
@@ -38,8 +22,8 @@ Use `Deno.test` with the standard `assert` helpers, or bring in any assertion li
 
 ```ts
 // bot.test.ts
-import { prepareBot } from 'jsr:@grammyjs/testing';
-import { Bot } from 'jsr:@grammyjs/grammy';
+import { prepareBot } from 'npm:grammy-testing';
+import { Bot } from 'npm:grammy';
 import { assertEquals } from 'jsr:@std/assert';
 
 Deno.test('replies to /start', async () => {
@@ -67,11 +51,10 @@ deno test --allow-env
 The low-level update builders are exported from a separate subpath:
 
 ```ts
-import { GenericMockUpdate } from 'jsr:@grammyjs/testing/low-level';
+import { GenericMockUpdate } from 'npm:grammy-testing/low-level';
 ```
 
 ## Notes
 
-- Deno resolves JSR packages from `jsr.json` at the repo root, which mirrors `package.json` versioning.
-- No `npm install` or `node_modules` required.
 - All TypeScript types are included — no separate `@types` package needed.
+- When the official `@grammyjs/testing` release lands, this page will switch to the `jsr:` import.

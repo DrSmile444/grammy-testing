@@ -1,7 +1,7 @@
 # Media Groups Plugin
 
 Testing bots that use [grammy-media-groups](https://github.com/PonomareVlad/grammy-media-groups) works
-out of the box with `@grammyjs/testing` v0.24.0 and later.
+out of the box with `grammy-testing` v0.24.0 and later.
 
 ## What grammy-media-groups does
 
@@ -41,7 +41,7 @@ Install `mediaGroupTransformer(adapter)` **before** `prepareBot`:
 import { MemorySessionStorage } from 'grammy';
 import { Bot } from 'grammy';
 import { mediaGroupTransformer } from 'grammy-media-groups';
-import { prepareBot } from '@grammyjs/testing';
+import { prepareBot } from 'grammy-testing';
 
 const adapter = new MemorySessionStorage();
 const bot = new Bot('token');
@@ -77,7 +77,7 @@ import { Bot } from 'grammy';
 import type { Message } from 'grammy/types';
 import { mediaGroupTransformer } from 'grammy-media-groups';
 import { describe, expect, it } from 'vitest';
-import { prepareBot } from '@grammyjs/testing';
+import { prepareBot } from 'grammy-testing';
 
 describe('grammy-media-groups', () => {
   it('adapter contains stored messages after sendMediaGroup', async () => {

@@ -30,7 +30,7 @@ interface PrepareMiddlewareReturn<TContext extends Context = Context> {
 ## Example — rate limiter
 
 ```ts
-import { prepareMiddleware } from '@grammyjs/testing';
+import { prepareMiddleware } from 'grammy-testing';
 import { describe, expect, it } from 'vitest';
 
 // Rate limiter middleware

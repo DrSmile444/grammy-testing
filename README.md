@@ -8,11 +8,10 @@
 
 <div align="center">
 
-[![npm](https://img.shields.io/npm/v/@grammyjs/testing?style=flat&labelColor=000&color=ffd700)](https://www.npmjs.com/package/@grammyjs/testing)
-[![JSR](https://img.shields.io/jsr/v/@grammyjs/testing?style=flat&labelColor=000&color=ffd700)](https://jsr.io/@grammyjs/testing)
+[![npm](https://img.shields.io/npm/v/grammy-testing?style=flat&labelColor=000&color=ffd700)](https://www.npmjs.com/package/grammy-testing)
 [![License: MIT](https://img.shields.io/badge/License-MIT-ffd700?style=flat&labelColor=000)](LICENSE)
 
-## _[docs.](https://drsmile444.github.io/grammy-testing/) [npm.](https://www.npmjs.com/package/@grammyjs/testing) [jsr.](https://jsr.io/@grammyjs/testing) [examples.](./examples/)_
+## _[docs.](https://drsmile444.github.io/grammy-testing/) [npm.](https://www.npmjs.com/package/grammy-testing) [examples.](./examples/)_
 
 </div>
 
@@ -24,18 +23,14 @@
 hoping the Telegram API behaved.** grammY ships no testing tools itself, and existing
 community solutions are either unmaintained, Deno-only, or too low-level to be ergonomic.
 
-`@grammyjs/testing` drives your real bot in-process. No token. No network. No sleep timers.
+`grammy-testing` drives your real bot in-process. No token. No network. No sleep timers.
 Dispatch a synthetic update, the bot handles it exactly as it would in production, and you
 assert on the captured replies.
 
 ## Quick Start
 
 ```bash
-# npm
-npm install --save-dev @grammyjs/testing
-
-# Deno / JSR
-npx jsr add --dev @grammyjs/testing
+npm install --save-dev grammy-testing
 ```
 
 ```ts
@@ -47,7 +42,7 @@ bot.command('start', async (ctx) => {
 
 ```ts
 // bot.spec.ts
-import { prepareBot } from '@grammyjs/testing';
+import { prepareBot } from 'grammy-testing';
 
 const { chats } = await prepareBot(createBot());
 const user = chats.newUser();
@@ -149,7 +144,7 @@ the simplest echo bot to multi-chat scenarios with sessions and admin guards.
 
 ## Credits
 
-`@grammyjs/testing` stands on the shoulders of:
+`grammy-testing` stands on the shoulders of:
 
 - [grammy_tests](https://github.com/dcdunkan/grammy_tests) by dcdunkan — the original
   testing concept for grammY bots that inspired this library's design

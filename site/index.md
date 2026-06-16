@@ -34,7 +34,7 @@ features:
 ## Quick look
 
 ```ts
-import { prepareBot } from '@grammyjs/testing';
+import { prepareBot } from 'grammy-testing';
 import { Bot } from 'grammy';
 import { describe, expect, it } from 'vitest';
 
@@ -56,19 +56,19 @@ it('replies to /start', async () => {
 ::: code-group
 
 ```sh [npm]
-npm install --save-dev @grammyjs/testing
+npm install --save-dev grammy-testing
 ```
 
 ```sh [yarn]
-yarn add --dev @grammyjs/testing
+yarn add --dev grammy-testing
 ```
 
 ```sh [pnpm]
-pnpm add --save-dev @grammyjs/testing
+pnpm add --save-dev grammy-testing
 ```
 
 ```ts [Deno]
-import { prepareBot } from 'jsr:@grammyjs/testing';
+import { prepareBot } from 'npm:grammy-testing';
 ```
 
 :::
