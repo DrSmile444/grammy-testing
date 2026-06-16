@@ -106,7 +106,7 @@ expect(user.replies.lastOrThrow().text).toContain('Welcome');
 
 ## Examples
 
-23 self-contained bots with matching test files live in [`examples/`](./examples/):
+26 self-contained bots with matching test files live in [`examples/`](./examples/):
 
 | #   | Scenario                                                                                                 |
 | --- | -------------------------------------------------------------------------------------------------------- |
@@ -133,6 +133,9 @@ expect(user.replies.lastOrThrow().text).toContain('Welcome');
 | 21  | [Files bot](./examples/21-files-bot/) — `@grammyjs/files` — `file.getUrl()` from `ctx.getFile()`         |
 | 22  | [Hydrate bot](./examples/22-hydrate-bot/) — `@grammyjs/hydrate` — hydrated replies with `delete()`       |
 | 23  | [Auto-retry bot](./examples/23-auto-retry-bot/) — `@grammyjs/auto-retry` — broadcast with error handling |
+| 24  | [Guest mode bot](./examples/24-guest-mode-bot/) — `answerGuestQuery` for `guest_message` updates         |
+| 25  | [Rich message bot](./examples/25-rich-message-bot/) — `sendRichMessage` with a draft preview             |
+| 26  | [Reaction removal bot](./examples/26-reaction-removal-bot/) — `deleteMessageReaction` via `/clearreactions` |
 
 ## Documentation
 
