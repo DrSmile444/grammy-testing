@@ -1,6 +1,6 @@
 import { Bot, session } from 'grammy';
 
-import type { SessionContext } from '@grammyjs/testing';
+import type { SessionContext } from 'grammy-testing';
 
 export interface CounterSession {
   count: number;
